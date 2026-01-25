@@ -1,0 +1,17 @@
+# EzCountdown Locations
+# Format:
+# <name>:
+#   world: <world>
+#   x: <double>
+#   y: <double>
+#   z: <double>
+#   yaw: <float>
+#   pitch: <float>
+# Example:
+# spawn:
+#   world: world
+#   x: 100.5
+#   y: 65.0
+#   z: -200.25
+#   yaw: 0.0
+#   pitch: 0.0

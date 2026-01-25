@@ -1,0 +1,62 @@
+# Compiled class files
+*.class
+
+# Logs
+*.log
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Maven
+/target/
+dependency-reduced-pom.xml
+release.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+
+# Build outputs and generated sources
+/generated-sources/
+/generated-test-sources/
+/test-classes/
+/classes/
+
+# IDEs and editors
+/.idea/
+*.iml
+*.ipr
+*.iws
+/.vscode/
+/out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+.recommenders/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.swp
+*~
+
+# Environment files
+.env
+.env.local
+
+# Other
+target/
+.mvn/
+.settings/

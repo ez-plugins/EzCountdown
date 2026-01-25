@@ -1,0 +1,33 @@
+countdowns:
+  # example_event:
+  #   type: FIXED_DATE
+  #   target: "2026-01-01 00:00"
+  #   running: false
+  #   display:
+  #     types: [ACTION_BAR, BOSS_BAR]
+  #     update-interval: 1
+  #     visibility: "all"
+  #   messages:
+  #     format: "{prefix}<white>Example Event</white> <gray>starts in</gray> <yellow>{formatted}</yellow>"
+  #     start: "{prefix}<green>Example countdown started.</green>"
+  #     end: "{prefix}<gold>Example countdown ended!</gold>"
+  #   commands:
+  #     end:
+  #       - "say Countdown finished!"
+  #   zone: "UTC"
+  #   teleport:
+  #     start: spawn
+  #     end: arena
+  #   firework:
+  #     start:
+  #       location: spawn
+  #       color: red
+  #       power: 2
+  #       count: 16
+  #     end:
+  #       location: arena
+  #       color: blue
+  #       power: 2
+  #       count: 24
+  #       interval: 40
+  #       rows: 20

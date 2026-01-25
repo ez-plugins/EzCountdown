@@ -1,0 +1,26 @@
+defaults:
+  display-types:
+    - ACTION_BAR
+  update-interval: 1
+  visibility: "all"
+  start-on-create: true
+  zone: "UTC"
+
+permissions:
+  base: "ezcountdown.use"
+  create: "ezcountdown.admin"
+  start: "ezcountdown.admin"
+  stop: "ezcountdown.admin"
+  delete: "ezcountdown.admin"
+  list: "ezcountdown.use"
+  info: "ezcountdown.use"
+  reload: "ezcountdown.admin"
+
+display-overrides:
+  # Set to true to force-enable a display type even if runtime checks fail.
+  force-enable:
+    action_bar: false
+    chat: false
+    title: false
+    scoreboard: false
+    boss_bar: false

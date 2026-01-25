@@ -1,0 +1,21 @@
+name: EzCountdown
+version: ${project.version}
+main: com.skyblockexp.ezcountdown.EzCountdownPlugin
+description: Professional countdown timers for events, launches, and maintenance windows.
+softdepend: [PlaceholderAPI]
+author: Shadow48402
+api-version: 1.13
+commands:
+  countdown:
+    description: Manage EzCountdown timers.
+    usage: /<command> <create|start|stop|delete|list|info|reload>
+    aliases: [ezcountdown, countdown, ezcd]
+    permission: ezcountdown.use
+    permission-message: You do not have permission to use countdown commands.
+permissions:
+  ezcountdown.use:
+    description: Allows access to base countdown commands.
+    default: true
+  ezcountdown.admin:
+    description: Allows administrators to manage countdowns.
+    default: op

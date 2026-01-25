@@ -1,0 +1,44 @@
+# Discord Webhook Configuration for EzCountdown
+#
+# Supports multiple webhooks and fully customizable embed templates.
+# Placeholders: {countdown}, {time_left}, {event}, {trigger}, {days}, {hours}, {minutes}, {seconds}, etc.
+
+webhooks:
+  - name: "Main Announcements"
+    url: "https://discord.com/api/webhooks/your_webhook_url_1"
+    enabled: false
+    triggers:
+      - countdown_start
+      - countdown_end
+    embed:
+      title: "Countdown: {countdown}"
+      description: "{event} is happening in {time_left}!"
+      color: "#00BFFF"
+      footer:
+        text: "EzCountdown by Shadow48402"
+        icon_url: "https://yourdomain.com/footericon.png"
+      thumbnail_url: "https://yourdomain.com/thumbnail.png"
+      image_url: ""
+      author:
+        name: "Server Announcer"
+        icon_url: "https://yourdomain.com/authoricon.png"
+  - name: "Staff Alerts"
+    url: "https://discord.com/api/webhooks/your_webhook_url_2"
+    enabled: false
+    triggers:
+      - countdown_start
+    embed:
+      title: "[Staff] Countdown Started: {countdown}"
+      description: "A new countdown has started: {countdown} ({time_left})"
+      color: "#FF0000"
+      footer:
+        text: "Staff Only"
+        icon_url: ""
+      thumbnail_url: ""
+      image_url: ""
+      author:
+        name: "EzCountdown System"
+        icon_url: ""
+
+# Add more webhooks as needed. Each can have its own triggers and embed style.
+# Supported triggers: countdown_start, countdown_end, countdown_tick (not recommended for every second), etc.

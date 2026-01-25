@@ -1,0 +1,113 @@
+[CENTER][SIZE=6][B]EzCountdown[/B][/SIZE]
+[SIZE=3]Run flash sales, timed events, and launches with stunning countdowns - ActionBar, BossBar, Titles & Placeholders![/SIZE]
+[SIZE=2]Spigot, Paper, or Bukkit 1.7-1.21.* • Action bar, boss bar, title, chat, scoreboard • PlaceholderAPI ready[/SIZE][/CENTER]
+
+Found an issue or have a question? Please contact me through [URL='https://discord.gg/yWP95XfmBS']the EzPlugins Discord server[/URL].
+
+[SIZE=4][B]Why Server Owners Love EzCountdown[/B][/SIZE]
+[LIST]
+[*][B]Perfect for flash sales & events[/B] - Instantly set up countdowns for shop discounts, launches, or any special event.
+[*][B]Multiple countdown types[/B] - Fixed dates, durations, recurring schedules, or manual timers. Great for launches, resets, or surprise sales.
+[*][B]Flexible displays[/B] - Show timers in action bar, boss bar, title, chat, or scoreboard. Make sure every player sees the excitement.
+[*][B]Firework shows[/B] - Optional, configurable firework displays for celebration moments. ([COLOR=#ff0000]new[/COLOR])
+[*][B]Permission control[/B] - Limit visibility or management to specific ranks. Keep control in the hands of your staff or VIPs.
+[*][B]PlaceholderAPI support[/B] - Use %ezcountdown_<name>_formatted% and time-part placeholders in any plugin or message.
+[*][B]Config-driven[/B] - Tune update intervals, messaging, and defaults in YAML. No coding required, just edit and reload.
+[/LIST]
+
+[IMG]https://i.ibb.co/7tg3Tgz9/image.png[/IMG]
+[MEDIA=youtube]r12mMkx4F9U[/MEDIA]
+
+[SIZE=4][B]Quick Start[/B][/SIZE]
+[LIST]
+[*]Drop [icode]EzCountdown.jar[/icode] into [icode]plugins/[/icode] and start your server.
+[*]Edit [icode]plugins/EzCountdown/countdowns.yml[/icode] to define flash sales, events, or launches.
+[*]Use [icode]/countdown list[/icode] to verify active countdowns.
+[*]Reload changes instantly with [icode]/countdown reload[/icode].
+[/LIST]
+
+[B]Commands & Permissions[/B]
+[table]
+[tr][th]Command[/th][th]Description[/th][th]Permission[/th][/tr]
+[tr][td]/countdown create <name> <date|duration|manual|recurring>[/td][td]Create a countdown.[/td][td]ezcountdown.admin[/td][/tr]
+[tr][td]/countdown start <name>[/td][td]Start a countdown.[/td][td]ezcountdown.admin[/td][/tr]
+[tr][td]/countdown stop <name>[/td][td]Stop a countdown.[/td][td]ezcountdown.admin[/td][/tr]
+[tr][td]/countdown delete <name>[/td][td]Delete a countdown.[/td][td]ezcountdown.admin[/td][/tr]
+[tr][td]/countdown list[/td][td]List countdowns.[/td][td]ezcountdown.use[/td][/tr]
+[tr][td]/countdown info <name>[/td][td]Show countdown details.[/td][td]ezcountdown.use[/td][/tr]
+[tr][td]/countdown reload[/td][td]Reload configuration files.[/td][td]ezcountdown.admin[/td][/tr]
+[tr][td]/countdown location <add/delete> <name>[/td][td]Location management[/td][td]ezcountdown.location.<add/delete>[/td][/tr]
+[/table]
+
+[SIZE=4][B]Example: Flash Sale Countdown[/B][/SIZE]
+[CODE=yaml]
+countdowns:
+  flash_sale:
+    type: DURATION
+    target: "30m"
+    running: false
+
+    display:
+      types:
+        - ACTION_BAR
+        - TITLE
+      update-interval: 1
+      visibility: "all"
+
+    messages:
+      format: "<gold>Flash Sale</gold> <gray>ends in</gray> <aqua>{formatted}</aqua>"
+      start: "<green>Flash Sale is now live! Enjoy discounts for 30 minutes!</green>"
+      end: "<red>The Flash Sale has ended!</red>"
+
+    commands:
+      start:
+        - "broadcast <gold>Flash Sale started! Check the shop for deals!</gold>"
+      end:
+        - "broadcast <red>Flash Sale over! Thanks for participating!</red>"
+
+    zone: "UTC"
+[/CODE]
+Start the sale with [icode]/countdown start flash_sale[/icode] and watch the timer appear everywhere!
+
+[SIZE=4][B]Countdown Types[/B][/SIZE]
+[LIST]
+[*][B]Fixed Date:[/B] Counts down to a specific date and time. Use for launches, holidays, or scheduled events. Example: /countdown create new_year 2026-01-01 00:00.
+[*][B]Duration:[/B] Runs for a set length of time (e.g., 30 minutes), starting immediately or when triggered. Perfect for flash sales or timed events. Example: /countdown create flash_sale duration 30m.
+[*][B]Manual:[/B] Defines a duration that only runs when manually started. Useful for surprise events or staff-triggered timers.
+[*][B]Recurring:[/B] Repeats at a set interval (annually, monthly, weekly). Great for regular sales or events.
+[/LIST]
+
+[SIZE=4][B]Display Types[/B][/SIZE]
+[LIST]
+[*][B]ACTION_BAR:[/B] Subtle, always-on timer above the hotbar.
+[*][B]BOSS_BAR:[/B] Dramatic bar at the top of the screen.
+[*][B]TITLE:[/B] Large center-screen titles for big moments.
+[*][B]CHAT:[/B] Periodic chat messages.
+[*][B]SCOREBOARD:[/B] Sidebar timer for ongoing events.
+[/LIST]
+Mix and match display types per countdown!
+
+[SIZE=4][B]Advanced Features[/B][/SIZE]
+[LIST]
+[*]Teleport players at countdown start/end using named locations.
+[*]Firework shows for celebration moments.
+[*]Custom messages and commands for every countdown event.
+[*]PlaceholderAPI – Use [icode]%ezcountdown_<name>_formatted%[/icode] and more in any plugin.
+[/LIST]
+
+[B]Locations & Fireworks[/B]
+[LIST]
+[*]Set teleport locations: [icode]/ezcd locations add <name>[/icode]
+[*]Configure fireworks and teleports in [icode]countdowns.yml[/icode] under [icode]teleport:[/icode] and [icode]firework:[/icode] sections.
+[/LIST]
+
+[SIZE=4][B]PlaceholderAPI[/B][/SIZE]
+[LIST]
+[*][icode]%ezcountdown_<name>_formatted%[/icode]
+[*][icode]%ezcountdown_<name>_days%[/icode]
+[*][icode]%ezcountdown_<name>_hours%[/icode]
+[*][icode]%ezcountdown_<name>_minutes%[/icode]
+[*][icode]%ezcountdown_<name>_seconds%[/icode]
+[/LIST]
+
+[CENTER][B]Boost your server’s engagement and sales, run flash sales and special events with EzCountdown![/B][/CENTER]

@@ -1,0 +1,70 @@
+# Message shown in console when an update is available. Placeholders: %link%, %current_version%, %new_version%
+update-message: "&6Update available! %link% (Current: %current_version%, New: %new_version%)"
+
+prefix: "<aqua>EzCountdown</aqua> <gray>»</gray> "
+use-minimessage: true
+
+defaults:
+  format: "{prefix}<white>{name}</white> <gray>starts in</gray> <yellow>{formatted}</yellow>"
+  start: "{prefix}<green>Countdown</green> <white>{name}</white> <gray>has started.</gray>"
+  end: "{prefix}<red>Countdown</red> <white>{name}</white> <gray>has ended.</gray>"
+
+commands:
+  no-permission: "{prefix}<red>You do not have permission to use this command.</red>"
+  usage:
+    header: "{prefix}<white>Available commands:</white>"
+    create: "<gray>/countdown create <name> <date|duration|manual|recurring></gray>"
+    start: "<gray>/countdown start <name></gray>"
+    stop: "<gray>/countdown stop <name></gray>"
+    delete: "<gray>/countdown delete <name></gray>"
+    list: "<gray>/countdown list</gray>"
+    info: "<gray>/countdown info <name></gray>"
+    reload: "<gray>/countdown reload</gray>"
+  create:
+    no-permission: "{prefix}<red>You do not have permission to create countdowns.</red>"
+    usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown create <name> <date|duration|manual|recurring></gray>"
+    duration-usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown create <name> duration <duration></gray>"
+    manual-usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown create <name> manual <duration></gray>"
+    recurring-usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown create <name> recurring <month> <day> <HH:mm></gray>"
+    invalid-date: "{prefix}<red>Invalid date format. Use yyyy-MM-dd HH:mm.</red>"
+    invalid-recurring: "{prefix}<red>Invalid recurring date. Use <month> <day> <HH:mm>.</red>"
+    invalid-duration: "{prefix}<red>Invalid duration:</red> <white>{reason}</white>"
+    exists: "{prefix}<red>A countdown named</red> <white>{name}</white> <red>already exists.</red>"
+    success: "{prefix}<green>Created countdown</green> <white>{name}</white><green>.</green>"
+  start:
+    no-permission: "{prefix}<red>You do not have permission to start countdowns.</red>"
+    usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown start <name></gray>"
+    success: "{prefix}<green>Countdown</green> <white>{name}</white> <green>started.</green>"
+    missing: "{prefix}<red>Countdown</red> <white>{name}</white> <red>was not found.</red>"
+  stop:
+    no-permission: "{prefix}<red>You do not have permission to stop countdowns.</red>"
+    usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown stop <name></gray>"
+    success: "{prefix}<green>Countdown</green> <white>{name}</white> <green>stopped.</green>"
+    missing: "{prefix}<red>Countdown</red> <white>{name}</white> <red>was not found.</red>"
+  delete:
+    no-permission: "{prefix}<red>You do not have permission to delete countdowns.</red>"
+    usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown delete <name></gray>"
+    success: "{prefix}<green>Deleted countdown</green> <white>{name}</white><green>.</green>"
+    missing: "{prefix}<red>Countdown</red> <white>{name}</white> <red>was not found.</red>"
+  list:
+    no-permission: "{prefix}<red>You do not have permission to list countdowns.</red>"
+    empty: "{prefix}<yellow>No countdowns configured yet.</yellow>"
+    format: "{prefix}<white>Countdowns:</white> {list}"
+    entry: "<aqua>{name}</aqua> <gray>({status})</gray>"
+    separator: "<gray>, </gray>"
+    status:
+      running: "<green>running</green>"
+      stopped: "<red>stopped</red>"
+  info:
+    no-permission: "{prefix}<red>You do not have permission to view countdown info.</red>"
+    usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown info <name></gray>"
+    missing: "{prefix}<red>Countdown</red> <white>{name}</white> <red>was not found.</red>"
+    header: "{prefix}<aqua>Countdown:</aqua> <white>{name}</white>"
+    type: "<gray>Type:</gray> <white>{type}</white>"
+    running: "<gray>Running:</gray> <white>{running}</white>"
+    display: "<gray>Display:</gray> <white>{display}</white>"
+    target: "<gray>Target:</gray> <white>{target}</white>"
+  reload:
+    no-permission: "{prefix}<red>You do not have permission to reload.</red>"
+    success: "{prefix}<green>EzCountdown reloaded.</green>"
+    unsupported: "{prefix}<red>Reload is not supported.</red>"
