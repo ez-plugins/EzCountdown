@@ -24,6 +24,38 @@ See [docs/permissions.md](docs/permissions.md) for permission details.
 ## Configuration
 See [docs/configuration.md](docs/configuration.md) for configuration details and examples.
 
+## Documentation
+
+Comprehensive documentation is available in the `docs/` folder. Quick links:
+
+- **Commands & Configuration**
+	- [Commands](docs/commands.md)
+	- [Configuration](docs/configuration.md)
+	- [Permissions](docs/permissions.md)
+
+- **Features**
+	- [Countdown types](docs/feature/countdown_types.md)
+	- [Teleport integration](docs/feature/teleport.md)
+	- [Placeholder support](docs/feature/placeholders.md)
+	- [Discord integration](docs/feature/discord_integration.md)
+	- [GUI editor](docs/feature/gui.md)
+	- [Firework shows](docs/feature/firework_shows.md)
+	- Display-specific docs:
+		- [Action bar](docs/feature/display/action_bar.md)
+		- [Boss bar](docs/feature/display/boss_bar.md)
+		- [Chat](docs/feature/display/chat.md)
+		- [Title](docs/feature/display/title.md)
+		- [Scoreboard](docs/feature/display/scoreboard.md)
+
+- **API**
+	- [API overview](docs/api/README.md)
+	- [EzCountdown API](docs/api/EzCountdownApi.md)
+	- [Model: Countdown](docs/api/model/Countdown.md)
+	- [Model: CountdownType](docs/api/model/CountdownType.md)
+	- [Events: CountdownStartEvent](docs/api/event/CountdownStartEvent.md)
+	- [Events: CountdownTickEvent](docs/api/event/CountdownTickEvent.md)
+	- [Events: CountdownEndEvent](docs/api/event/CountdownEndEvent.md)
+
 ## Example
 ```
 /countdown create new_year 2026-01-01 00:00
@@ -40,8 +72,4 @@ countdowns:
 		teleport:
 			start: spawn
 			end: arena
-```
-
-Locations are managed with `/ezcd location add <name>` (saves your current position) and `/ezcd location delete <name>`.
-`/countdown create maintenance duration 2h`
 ```
