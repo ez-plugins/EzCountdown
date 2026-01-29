@@ -282,6 +282,8 @@ public final class CountdownCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (manager.deleteCountdown(args[1])) {
+            // Persist deletion to storage so it does not reappear after a restart
+            manager.save();
             sender.sendMessage(messageManager.message("commands.delete.success", Map.of("name", args[1])));
         } else {
             sender.sendMessage(messageManager.message("commands.delete.missing", Map.of("name", args[1])));
