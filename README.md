@@ -41,7 +41,3 @@ countdowns:
 			start: spawn
 			end: arena
 ```
-
-Locations are managed with `/ezcd location add <name>` (saves your current position) and `/ezcd location delete <name>`.
-`/countdown create maintenance duration 2h`
-```
