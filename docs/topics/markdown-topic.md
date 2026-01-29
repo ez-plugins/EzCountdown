@@ -86,7 +86,8 @@ countdowns:
 - **Manual** – Timer starts only when triggered.  
   Example: `/countdown create flashsale manual 15m`
 - **Recurring** – Repeats at set intervals (e.g., every week).  
-  Example: `/countdown create weekly recurring 7 18:00`
+- **Recurring** – Repeats yearly on the same month/day/time.  
+  Example: `/countdown create festival recurring 12 31 23:59`
 
 ---
 
