@@ -1,6 +1,10 @@
 package com.skyblockexp.ezcountdown.listener;
 
 import com.skyblockexp.ezcountdown.api.model.Countdown;
+import com.skyblockexp.ezcountdown.api.model.CountdownType;
+import com.skyblockexp.ezcountdown.util.TimeFormat;
+import com.skyblockexp.ezcountdown.util.DurationParser;
+import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
 import com.skyblockexp.ezcountdown.command.CountdownPermissions;
 import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
@@ -120,21 +124,30 @@ public final class GuiClickListener implements Listener {
                 case 1 -> displayEditor.openDisplayEditor(player, cd);
                 case 2 -> {
                     if (!player.hasPermission(permissions.create())) { player.sendMessage(messageManager.message("commands.create.no-permission")); return; }
-                    String initial = String.valueOf(cd.getDurationSeconds());
-                    if (cd.getType() == com.skyblockexp.ezcountdown.api.model.CountdownType.FIXED_DATE && cd.getTargetInstant() != null) {
-                        initial = cd.getTargetInstant().toString();
-                    }
                     anvilHandler.request(player, input -> {
+                        CountdownTypeHandler handler = manager.getHandler(cd.getType());
                         try {
-                            long seconds = com.skyblockexp.ezcountdown.util.DurationParser.parseToSeconds(input);
-                            cd.setDurationSeconds(seconds);
-                            if (cd.getType() == com.skyblockexp.ezcountdown.api.model.CountdownType.DURATION || cd.getType() == com.skyblockexp.ezcountdown.api.model.CountdownType.MANUAL) {
-                                if (cd.isRunning()) cd.setTargetInstant(Instant.now().plusSeconds(seconds));
+                            if (handler != null) {
+                                boolean applied = handler.tryApplyEditorInput(input, cd, Instant.now());
+                                if (!applied) throw new IllegalArgumentException("Input not applicable");
+                            } else {
+                                // legacy fallback: try duration then ISO instant
+                                try {
+                                    long seconds = DurationParser.parseToSeconds(input);
+                                    cd.setDurationSeconds(seconds);
+                                    if (cd.getType() == CountdownType.DURATION || cd.getType() == CountdownType.MANUAL) {
+                                        if (cd.isRunning()) cd.setTargetInstant(Instant.now().plusSeconds(seconds));
+                                    }
+                                } catch (IllegalArgumentException ex) {
+                                    Instant inst = Instant.parse(input);
+                                    cd.setTargetInstant(inst);
+                                }
                             }
                             manager.save(); player.sendMessage(messageManager.message("gui.edit.saved", java.util.Map.of("name", cdName)));
                         } catch (IllegalArgumentException ex) {
-                            try { Instant inst = Instant.parse(input); cd.setTargetInstant(inst); manager.save(); player.sendMessage(messageManager.message("gui.edit.saved", java.util.Map.of("name", cdName))); }
-                            catch (Exception ex2) { player.sendMessage(messageManager.message("gui.edit.invalid-duration", java.util.Map.of("reason", ex.getMessage()))); }
+                            player.sendMessage(messageManager.message("gui.edit.invalid-duration", java.util.Map.of("reason", ex.getMessage())));
+                        } catch (Exception ex) {
+                            player.sendMessage(messageManager.message("gui.edit.invalid-duration", java.util.Map.of("reason", ex.getMessage())));
                         }
                     });
                 }

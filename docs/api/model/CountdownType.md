@@ -7,7 +7,7 @@ Enumeration of countdown behavior types.
 
 Values:
 
-- `FIXED_DATE` — target is a specific date/time.
-- `DURATION` — runs for a fixed duration in seconds.
-- `RECURRING` — repeats every year on a configured month/day/time.
-- `MANUAL` — started and stopped manually by API/commands.
+ - `FIXED_DATE` - target is a specific date/time.
+ - `DURATION` - runs for a fixed duration in seconds.
+ - `RECURRING` - repeats every year on a configured month/day/time.
+ - `MANUAL` - started and stopped manually by API/commands.

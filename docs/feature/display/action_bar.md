@@ -1,43 +1,40 @@
 # Action Bar
 
-Short summary
+What it is
 
-Displays a short message above the player's hotbar. Ideal for short, frequent updates like a ticking countdown.
+Displays a short, transient message above the player's hotbar. Good for frequent, unobtrusive countdown updates.
 
 When to use
 
-- Use for unobtrusive, frequent updates that should not clutter chat.
-- Good for countdowns where players need periodic awareness but not a persistent UI element.
+- Use for timers where players need periodic awareness without a persistent HUD element.
 
 How to enable
 
-Add `ACTION_BAR` to the `displays` list for a countdown or include it in your defaults.
+- Add `ACTION_BAR` to `display.types` for a countdown or include it in the default display types in your plugin config:
 
 ```yaml
 countdowns:
   maintenance:
-    type: duration
+    type: DURATION
     duration: "2h"
-    displays:
-      - ACTION_BAR
+    display:
+      types:
+        - ACTION_BAR
 ```
 
 Compatibility & behavior
 
-- Primary API: `Player.sendActionBar(String)` (modern Bukkit/Spigot).
-- Fallback: `player.spigot().sendMessage(...)` (Spigot/Bungee action-bar).
-- Final fallback: plain chat message — used to guarantee delivery on very old or non-standard servers.
+- Uses the best available server API (modern `Player.sendActionBar` where available). The plugin includes fallbacks but may degrade to chat on very old runtimes.
 
 Config override
 
-- `display-overrides.force-enable.action_bar` — force the plugin to register the action bar display even if a preferred API is not detected. Use only if you understand your server's capabilities.
+ - `display-overrides.force-enable.action_bar` - force registration when auto-detection fails. Use only when you understand your server's runtime.
 
-Troubleshooting (server owner tips)
+Troubleshooting
 
-- If players report seeing chat instead of an action bar, their server build likely lacks the action bar API; consider using `chat` or enabling the Spigot-compatible fallback.
-- To test: create a short duration countdown and monitor how messages appear across client versions.
-- If forcing via config, check server logs for warnings about force-enabled displays.
+- If players see chat instead of an action bar, their server or client may not support the action bar API; use `CHAT` as a fallback.
+- Test on a staging server with the same Bukkit/Paper build as production.
 
 Recommendation
 
-- Prefer `ACTION_BAR` on modern Spigot/Paper servers; keep `CHAT` as a reliable fallback in `countdowns.yml` when supporting a wide range of server builds.
+- Prefer `ACTION_BAR` on modern Spigot/Paper servers; keep `CHAT` as a fallback for mixed-version networks.

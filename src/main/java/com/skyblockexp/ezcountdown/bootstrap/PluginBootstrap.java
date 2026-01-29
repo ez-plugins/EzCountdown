@@ -18,6 +18,16 @@ import com.skyblockexp.ezcountdown.gui.EditorMenu;
 import com.skyblockexp.ezcountdown.gui.DisplayEditor;
 import com.skyblockexp.ezcountdown.gui.CommandsEditor;
 import com.skyblockexp.ezcountdown.listener.GuiClickListener;
+import com.skyblockexp.ezcountdown.type.FixedDateHandler;
+import com.skyblockexp.ezcountdown.type.DurationHandler;
+import com.skyblockexp.ezcountdown.type.ManualHandler;
+import com.skyblockexp.ezcountdown.type.RecurringHandler;
+import com.skyblockexp.ezcountdown.config.ConfigService;
+import com.skyblockexp.ezcountdown.config.DiscordWebhookConfig;
+import com.skyblockexp.ezcountdown.gui.GuiManager;
+import com.skyblockexp.ezcountdown.integration.PlaceholderIntegration;
+import com.skyblockexp.ezcountdown.integration.SpigotIntegration;
+import com.skyblockexp.ezcountdown.display.DisplayType;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bstats.bukkit.Metrics;
@@ -39,7 +49,7 @@ public final class PluginBootstrap {
         ensureResource(plugin, "discord.yml");
 
         // Use ConfigService to centralize config loading
-        com.skyblockexp.ezcountdown.config.ConfigService configService = new com.skyblockexp.ezcountdown.config.ConfigService(plugin);
+        ConfigService configService = new ConfigService(plugin);
         MessageManager messageManager = configService.messages();
         CountdownDefaults defaults = configService.loadDefaults();
         CountdownPermissions permissions = configService.loadPermissions();
@@ -50,15 +60,26 @@ public final class PluginBootstrap {
         CountdownStorage storage = new YamlCountdownStorage(defaults, storageFile, plugin.getLogger());
 
         ensureResource(plugin, "locations.yml");
-        com.skyblockexp.ezcountdown.config.LocationsConfig locationsConfig = new com.skyblockexp.ezcountdown.config.LocationsConfig(plugin.getDataFolder());
+        LocationsConfig locationsConfig = new LocationsConfig(plugin.getDataFolder());
         LocationManager locationManager = new LocationManager(locationsConfig);
         LocationPermissions locationPermissions = configService.loadLocationPermissions();
 
         // Load Discord config
-        com.skyblockexp.ezcountdown.config.DiscordWebhookConfig discordWebhookConfig = configService.loadDiscordConfig();
+        DiscordWebhookConfig discordWebhookConfig = configService.loadDiscordConfig();
 
         // Create a registry placeholder so CountdownManager can reference plugin and other services
         Registry registry = new Registry(plugin, messageManager, defaults, permissions, displayManager, storage, locationManager, locationPermissions, null, null);
+
+        // Register default countdown type handlers
+        registry.registerHandler(new FixedDateHandler());
+        registry.registerHandler(new DurationHandler());
+        registry.registerHandler(new ManualHandler());
+        registry.registerHandler(new RecurringHandler());
+
+        // Provide handler registry to storage if using YamlCountdownStorage
+        if (storage instanceof YamlCountdownStorage yamlStorage) {
+            yamlStorage.setHandlerRegistry(registry.handlersMap());
+        }
 
         CountdownManager countdownManager = new CountdownManager(registry, discordWebhookConfig, storage, displayManager, messageManager, locationManager);
         // register into registry
@@ -71,7 +92,7 @@ public final class PluginBootstrap {
         Bukkit.getPluginManager().registerEvents(anvil, plugin);
 
         // Create GuiManager with shared anvil handler
-        com.skyblockexp.ezcountdown.gui.GuiManager guiManager = new com.skyblockexp.ezcountdown.gui.GuiManager(countdownManager, messageManager, permissions, anvil);
+        GuiManager guiManager = new GuiManager(countdownManager, messageManager, permissions, anvil);
 
         GuiClickListener guiListener = new GuiClickListener(guiManager.mainGui(), guiManager.editorMenu(), guiManager.displayEditor(), guiManager.commandsEditor(), anvil, countdownManager, messageManager, permissions);
         Bukkit.getPluginManager().registerEvents(guiListener, plugin);
@@ -90,7 +111,7 @@ public final class PluginBootstrap {
         // Discord config already loaded and provided to CountdownManager
 
         // Register PlaceholderAPI expansion if available and store on plugin
-        com.skyblockexp.ezcountdown.integration.placeholder.EzCountdownPlaceholderExpansion expansion = com.skyblockexp.ezcountdown.integration.PlaceholderIntegration.registerIfPresent(registry);
+        var expansion = PlaceholderIntegration.registerIfPresent(registry);
         if (expansion != null) registry.setPlaceholderExpansion(expansion);
 
         // Initialize metrics
@@ -106,7 +127,7 @@ public final class PluginBootstrap {
 
         // Run update checker
         try {
-            new com.skyblockexp.ezcountdown.integration.SpigotIntegration(registry, 131146).checkForUpdates((currentVersion, newVersion, link) -> {
+            new SpigotIntegration(registry, 131146).checkForUpdates((currentVersion, newVersion, link) -> {
                 if (isNewerVersion(currentVersion, newVersion)) {
                     String template = registry == null ? null : registry.messages().raw("update-message");
                     if (template == null || template.isEmpty()) {
@@ -151,11 +172,11 @@ public final class PluginBootstrap {
 
     private static CountdownDefaults loadDefaults(EzCountdownPlugin plugin, MessageManager messageManager, FileConfiguration config) {
         List<String> displayEntries = config.getStringList("defaults.display-types");
-        EnumSet<com.skyblockexp.ezcountdown.display.DisplayType> displayTypes = EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class);
+        EnumSet<DisplayType> displayTypes = EnumSet.noneOf(DisplayType.class);
         for (String entry : displayEntries) {
-            try { displayTypes.add(com.skyblockexp.ezcountdown.display.DisplayType.valueOf(entry.toUpperCase(Locale.ROOT))); } catch (IllegalArgumentException ex) { plugin.getLogger().warning("Unknown display type: " + entry); }
+            try { displayTypes.add(DisplayType.valueOf(entry.toUpperCase(Locale.ROOT))); } catch (IllegalArgumentException ex) { plugin.getLogger().warning("Unknown display type: " + entry); }
         }
-        if (displayTypes.isEmpty()) displayTypes.add(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR);
+        if (displayTypes.isEmpty()) displayTypes.add(DisplayType.ACTION_BAR);
         int updateInterval = config.getInt("defaults.update-interval", 1);
         String visibility = config.getString("defaults.visibility", "all"); if ("all".equalsIgnoreCase(visibility)) visibility = null;
         String formatMessage = messageManager.raw("defaults.format");

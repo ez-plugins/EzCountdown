@@ -4,6 +4,7 @@ import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import com.skyblockexp.ezcountdown.manager.CountdownDefaults;
+import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
 import com.skyblockexp.ezcountdown.util.DurationParser;
 import java.io.File;
 import java.io.IOException;
@@ -32,11 +33,17 @@ public final class YamlCountdownStorage implements CountdownStorage {
     private final CountdownDefaults defaults;
     private final File storageFile;
     private final java.util.logging.Logger logger;
+    private java.util.Map<CountdownType, CountdownTypeHandler> handlers = java.util.Map.of();
 
     public YamlCountdownStorage(CountdownDefaults defaults, File storageFile, java.util.logging.Logger logger) {
         this.defaults = Objects.requireNonNull(defaults, "defaults");
         this.storageFile = Objects.requireNonNull(storageFile, "storageFile");
         this.logger = Objects.requireNonNull(logger, "logger");
+    }
+
+     public void setHandlerRegistry(java.util.Map<CountdownType, CountdownTypeHandler> handlers) {
+        if (handlers == null) return;
+        this.handlers = handlers;
     }
 
     @Override
@@ -54,14 +61,10 @@ public final class YamlCountdownStorage implements CountdownStorage {
         }
         for (String key : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(key);
-            if (section == null) {
-                continue;
-            }
+            if (section == null) continue;
             try {
                 Countdown countdown = parseCountdown(key, section);
-                if (countdown != null) {
-                    countdowns.add(countdown);
-                }
+                if (countdown != null) countdowns.add(countdown);
             } catch (IllegalArgumentException ex) {
                 logger.log(Level.WARNING, "Failed to load countdown " + key + ": " + ex.getMessage(), ex);
             }
@@ -89,14 +92,18 @@ public final class YamlCountdownStorage implements CountdownStorage {
             section.set("messages.end", countdown.getEndMessage());
             section.set("commands.end", countdown.getEndCommands());
             section.set("zone", countdown.getZoneId().getId());
-
-            switch (countdown.getType()) {
-                case FIXED_DATE -> section.set("target", DATE_TIME_FORMAT.format(countdown.getTargetInstant().atZone(countdown.getZoneId())));
-                case DURATION, MANUAL -> section.set("duration", countdown.getDurationSeconds() + "s");
-                case RECURRING -> {
-                    section.set("recurring.month", countdown.getRecurringMonth());
-                    section.set("recurring.day", countdown.getRecurringDay());
-                    section.set("recurring.time", countdown.getRecurringTime().toString());
+            CountdownTypeHandler handler = handlers.get(countdown.getType());
+            if (handler != null) {
+                handler.serialize(countdown, section);
+            } else {
+                switch (countdown.getType()) {
+                    case FIXED_DATE -> section.set("target", DATE_TIME_FORMAT.format(countdown.getTargetInstant().atZone(countdown.getZoneId())));
+                    case DURATION, MANUAL -> section.set("duration", countdown.getDurationSeconds() + "s");
+                    case RECURRING -> {
+                        section.set("recurring.month", countdown.getRecurringMonth());
+                        section.set("recurring.day", countdown.getRecurringDay());
+                        section.set("recurring.time", countdown.getRecurringTime().toString());
+                    }
                 }
             }
         }
@@ -109,39 +116,34 @@ public final class YamlCountdownStorage implements CountdownStorage {
 
     private Countdown parseCountdown(String name, ConfigurationSection section) {
         CountdownType type = CountdownType.valueOf(section.getString("type", "FIXED_DATE").toUpperCase(Locale.ROOT));
+        CountdownTypeHandler handler = handlers.get(type);
+        if (handler != null) {
+            return handler.parse(name, section, defaults);
+        }
+        // Fallback to legacy parsing
         EnumSet<DisplayType> displayTypes = parseDisplayTypes(section.getStringList("display.types"));
         int updateInterval = section.getInt("display.update-interval", defaults.updateIntervalSeconds());
         String visibility = section.getString("display.visibility", defaults.visibilityPermission());
-        if ("all".equalsIgnoreCase(visibility)) {
-            visibility = null;
-        }
+        if ("all".equalsIgnoreCase(visibility)) visibility = null;
         String format = section.getString("messages.format", defaults.formatMessage());
         String start = section.getString("messages.start", defaults.startMessage());
         String end = section.getString("messages.end", defaults.endMessage());
-        List<String> endCommands = section.getStringList("commands.end").stream()
-                .filter(command -> command != null && !command.isBlank())
-                .toList();
+        List<String> endCommands = section.getStringList("commands.end").stream().filter(command -> command != null && !command.isBlank()).toList();
         ZoneId zoneId = ZoneId.of(section.getString("zone", defaults.zoneId().getId()));
 
-        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end,
-                endCommands, zoneId);
+        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId);
         countdown.setRunning(section.getBoolean("running", type != CountdownType.MANUAL));
 
         switch (type) {
             case FIXED_DATE -> {
                 String target = section.getString("target");
-                if (target == null) {
-                    throw new IllegalArgumentException("Missing target date for fixed date countdown.");
-                }
-                countdown.setTargetInstant(ZonedDateTime.of(
-                        LocalDateTime.parse(target, DATE_TIME_FORMAT), zoneId).toInstant());
+                if (target == null) throw new IllegalArgumentException("Missing target date for fixed date countdown.");
+                countdown.setTargetInstant(ZonedDateTime.of(LocalDateTime.parse(target, DATE_TIME_FORMAT), zoneId).toInstant());
             }
             case DURATION, MANUAL -> {
                 String durationValue = section.getString("duration", "0s");
                 countdown.setDurationSeconds(DurationParser.parseToSeconds(durationValue));
-                if (countdown.isRunning() && countdown.getTargetInstant() == null) {
-                    countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
-                }
+                if (countdown.isRunning() && countdown.getTargetInstant() == null) countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
             }
             case RECURRING -> {
                 countdown.setRecurringMonth(section.getInt("recurring.month", 1));
@@ -151,11 +153,8 @@ public final class YamlCountdownStorage implements CountdownStorage {
                 countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now()));
             }
         }
-        // Prevent expired fixed-date countdowns from resuming as running
         if (type == CountdownType.FIXED_DATE && countdown.isRunning() && countdown.getTargetInstant() != null) {
-            if (countdown.getTargetInstant().isBefore(Instant.now())) {
-                countdown.setRunning(false);
-            }
+            if (countdown.getTargetInstant().isBefore(Instant.now())) countdown.setRunning(false);
         }
         return countdown;
     }

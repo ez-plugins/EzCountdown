@@ -8,8 +8,8 @@ Fired periodically while a countdown is running to indicate remaining time.
 
 Fields / accessors:
 
-- `Countdown getCountdown()` — the countdown instance.
-- `long getRemainingSeconds()` — remaining seconds until the countdown ends.
+ - `Countdown getCountdown()` - the countdown instance.
+ - `long getRemainingSeconds()` - remaining seconds until the countdown ends.
 
 Usage:
 

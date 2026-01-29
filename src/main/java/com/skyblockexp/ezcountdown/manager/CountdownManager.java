@@ -24,10 +24,14 @@ import com.skyblockexp.ezcountdown.config.DiscordWebhookConfig;
 import com.skyblockexp.ezcountdown.integration.discord.DiscordWebhookSender;
 import org.bukkit.Bukkit;
 import com.skyblockexp.ezcountdown.bootstrap.Registry;
+import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
 import org.bukkit.scheduler.BukkitTask;
 import com.skyblockexp.ezcountdown.manager.LocationManager;
 import org.bukkit.entity.Player;
 import com.skyblockexp.ezcountdown.firework.FireworkShowManager;
+import java.io.File;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 public final class CountdownManager {
 
@@ -90,6 +94,10 @@ public final class CountdownManager {
         return Optional.ofNullable(countdowns.get(normalizeName(name)));
     }
 
+    public CountdownTypeHandler getHandler(CountdownType type) {
+        return registry.getHandler(type);
+    }
+
     public boolean createCountdown(Countdown countdown) {
         String key = normalizeName(countdown.getName());
         if (countdowns.containsKey(key)) {
@@ -97,8 +105,13 @@ public final class CountdownManager {
         }
         countdowns.put(key, countdown);
         if (countdown.isRunning()) {
-            if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
-                countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
+            CountdownTypeHandler handler = registry.getHandler(countdown.getType());
+            if (handler != null) {
+                handler.onStart(countdown, Instant.now());
+            } else {
+                if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
+                    countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
+                }
             }
             fireStart(countdown);
         }
@@ -134,10 +147,15 @@ public final class CountdownManager {
             return true;
         }
         countdown.setRunning(true);
-        if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
-            countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
-        } else if (countdown.getType() == CountdownType.RECURRING) {
-            countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now()));
+        CountdownTypeHandler handler = registry.getHandler(countdown.getType());
+        if (handler != null) {
+            handler.onStart(countdown, Instant.now());
+        } else {
+            if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
+                countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
+            } else if (countdown.getType() == CountdownType.RECURRING) {
+                countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now()));
+            }
         }
         fireStart(countdown);
         return true;
@@ -149,8 +167,13 @@ public final class CountdownManager {
             return false;
         }
         countdown.setRunning(false);
-        if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
-            countdown.setTargetInstant(null);
+        CountdownTypeHandler handler = registry.getHandler(countdown.getType());
+        if (handler != null) {
+            handler.onStop(countdown);
+        } else {
+            if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
+                countdown.setTargetInstant(null);
+            }
         }
         displayManager.clearCountdown(countdown);
         return true;
@@ -181,12 +204,21 @@ public final class CountdownManager {
             }
             Instant target = countdown.getTargetInstant();
             if (target == null) {
-                if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
-                    countdown.setTargetInstant(now.plusSeconds(countdown.getDurationSeconds()));
-                } else if (countdown.getType() == CountdownType.RECURRING) {
-                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(now));
+                CountdownTypeHandler handler = registry.getHandler(countdown.getType());
+                if (handler != null) {
+                    try {
+                        handler.ensureTarget(countdown, now);
+                    } catch (IllegalArgumentException ignore) {
+                        // handler could not produce a target
+                    }
                 } else {
-                    continue;
+                    if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
+                        countdown.setTargetInstant(now.plusSeconds(countdown.getDurationSeconds()));
+                    } else if (countdown.getType() == CountdownType.RECURRING) {
+                        countdown.setTargetInstant(countdown.resolveNextRecurringTarget(now));
+                    } else {
+                        continue;
+                    }
                 }
                 target = countdown.getTargetInstant();
             }
@@ -202,8 +234,14 @@ public final class CountdownManager {
 
             if (remaining <= 0L) {
                 fireEnd(countdown);
-                if (countdown.getType() == CountdownType.RECURRING) {
-                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(now));
+                CountdownTypeHandler endHandler = registry.getHandler(countdown.getType());
+                if (endHandler != null) {
+                    try {
+                        endHandler.ensureTarget(countdown, now);
+                    } catch (Exception ignore) {}
+                }
+                if (countdown.getTargetInstant() != null && countdown.isRunning()) {
+                    // handler scheduled a new target (recurring behavior)
                     continue;
                 }
                 countdown.setRunning(false);
@@ -355,8 +393,8 @@ public final class CountdownManager {
         if (countdown.getTargetInstant() != null) {
             remaining = Math.max(0L, countdown.getTargetInstant().getEpochSecond() - java.time.Instant.now().getEpochSecond());
         }
-        com.skyblockexp.ezcountdown.util.TimeFormat.TimeParts parts = com.skyblockexp.ezcountdown.util.TimeFormat.toParts(remaining);
-        out = out.replace("{time_left}", com.skyblockexp.ezcountdown.util.TimeFormat.format(parts));
+        TimeParts parts = TimeFormat.toParts(remaining);
+        out = out.replace("{time_left}", TimeFormat.format(parts));
         out = out.replace("{days}", String.valueOf(parts.days()));
         out = out.replace("{hours}", String.valueOf(parts.hours()));
         out = out.replace("{minutes}", String.valueOf(parts.minutes()));
