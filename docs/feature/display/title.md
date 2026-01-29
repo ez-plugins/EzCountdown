@@ -1,41 +1,41 @@
 
 # Title
 
-Short summary
+What it is
 
-Displays a centered title and optional subtitle overlay. Great for high-impact messages (e.g., final seconds).
+Displays a centered title and optional subtitle overlay on the player's screen. Ideal for dramatic announcements (final seconds, event start).
 
 When to use
 
-- Use for dramatic announcements, last-second alerts, or important server-wide messages.
+- Use for last-second alerts or important events where you want to capture player attention immediately.
 
 How to enable
 
-Add `TITLE` to the `displays` list for a countdown.
+- Add `TITLE` to `display.types` for a countdown:
 
 ```yaml
 countdowns:
   launch:
-    type: date
-    date: "2026-06-01 12:00"
-    displays:
-      - TITLE
+    type: FIXED_DATE
+    target: "2026-06-01 12:00"
+    display:
+      types:
+        - TITLE
 ```
 
 Compatibility & behavior
 
-- Primary API: `Player.sendTitle(...)` (modern Bukkit/Spigot/Paper).
-- If not available, the plugin will try to fall back to the action bar, then chat, so players still receive the message.
+- Uses `Player.sendTitle(...)` where available. The plugin applies fallbacks (action bar, then chat) when titles are not supported.
 
 Config override
 
-- `display-overrides.force-enable.title` — forces the title display even if the title API wasn't detected. Use with caution; fallback behavior is applied to reduce crash risk.
+- `display-overrides.force-enable.title` - force title registration despite detection; use with caution.
 
-Troubleshooting (server owner tips)
+Troubleshooting
 
-- If titles do not appear, verify your server version and client support for titles; Paper/Spigot on 1.8+ often provides similar APIs but behavior can vary.
-- If clients see garbled or missing subtitles, check `messages.yml` encoding and test with a small sample countdown.
+- If titles do not appear, verify server/client support and test on a staging server with the same runtime.
+- If subtitles are missing or garbled, check `messages.yml` encoding and formatting.
 
 Recommendation
 
-- Use `TITLE` for high-visibility events on modern servers; include `CHAT` or `ACTION_BAR` as secondary displays for mixed-client environments.
+- Use `TITLE` for high-impact moments; include `CHAT` or `ACTION_BAR` as secondary displays for mixed-client environments.

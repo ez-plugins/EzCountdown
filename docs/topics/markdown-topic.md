@@ -10,7 +10,7 @@
 
 - **Create any countdown** – Set up timers for launches, events, sales, or anything you can imagine. Fixed dates, durations, recurring, or manual, your choice.
 - **Flexible displays** – Show countdowns in the action bar, boss bar, title, chat, or scoreboard. Make your timers visible everywhere players look.
-- **Easy configuration** – Define countdowns in YAML, customize messages, and reload instantly—no coding required.
+ - **Easy configuration** – Define countdowns in YAML, customize messages, and reload instantly - no coding required.
 - **Permission control** – Limit who can see or manage each countdown.
 - **PlaceholderAPI support** – Use countdown placeholders in any plugin or message.
 

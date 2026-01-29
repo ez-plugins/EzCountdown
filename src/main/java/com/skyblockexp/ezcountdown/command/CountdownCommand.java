@@ -8,6 +8,9 @@ import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
 import com.skyblockexp.ezcountdown.util.DurationParser;
 import com.skyblockexp.ezcountdown.manager.LocationManager;
+import com.skyblockexp.ezcountdown.gui.GuiManager;
+import com.skyblockexp.ezcountdown.bootstrap.Registry;
+import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 // CountdownEditorGui removed; using GuiManager instead
 import com.skyblockexp.ezcountdown.command.LocationPermissions;
@@ -40,9 +43,10 @@ public final class CountdownCommand implements CommandExecutor, TabCompleter {
     private final LocationManager locationManager;
     private final LocationPermissions locationPermissions;
     // plugin not required; use Registry-provided components
-    private final com.skyblockexp.ezcountdown.gui.GuiManager gui;
+    private final GuiManager gui;
+    private final Registry registry;
 
-    public CountdownCommand(com.skyblockexp.ezcountdown.bootstrap.Registry registry, Runnable reloadAction) {
+    public CountdownCommand(Registry registry, Runnable reloadAction) {
         this.manager = registry.countdowns();
         this.defaults = registry.defaults();
         this.permissions = registry.permissions();
@@ -51,6 +55,7 @@ public final class CountdownCommand implements CommandExecutor, TabCompleter {
         this.locationManager = registry.locations();
         this.locationPermissions = registry.locationPermissions();
         this.gui = registry.gui();
+        this.registry = registry;
     }
 
     @Override
@@ -165,72 +170,83 @@ public final class CountdownCommand implements CommandExecutor, TabCompleter {
         String name = args[1];
         String typeToken = args[2];
         Countdown countdown;
+        CountdownType type;
         if ("recurring".equalsIgnoreCase(typeToken)) {
-            if (args.length < 6) {
-                sender.sendMessage(messageManager.message("commands.create.recurring-usage"));
-                return;
-            }
-            int month;
-            int day;
-            LocalTime time;
-            try {
-                month = Integer.parseInt(args[3]);
-                day = Integer.parseInt(args[4]);
-                time = LocalTime.parse(args[5]);
-            } catch (NumberFormatException | DateTimeParseException ex) {
-                sender.sendMessage(messageManager.message("commands.create.invalid-recurring"));
-                return;
-            }
-            countdown = buildCountdown(name, CountdownType.RECURRING);
-            countdown.setRecurringMonth(month);
-            countdown.setRecurringDay(day);
-            countdown.setRecurringTime(time);
-            countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now()));
-            countdown.setRunning(true);
+            type = CountdownType.RECURRING;
         } else if ("manual".equalsIgnoreCase(typeToken)) {
-            if (args.length < 4) {
-                sender.sendMessage(messageManager.message("commands.create.manual-usage"));
-                return;
-            }
-            countdown = buildCountdown(name, CountdownType.MANUAL);
-            try {
-                countdown.setDurationSeconds(DurationParser.parseToSeconds(args[3]));
-            } catch (IllegalArgumentException ex) {
-                sender.sendMessage(messageManager.message("commands.create.invalid-duration",
-                        Map.of("reason", ex.getMessage())));
-                return;
-            }
-            countdown.setRunning(false);
+            type = CountdownType.MANUAL;
         } else if ("duration".equalsIgnoreCase(typeToken)) {
-            if (args.length < 4) {
-                sender.sendMessage(messageManager.message("commands.create.duration-usage"));
-                return;
-            }
-            countdown = buildCountdown(name, CountdownType.DURATION);
-            try {
-                countdown.setDurationSeconds(DurationParser.parseToSeconds(args[3]));
-            } catch (IllegalArgumentException ex) {
-                sender.sendMessage(messageManager.message("commands.create.invalid-duration",
-                        Map.of("reason", ex.getMessage())));
-                return;
-            }
-            countdown.setRunning(defaults.startOnCreate());
-            if (countdown.isRunning()) {
-                countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
-            }
+            type = CountdownType.DURATION;
         } else {
-            String date = typeToken;
-            String time = args.length > 3 ? args[3] : "00:00";
-            try {
-                LocalDateTime parsed = LocalDateTime.parse(date + " " + time, DATE_TIME_FORMAT);
-                ZoneId zoneId = defaults.zoneId();
-                countdown = buildCountdown(name, CountdownType.FIXED_DATE);
-                countdown.setTargetInstant(parsed.atZone(zoneId).toInstant());
-                countdown.setRunning(defaults.startOnCreate());
-            } catch (DateTimeParseException ex) {
-                sender.sendMessage(messageManager.message("commands.create.invalid-date"));
-                return;
+            // treat as fixed date token (date string)
+            type = CountdownType.FIXED_DATE;
+        }
+
+        countdown = buildCountdown(name, type);
+        CountdownTypeHandler handler = registry.getHandler(type);
+        try {
+            String[] handlerArgs;
+            if (type == CountdownType.FIXED_DATE) {
+                handlerArgs = java.util.Arrays.copyOfRange(args, 2, args.length); // [date, optional time]
+            } else {
+                handlerArgs = java.util.Arrays.copyOfRange(args, 3, args.length); // args after type token
             }
+            if (handler != null) {
+                handler.configureFromCreateArgs(countdown, handlerArgs, defaults);
+            } else {
+                // fallback to legacy parsing for safety
+                if (type == CountdownType.FIXED_DATE) {
+                    String date = typeToken;
+                    String time = args.length > 3 ? args[3] : "00:00";
+                    try {
+                        LocalDateTime parsed = LocalDateTime.parse(date + " " + time, DATE_TIME_FORMAT);
+                        ZoneId zoneId = defaults.zoneId();
+                        countdown.setTargetInstant(parsed.atZone(zoneId).toInstant());
+                        countdown.setRunning(defaults.startOnCreate());
+                    } catch (DateTimeParseException ex) {
+                        sender.sendMessage(messageManager.message("commands.create.invalid-date"));
+                        return;
+                    }
+                } else if (type == CountdownType.DURATION || type == CountdownType.MANUAL) {
+                    if (args.length < 4) {
+                        sender.sendMessage(messageManager.message(type == CountdownType.DURATION ? "commands.create.duration-usage" : "commands.create.manual-usage"));
+                        return;
+                    }
+                    try {
+                        countdown.setDurationSeconds(DurationParser.parseToSeconds(args[3]));
+                    } catch (IllegalArgumentException ex) {
+                        sender.sendMessage(messageManager.message("commands.create.invalid-duration", Map.of("reason", ex.getMessage())));
+                        return;
+                    }
+                    if (type == CountdownType.DURATION) countdown.setRunning(defaults.startOnCreate());
+                    else countdown.setRunning(false);
+                    if (countdown.isRunning() && countdown.getTargetInstant() == null) countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
+                } else if (type == CountdownType.RECURRING) {
+                    if (args.length < 6) {
+                        sender.sendMessage(messageManager.message("commands.create.recurring-usage"));
+                        return;
+                    }
+                    int month;
+                    int day;
+                    LocalTime time;
+                    try {
+                        month = Integer.parseInt(args[3]);
+                        day = Integer.parseInt(args[4]);
+                        time = LocalTime.parse(args[5]);
+                    } catch (NumberFormatException | DateTimeParseException ex) {
+                        sender.sendMessage(messageManager.message("commands.create.invalid-recurring"));
+                        return;
+                    }
+                    countdown.setRecurringMonth(month);
+                    countdown.setRecurringDay(day);
+                    countdown.setRecurringTime(time);
+                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now()));
+                    countdown.setRunning(true);
+                }
+            }
+        } catch (IllegalArgumentException ex) {
+            sender.sendMessage(messageManager.message("commands.create.invalid-args", Map.of("reason", ex.getMessage())));
+            return;
         }
         if (!manager.createCountdown(countdown)) {
             sender.sendMessage(messageManager.message("commands.create.exists", Map.of("name", name)));

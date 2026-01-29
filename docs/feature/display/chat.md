@@ -1,37 +1,37 @@
 
 # Chat
 
-Short summary
+What it is
 
-Sends countdown updates as normal chat messages. This is the most compatible and reliable display option.
+Sends countdown updates as regular chat messages. This display is the most compatible and reliable across server versions.
 
 When to use
 
-- Use when supporting a broad set of server runtimes or when you prefer visible, logged messages over transient UI elements.
+- Use when supporting mixed or older server runtimes, or when you want persistent, logged messages for countdown updates.
 
 How to enable
 
-Add `CHAT` to the `displays` list for a countdown:
+- Add `CHAT` to `display.types` for a countdown:
 
 ```yaml
 countdowns:
   reminder:
-    type: duration
+    type: DURATION
     duration: "30m"
-    displays:
-      - CHAT
+    display:
+      types:
+        - CHAT
 ```
 
 Compatibility & notes
 
-- Chat works on all standard Bukkit/Spigot/Paper servers and is a safe fallback whenever other display APIs are missing.
-- Chat messages are persistent in logs and visible to offline monitoring tools that capture console output.
+- Works on all standard Bukkit/Spigot/Paper servers and is a reliable fallback when other display APIs are unavailable.
 
-Troubleshooting (server owner tips)
+Troubleshooting
 
-- If other displays fall back to chat unexpectedly, check server logs for compatibility warnings and consider enabling a compatible display type on modern servers.
-- Use `messages.yml` to customize chat formatting; test on a staging server to ensure MiniMessage or color codes render as expected.
+- If other displays are unexpectedly degraded to chat, check server logs for compatibility warnings and consider enabling a supported display on modern servers.
+- Use `messages.yml` to fine-tune formatting; verify MiniMessage usage or color codes render as intended.
 
 Recommendation
 
-- Keep `CHAT` available as a fallback in `default-displays` if you operate mixed-version networks or older runtimes.
+- Keep `CHAT` enabled as a fallback for mixed-version networks or when you require messages to be recorded in logs.

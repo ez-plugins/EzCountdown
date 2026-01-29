@@ -8,7 +8,7 @@ Fired when a countdown finishes.
 
 Fields / accessors:
 
-- `Countdown getCountdown()` — the countdown instance that ended.
+- `Countdown getCountdown()` - the countdown instance that ended.
 
 Usage:
 

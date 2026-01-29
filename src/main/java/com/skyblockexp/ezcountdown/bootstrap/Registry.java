@@ -12,6 +12,11 @@ import com.skyblockexp.ezcountdown.manager.LocationManager;
 import com.skyblockexp.ezcountdown.command.LocationPermissions;
 import org.bukkit.plugin.PluginManager;
 import com.skyblockexp.ezcountdown.api.EzCountdownApi;
+import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
+import com.skyblockexp.ezcountdown.api.model.CountdownType;
+import com.skyblockexp.ezcountdown.integration.placeholder.EzCountdownPlaceholderExpansion;
+import java.util.Map;
+import java.util.EnumMap;
 
 public final class Registry {
     private final EzCountdownPlugin plugin;
@@ -24,8 +29,9 @@ public final class Registry {
     private final LocationPermissions locationPermissions;
     private CountdownManager countdownManager;
     private GuiManager guiManager;
-    private com.skyblockexp.ezcountdown.integration.placeholder.EzCountdownPlaceholderExpansion placeholderExpansion;
+    private EzCountdownPlaceholderExpansion placeholderExpansion;
     private EzCountdownApi api;
+    private final Map<CountdownType, CountdownTypeHandler> handlers = new EnumMap<>(CountdownType.class);
 
     public Registry(EzCountdownPlugin plugin, MessageManager messageManager, CountdownDefaults defaults, CountdownPermissions permissions, DisplayManager displayManager, CountdownStorage storage, LocationManager locationManager, LocationPermissions locationPermissions, CountdownManager countdownManager, GuiManager guiManager) {
         this.plugin = plugin;
@@ -44,7 +50,7 @@ public final class Registry {
         this.countdownManager = countdownManager;
     }
 
-    public void setPlaceholderExpansion(com.skyblockexp.ezcountdown.integration.placeholder.EzCountdownPlaceholderExpansion expansion) {
+    public void setPlaceholderExpansion(EzCountdownPlaceholderExpansion expansion) {
         this.placeholderExpansion = expansion;
     }
 
@@ -53,6 +59,19 @@ public final class Registry {
 
     public void setGuiManager(GuiManager guiManager) {
         this.guiManager = guiManager;
+    }
+
+    public void registerHandler(CountdownTypeHandler handler) {
+        if (handler == null) return;
+        handlers.put(handler.getType(), handler);
+    }
+
+    public CountdownTypeHandler getHandler(CountdownType type) {
+        return handlers.get(type);
+    }
+
+    public java.util.Map<CountdownType, CountdownTypeHandler> handlersMap() {
+        return java.util.Map.copyOf(handlers);
     }
 
     public EzCountdownPlugin plugin() { return plugin; }

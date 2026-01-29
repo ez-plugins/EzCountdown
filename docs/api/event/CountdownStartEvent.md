@@ -8,7 +8,7 @@ Fired when a countdown is started.
 
 Fields / accessors:
 
-- `Countdown getCountdown()` — returns the `Countdown` instance that started.
+- `Countdown getCountdown()` - returns the `Countdown` instance that started.
 
 Usage:
 

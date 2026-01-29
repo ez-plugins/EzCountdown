@@ -1,41 +1,36 @@
 
 # Scoreboard
 
-Short summary
+What it is
 
-Displays a sidebar scoreboard containing the countdown message. Useful for persistent, framed displays that don't interrupt the player.
+Displays a persistent sidebar scoreboard containing the countdown message. Useful when you want a framed, always-visible view of the timer.
 
 When to use
 
-- Use for matches, tournaments, or any situation where a persistent sidebar is preferred over transient UI elements.
+- Use for matches, tournaments, or lobby timers where a persistent HUD element is preferred.
 
 How to enable
 
-Add `SCOREBOARD` to the `displays` list in a countdown definition.
+- Add `SCOREBOARD` to `display.types` in the countdown definition:
 
 ```yaml
 countdowns:
   match_start:
-    type: duration
+    type: DURATION
     duration: "5m"
-    displays:
-      - SCOREBOARD
+    display:
+      types:
+        - SCOREBOARD
 ```
 
 Compatibility & behavior
 
-- Requires Bukkit's `ScoreboardManager` (`Bukkit.getScoreboardManager()`) and the per-player `Scoreboard` APIs.
-- The plugin validates availability at startup and disables scoreboard displays if the APIs are missing.
+- Requires Bukkit's `ScoreboardManager` and per-player `Scoreboard` APIs. The plugin checks availability and will skip scoreboards if unsupported.
 
-Config override
+Troubleshooting
 
-- `display-overrides.force-enable.scoreboard` — force-enable scoreboard support when the validator fails. The plugin wraps scoreboard operations to avoid crashes, but display behavior may be degraded on unsupported platforms.
-
-Troubleshooting (server owner tips)
-
-- If scoreboards do not appear: confirm `Bukkit.getScoreboardManager()` returns non-null on your server runtime.
-- If you see errors or corrupt scoreboards, remove the override and use `CHAT` as a fallback until you can test on a compatible build.
-- Scoreboards can be theme-dependent — test formatting in `messages.yml` to ensure text fits the sidebar width.
+- If scoreboards do not appear, confirm `Bukkit.getScoreboardManager()` is available and test on a staging server with the same runtime.
+- If you encounter corrupt scoreboards, remove any `display-overrides.force-enable.scoreboard` setting and use `CHAT` until you can test safely.
 
 Recommendation
 
