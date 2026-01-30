@@ -240,10 +240,12 @@ public final class CountdownManager {
                         endHandler.ensureTarget(countdown, now);
                     } catch (Exception ignore) {}
                 }
-                if (countdown.getTargetInstant() != null && countdown.isRunning()) {
-                    // handler scheduled a new target (recurring behavior)
+                // If a handler scheduled a new *future* target, keep running.
+                Instant newTarget = countdown.getTargetInstant();
+                if (newTarget != null && newTarget.isAfter(now) && countdown.isRunning()) {
                     continue;
                 }
+                // Otherwise stop the countdown and clear displays to avoid repeated end events.
                 countdown.setRunning(false);
                 displayManager.clearCountdown(countdown);
             }
