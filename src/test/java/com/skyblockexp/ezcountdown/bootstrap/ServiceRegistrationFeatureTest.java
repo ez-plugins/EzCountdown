@@ -16,7 +16,13 @@ public class ServiceRegistrationFeatureTest extends MockBukkitTestBase {
         assertNotNull(registry.countdowns(), "CountdownManager should be initialized");
         assertNotNull(registry.gui(), "GuiManager should be initialized");
 
-        // TODO: Assert that EzCountdownApi is registered with the Bukkit ServicesManager
-        // TODO: Disable plugin and assert unregister behavior
+        // Ensure setting an API instance is stored and that shutdown clears it without throwing
+        com.skyblockexp.ezcountdown.api.EzCountdownApi api = new com.skyblockexp.ezcountdown.api.EzCountdownApiImpl(registry);
+        registry.setApi(api);
+        assertNotNull(registry.api(), "Registry should store API instance after setApi");
+
+        // Shutdown should attempt to unregister and null the api reference
+        registry.shutdown();
+        assertNull(registry.api(), "Registry should clear API reference after shutdown");
     }
 }
