@@ -35,14 +35,14 @@ jobs:
           for f in $files; do
             echo "- $f"
             python - <<PY
-import sys, yaml
-f = sys.argv[1]
-try:
-    with open(f, 'rb') as fh:
-        yaml.safe_load(fh)
-except Exception as e:
-    print(f"YAML parse error in {f}: {e}")
-    sys.exit(2)
-print(f"{f}: OK")
-PY
+              import sys, yaml
+              f = sys.argv[1]
+              try:
+                  with open(f, 'rb') as fh:
+                      yaml.safe_load(fh)
+              except Exception as e:
+                  print(f"YAML parse error in {f}: {e}")
+                  sys.exit(2)
+              print(f"{f}: OK")
+            PY
           done
