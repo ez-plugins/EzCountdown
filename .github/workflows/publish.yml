@@ -6,6 +6,11 @@ on:
       - 'v*.*.*'
   workflow_dispatch: {}
 
+# Required permissions for publishing packages using the GITHUB_TOKEN
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
