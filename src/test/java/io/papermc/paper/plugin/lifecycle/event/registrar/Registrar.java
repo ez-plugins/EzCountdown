@@ -4,10 +4,10 @@ package io.papermc.paper.plugin.lifecycle.event.registrar;
  * Test-only stub for older Paper API versions that don't include the
  * {@code io.papermc.paper.plugin.lifecycle.event.registrar.Registrar} type.
  *
- * This class is only used during tests to avoid NoClassDefFoundError when
- * running against older Paper API artifacts in CI. It should not be
- * referenced by production code.
+ * MockBukkit provides a `PaperRegistrarMock` that expects `Registrar` to be
+ * an interface. Provide a minimal interface here so the mock can implement
+ * it and tests do not fail with IncompatibleClassChangeError.
  */
-public final class Registrar {
-    // intentionally empty
+public interface Registrar {
+    // marker interface for test compatibility
 }
