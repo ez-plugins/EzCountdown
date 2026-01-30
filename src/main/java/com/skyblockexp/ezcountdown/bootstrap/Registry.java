@@ -91,7 +91,7 @@ public final class Registry {
     public void shutdown() {
         if (countdownManager != null) countdownManager.shutdown();
         if (placeholderExpansion != null) {
-            try { placeholderExpansion.unregister(); } catch (Exception ignored) {}
+            try { placeholderExpansion.unregister(); } catch (Throwable ignored) {}
             placeholderExpansion = null;
         }
         if (api != null) {
