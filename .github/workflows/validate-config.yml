@@ -4,7 +4,8 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
+    # Run on all pull requests (any target branch). We keep push limited to `main` only.
+    types: [opened, synchronize, reopened]
 
 jobs:
   validate-yaml:
