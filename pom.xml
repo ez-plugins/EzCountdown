@@ -83,9 +83,10 @@
     </dependencies>
     
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.release>21</maven.compiler.release>
+        <!-- Default to Java 17 for environments without JDK 21 installed. -->
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
 
         <!-- Target Java 21 to match Paper API (class file version 65) -->
         <!-- Allow CI to override the Paper API version with -Dpaper.version -->
@@ -233,6 +234,18 @@
         </plugins>
     </build>
     <profiles>
+        <!-- If the build runs on JDK 21 or newer, enable Java 21 compilation. -->
+        <profile>
+            <id>jdk21</id>
+            <activation>
+                <jdk>[21,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.source>21</maven.compiler.source>
+                <maven.compiler.target>21</maven.compiler.target>
+                <maven.compiler.release>21</maven.compiler.release>
+            </properties>
+        </profile>
         <profile>
             <id>integration</id>
             <repositories>
