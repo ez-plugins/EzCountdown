@@ -83,10 +83,10 @@
     </dependencies>
     
     <properties>
-        <!-- Require Java 17 for compilation (records, switch expressions, pattern matching, etc.) -->
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.release>17</maven.compiler.release>
+        <!-- Target Java 21 to match Paper API (class file version 65) -->
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
     </properties>
     
     <repositories>
