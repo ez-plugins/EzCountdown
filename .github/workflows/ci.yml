@@ -9,7 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        paper-version: ["1.19.4-R0.1-SNAPSHOT", "1.20.2-R0.1-SNAPSHOT", "1.21.11-R0.1-SNAPSHOT"]
+        include:
+          - paper-version: "1.19.4-R0.1-SNAPSHOT"
+            mockbukkit-artifactId: "mockbukkit-v1.19"
+            mockbukkit-version: "4.101.0"
+          - paper-version: "1.20.2-R0.1-SNAPSHOT"
+            mockbukkit-artifactId: "mockbukkit-v1.20"
+            mockbukkit-version: "4.101.0"
+          - paper-version: "1.21.11-R0.1-SNAPSHOT"
+            mockbukkit-artifactId: "mockbukkit-v1.21"
+            mockbukkit-version: "4.101.0"
 
     steps:
       - name: Checkout
@@ -30,14 +39,30 @@ jobs:
             ${{ runner.os }}-m2-${{ matrix.paper-version }}-
 
       - name: Run unit tests
-        run: mvn -B -Dpaper.version=${{ matrix.paper-version }} test
+        run: |
+          ART=${{ matrix.mockbukkit-artifactId }}
+          META="https://repo1.maven.org/maven2/org/mockbukkit/${ART}/maven-metadata.xml"
+          echo "Resolving MockBukkit metadata from $META"
+          VER=$(curl -s "$META" | grep -oPm1 "(?<=<release>)[^<]+" || curl -s "$META" | grep -oPm1 "(?<=<latest>)[^<]+" || curl -s "$META" | grep -oPm1 "(?<=<version>)[^<]+" | tail -n1)
+          if [ -z "$VER" ]; then echo "Failed to resolve MockBukkit version for $ART"; exit 1; fi
+          echo "Using MockBukkit $ART:$VER"
+          mvn -B -Dpaper.version=${{ matrix.paper-version }} -Dmockbukkit.artifactId=${{ matrix.mockbukkit-artifactId }} -Dmockbukkit.version="$VER" test
 
   feature-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
     strategy:
       matrix:
-        paper-version: ["1.19.4-R0.1-SNAPSHOT", "1.20.2-R0.1-SNAPSHOT", "1.21.11-R0.1-SNAPSHOT"]
+        include:
+          - paper-version: "1.19.4-R0.1-SNAPSHOT"
+            mockbukkit-artifactId: "mockbukkit-v1.19"
+            mockbukkit-version: "4.101.0"
+          - paper-version: "1.20.2-R0.1-SNAPSHOT"
+            mockbukkit-artifactId: "mockbukkit-v1.20"
+            mockbukkit-version: "4.101.0"
+          - paper-version: "1.21.11-R0.1-SNAPSHOT"
+            mockbukkit-artifactId: "mockbukkit-v1.21"
+            mockbukkit-version: "4.101.0"
 
     steps:
       - name: Checkout
@@ -58,4 +83,11 @@ jobs:
             ${{ runner.os }}-m2-feature-${{ matrix.paper-version }}-
 
       - name: Run feature tests
-        run: mvn -B -Dpaper.version=${{ matrix.paper-version }} -Pfeature-tests -Dtest=*FeatureTest test
+        run: |
+          ART=${{ matrix.mockbukkit-artifactId }}
+          META="https://repo1.maven.org/maven2/org/mockbukkit/${ART}/maven-metadata.xml"
+          echo "Resolving MockBukkit metadata from $META"
+          VER=$(curl -s "$META" | grep -oPm1 "(?<=<release>)[^<]+" || curl -s "$META" | grep -oPm1 "(?<=<latest>)[^<]+" || curl -s "$META" | grep -oPm1 "(?<=<version>)[^<]+" | tail -n1)
+          if [ -z "$VER" ]; then echo "Failed to resolve MockBukkit version for $ART"; exit 1; fi
+          echo "Using MockBukkit $ART:$VER"
+          mvn -B -Dpaper.version=${{ matrix.paper-version }} -Dmockbukkit.artifactId=${{ matrix.mockbukkit-artifactId }} -Dmockbukkit.version="$VER" -Pfeature-tests -Dtest=*FeatureTest test
