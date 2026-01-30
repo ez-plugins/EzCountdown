@@ -14,7 +14,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <version>${paper.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -84,6 +84,8 @@
     
     <properties>
         <!-- Target Java 21 to match Paper API (class file version 65) -->
+        <!-- Allow CI to override the Paper API version with -Dpaper.version -->
+        <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>

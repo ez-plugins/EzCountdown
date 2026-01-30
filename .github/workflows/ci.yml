@@ -7,6 +7,9 @@ on:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        paper-version: ["1.19.4-R0.1-SNAPSHOT", "1.20.2-R0.1-SNAPSHOT", "1.21.11-R0.1-SNAPSHOT"]
 
     steps:
       - name: Checkout
@@ -22,16 +25,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ matrix.paper-version }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-m2-
+            ${{ runner.os }}-m2-${{ matrix.paper-version }}-
 
       - name: Run unit tests
-        run: mvn -B test
+        run: mvn -B -Dpaper.version=${{ matrix.paper-version }} test
 
   feature-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
+    strategy:
+      matrix:
+        paper-version: ["1.19.4-R0.1-SNAPSHOT", "1.20.2-R0.1-SNAPSHOT", "1.21.11-R0.1-SNAPSHOT"]
 
     steps:
       - name: Checkout
@@ -47,9 +53,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-feature-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-feature-${{ matrix.paper-version }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-m2-feature-
+            ${{ runner.os }}-m2-feature-${{ matrix.paper-version }}-
 
       - name: Run feature tests
-        run: mvn -B -Pfeature-tests -Dtest=*FeatureTest test
+        run: mvn -B -Dpaper.version=${{ matrix.paper-version }} -Pfeature-tests -Dtest=*FeatureTest test
