@@ -17,6 +17,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ github.actor }}</username>
+                <password>${{ secrets.GITHUB_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
       - name: Set up Java and authenticate to GitHub Packages
         uses: actions/setup-java@v4
         with:
@@ -24,9 +39,9 @@ jobs:
           java-version: '21'
           server-id: 'github'
           server-username: ${{ github.actor }}
-          # Prefer a user-provided PAT (MAVEN_PUBLISH_TOKEN) for publishing (useful for forks or stricter org settings).
-          # Fall back to the automatically provided GITHUB_TOKEN when the secret is not set.
-          server-password: ${{ secrets.MAVEN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
+          server-password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and deploy
         run: mvn -B -DskipTests=true deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
