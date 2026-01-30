@@ -83,18 +83,19 @@
     </dependencies>
     
     <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+
         <!-- Target Java 21 to match Paper API (class file version 65) -->
         <!-- Allow CI to override the Paper API version with -Dpaper.version -->
         <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
         <!-- MockBukkit coordinates are configurable so CI can select the right artifact per Paper matrix entry -->
         <mockbukkit.artifactId>mockbukkit-v1.21</mockbukkit.artifactId>
         <mockbukkit.version>4.101.0</mockbukkit.version>
-        <!-- GitHub Packages coordinates -->
+        
         <github.owner>ez-plugins</github.owner>
-        <github.repository>EzCountdown</github.repository>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.release>21</maven.compiler.release>
+        <github.repository>ezcountdown</github.repository>
     </properties>
     
     <repositories>
