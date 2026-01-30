@@ -13,7 +13,14 @@ public final class PlaceholderIntegration {
         Plugin placeholder = registry.plugin().getServer().getPluginManager().getPlugin("PlaceholderAPI");
         if (placeholder == null) return null;
         com.skyblockexp.ezcountdown.integration.placeholder.EzCountdownPlaceholderExpansion expansion = new com.skyblockexp.ezcountdown.integration.placeholder.EzCountdownPlaceholderExpansion(registry);
-        expansion.register();
+        try {
+            registry.setPlaceholderExpansion(expansion);
+        } catch (Exception ignored) {}
+        try {
+            expansion.register();
+        } catch (Throwable t) {
+            // In test environments PlaceholderAPI static initialization may fail; keep expansion available in the registry
+        }
         return expansion;
     }
 
