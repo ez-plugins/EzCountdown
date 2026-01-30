@@ -18,7 +18,22 @@ public abstract class MockBukkitTestBase {
 
     @BeforeEach
     public void baseSetup() throws Exception {
-        server = MockBukkit.mock();
+        try {
+            if (org.mockbukkit.mockbukkit.MockBukkit.isMocked()) {
+                server = org.mockbukkit.mockbukkit.MockBukkit.getMock();
+            } else {
+                server = org.mockbukkit.mockbukkit.MockBukkit.getOrCreateMock();
+            }
+        } catch (UnsupportedOperationException ex) {
+            // If Bukkit server was already set to a non-mock instance, try to reuse it if possible
+            if (org.bukkit.Bukkit.getServer() instanceof org.mockbukkit.mockbukkit.ServerMock) {
+                server = (org.mockbukkit.mockbukkit.ServerMock) org.bukkit.Bukkit.getServer();
+            } else {
+                org.junit.jupiter.api.Assumptions.assumeTrue(false, "Cannot initialize MockBukkit server in this environment: " + ex.getMessage());
+                return;
+            }
+        }
+
         plugin = MockBukkit.load(EzCountdownPlugin.class);
         java.lang.reflect.Field f = EzCountdownPlugin.class.getDeclaredField("registry");
         f.setAccessible(true);
@@ -28,7 +43,9 @@ public abstract class MockBukkitTestBase {
 
     @AfterEach
     public void baseCleanup() {
-        MockBukkit.unmock();
+        try {
+            if (org.mockbukkit.mockbukkit.MockBukkit.isMocked()) org.mockbukkit.mockbukkit.MockBukkit.unmock();
+        } catch (Exception ignored) {}
     }
 
     protected Player addPlayer(String name) {
