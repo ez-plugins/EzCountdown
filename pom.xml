@@ -131,7 +131,19 @@
         </repository>
     </repositories>
 
-    <!-- Distribution management removed per project preference. -->
+    <!-- Distribution target for GitHub Packages. Uses properties to allow easy override. -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>${github.owner}</name>
+            <url>https://maven.pkg.github.com/${github.owner}/${github.repository}</url>
+        </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <name>${github.owner}</name>
+            <url>https://maven.pkg.github.com/${github.owner}/${github.repository}</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
         <finalName>EzCountdown-${project.version}</finalName>
