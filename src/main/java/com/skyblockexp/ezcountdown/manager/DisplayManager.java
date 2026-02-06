@@ -21,9 +21,14 @@ import org.bukkit.entity.Player;
 
 public final class DisplayManager {
     private final Map<DisplayType, DisplayHandler> handlers = new EnumMap<>(DisplayType.class);
-    private final Validator.ValidationResult bossbarValidation;
+    private Validator.ValidationResult bossbarValidation;
 
     public DisplayManager(com.skyblockexp.ezcountdown.config.ConfigService configService) {
+        configureHandlers(configService);
+    }
+
+    private void configureHandlers(com.skyblockexp.ezcountdown.config.ConfigService configService) {
+        handlers.clear();
         java.util.Map<com.skyblockexp.ezcountdown.display.DisplayType, Boolean> overrides = configService.loadDisplayOverrides();
 
         // Action bar
@@ -75,6 +80,10 @@ public final class DisplayManager {
         } else {
             Bukkit.getLogger().warning("EzCountdown: boss bar display disabled: " + bossbarValidation.getMessage());
         }
+    }
+
+    public void reload(com.skyblockexp.ezcountdown.config.ConfigService configService) {
+        configureHandlers(configService);
     }
 
     public void display(Countdown countdown, String message, long remainingSeconds) {

@@ -36,9 +36,9 @@ public final class GuiClickListener implements Listener {
     private final AnvilClickListener anvilHandler;
     private final CountdownManager manager;
     private final MessageManager messageManager;
-    private final CountdownPermissions permissions;
+    private final com.skyblockexp.ezcountdown.bootstrap.Registry registry;
 
-    public GuiClickListener(MainGui mainGui, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor, AnvilClickListener anvilHandler, CountdownManager manager, MessageManager messageManager, CountdownPermissions permissions) {
+    public GuiClickListener(MainGui mainGui, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor, AnvilClickListener anvilHandler, CountdownManager manager, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
         this.mainGui = mainGui;
         this.editorMenu = editorMenu;
         this.displayEditor = displayEditor;
@@ -46,7 +46,7 @@ public final class GuiClickListener implements Listener {
         this.anvilHandler = anvilHandler;
         this.manager = manager;
         this.messageManager = messageManager;
-        this.permissions = permissions;
+        this.registry = registry;
     }
 
     @EventHandler
@@ -91,8 +91,8 @@ public final class GuiClickListener implements Listener {
                 player.sendMessage(messageManager.formatWithPrefix(message, java.util.Map.of()));
                 return;
             }
-            if (clickType == ClickType.SHIFT_RIGHT) {
-                if (!player.hasPermission(permissions.delete())) {
+                if (clickType == ClickType.SHIFT_RIGHT) {
+                if (!player.hasPermission(registry.permissions().delete())) {
                     player.sendMessage(messageManager.message("commands.delete.no-permission"));
                     return;
                 }
@@ -123,7 +123,7 @@ public final class GuiClickListener implements Listener {
                 }
                 case 1 -> displayEditor.openDisplayEditor(player, cd);
                 case 2 -> {
-                    if (!player.hasPermission(permissions.create())) { player.sendMessage(messageManager.message("commands.create.no-permission")); return; }
+                    if (!player.hasPermission(registry.permissions().create())) { player.sendMessage(messageManager.message("commands.create.no-permission")); return; }
                     anvilHandler.request(player, input -> {
                         CountdownTypeHandler handler = manager.getHandler(cd.getType());
                         try {
@@ -191,7 +191,7 @@ public final class GuiClickListener implements Listener {
             String cdName = title.substring(CommandsEditor.getPrefix().length()); Countdown countdown = manager.getCountdown(cdName).orElse(null); if (countdown == null) return;
             int slot = event.getRawSlot(); int size = event.getInventory().getSize();
             if (slot == size - 1) {
-                if (!player.hasPermission(permissions.create())) { player.sendMessage(messageManager.message("commands.create.no-permission")); return; }
+                if (!player.hasPermission(registry.permissions().create())) { player.sendMessage(messageManager.message("commands.create.no-permission")); return; }
                 anvilHandler.request(player, input -> {
                     List<String> newCommands = new ArrayList<>(countdown.getEndCommands()); newCommands.add(input);
                     com.skyblockexp.ezcountdown.api.model.Countdown newCd = new com.skyblockexp.ezcountdown.api.model.Countdown(countdown.getName(), countdown.getType(), countdown.getDisplayTypes(), countdown.getUpdateIntervalSeconds(), countdown.getVisibilityPermission(), countdown.getFormatMessage(), countdown.getStartMessage(), countdown.getEndMessage(), newCommands, countdown.getZoneId());

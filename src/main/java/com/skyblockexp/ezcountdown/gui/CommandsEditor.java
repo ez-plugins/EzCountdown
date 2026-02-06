@@ -22,13 +22,13 @@ public final class CommandsEditor {
     private final CountdownManager manager;
     private final AnvilClickListener anvilHandler;
     private final MessageManager messageManager;
-    private final CountdownPermissions permissions;
+    private final com.skyblockexp.ezcountdown.bootstrap.Registry registry;
 
-    public CommandsEditor(CountdownManager manager, AnvilClickListener anvilHandler, MessageManager messageManager, CountdownPermissions permissions) {
+    public CommandsEditor(CountdownManager manager, AnvilClickListener anvilHandler, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
         this.manager = manager;
         this.anvilHandler = anvilHandler;
         this.messageManager = messageManager;
-        this.permissions = permissions;
+        this.registry = registry;
     }
 
     public void openCommandsEditor(Player player, Countdown countdown) {

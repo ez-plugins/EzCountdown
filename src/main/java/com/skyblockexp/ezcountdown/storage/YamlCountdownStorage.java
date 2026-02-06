@@ -30,7 +30,7 @@ public final class YamlCountdownStorage implements CountdownStorage {
 
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private final CountdownDefaults defaults;
+    private CountdownDefaults defaults;
     private final File storageFile;
     private final java.util.logging.Logger logger;
     private java.util.Map<CountdownType, CountdownTypeHandler> handlers = java.util.Map.of();
@@ -39,6 +39,11 @@ public final class YamlCountdownStorage implements CountdownStorage {
         this.defaults = Objects.requireNonNull(defaults, "defaults");
         this.storageFile = Objects.requireNonNull(storageFile, "storageFile");
         this.logger = Objects.requireNonNull(logger, "logger");
+    }
+
+    public void setDefaults(CountdownDefaults defaults) {
+        if (defaults == null) return;
+        this.defaults = defaults;
     }
 
      public void setHandlerRegistry(java.util.Map<CountdownType, CountdownTypeHandler> handlers) {
@@ -63,7 +68,10 @@ public final class YamlCountdownStorage implements CountdownStorage {
             ConfigurationSection section = root.getConfigurationSection(key);
             if (section == null) continue;
             try {
-                Countdown countdown = parseCountdown(key, section);
+                // Treat missing display.types differently from an explicit empty list.
+                // If the key is absent, pass null so parseDisplayTypes uses defaults; if present but empty, use empty list.
+                List<String> displayEntries = section.isSet("display.types") ? section.getStringList("display.types") : null;
+                Countdown countdown = parseCountdown(key, section, displayEntries);
                 if (countdown != null) countdowns.add(countdown);
             } catch (IllegalArgumentException ex) {
                 logger.log(Level.WARNING, "Failed to load countdown " + key + ": " + ex.getMessage(), ex);
@@ -114,14 +122,14 @@ public final class YamlCountdownStorage implements CountdownStorage {
         }
     }
 
-    private Countdown parseCountdown(String name, ConfigurationSection section) {
+    private Countdown parseCountdown(String name, ConfigurationSection section, List<String> displayEntries) {
         CountdownType type = CountdownType.valueOf(section.getString("type", "FIXED_DATE").toUpperCase(Locale.ROOT));
         CountdownTypeHandler handler = handlers.get(type);
         if (handler != null) {
             return handler.parse(name, section, defaults);
         }
         // Fallback to legacy parsing
-        EnumSet<DisplayType> displayTypes = parseDisplayTypes(section.getStringList("display.types"));
+        EnumSet<DisplayType> displayTypes = parseDisplayTypes(displayEntries);
         int updateInterval = section.getInt("display.update-interval", defaults.updateIntervalSeconds());
         String visibility = section.getString("display.visibility", defaults.visibilityPermission());
         if ("all".equalsIgnoreCase(visibility)) visibility = null;
@@ -161,8 +169,13 @@ public final class YamlCountdownStorage implements CountdownStorage {
 
     private EnumSet<DisplayType> parseDisplayTypes(List<String> entries) {
         EnumSet<DisplayType> types = EnumSet.noneOf(DisplayType.class);
-        if (entries == null || entries.isEmpty()) {
+        if (entries == null) {
+            // key missing -> use defaults
             types.addAll(defaults.displayTypes());
+            return types;
+        }
+        if (entries.isEmpty()) {
+            // explicit empty list -> no displays
             return types;
         }
         for (String entry : entries) {

@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 public final class GuiManager {
     private final CountdownManager manager;
     private final MessageManager messageManager;
-    private final CountdownPermissions permissions;
+    private final com.skyblockexp.ezcountdown.bootstrap.Registry registry;
 
     private final MainGui mainGui;
     private final EditorMenu editorMenu;
@@ -18,16 +18,16 @@ public final class GuiManager {
     private final CommandsEditor commandsEditor;
     private final AnvilClickListener anvilHandler;
 
-    public GuiManager(CountdownManager manager, MessageManager messageManager, CountdownPermissions permissions, AnvilClickListener anvilHandler) {
+    public GuiManager(CountdownManager manager, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry, AnvilClickListener anvilHandler) {
         this.manager = manager;
         this.messageManager = messageManager;
-        this.permissions = permissions;
+        this.registry = registry;
 
         this.anvilHandler = anvilHandler;
         this.mainGui = new MainGui(manager);
-        this.editorMenu = new EditorMenu(manager, anvilHandler, messageManager, permissions);
+        this.editorMenu = new EditorMenu(manager, anvilHandler, messageManager, registry);
         this.displayEditor = new DisplayEditor(manager, messageManager);
-        this.commandsEditor = new CommandsEditor(manager, anvilHandler, messageManager, permissions);
+        this.commandsEditor = new CommandsEditor(manager, anvilHandler, messageManager, registry);
         // Listener registration is handled by bootstrap
     }
 
