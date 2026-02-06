@@ -87,7 +87,7 @@ public final class PluginBootstrap {
         countdownManager.load();
 
         // GUI and input handlers
-        AnvilClickListener anvil = new AnvilClickListener();
+        AnvilClickListener anvil = new AnvilClickListener(plugin);
         // register anvil listener
         Bukkit.getPluginManager().registerEvents(anvil, plugin);
 
@@ -103,7 +103,11 @@ public final class PluginBootstrap {
         // Command registration - provide registry so command uses shared components
         var command = plugin.getCommand("countdown");
         if (command != null) {
-            CountdownCommand executor = new CountdownCommand(registry, plugin::reloadConfig);
+            Runnable reloadAction = () -> {
+                try { plugin.reloadConfig(); } catch (Exception ignored) {}
+                try { registry.countdowns().load(); } catch (Exception ignored) {}
+            };
+            CountdownCommand executor = new CountdownCommand(registry, reloadAction);
             command.setExecutor(executor);
             command.setTabCompleter(executor);
         }
