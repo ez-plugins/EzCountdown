@@ -53,15 +53,18 @@ public final class EzCountdownApiImpl implements EzCountdownApi {
         com.skyblockexp.ezcountdown.manager.CountdownDefaults defs = registry.defaults();
         EnumSet<DisplayType> displayTypes = EnumSet.copyOf(defs.displayTypes());
         Countdown countdown = new Countdown(name,
-                type,
-                displayTypes,
-                defs.updateIntervalSeconds(),
-                defs.visibilityPermission(),
-                defs.formatMessage(),
-                defs.startMessage(),
-                defs.endMessage(),
-                java.util.List.of(),
-                defs.zoneId());
+            type,
+            displayTypes,
+            defs.updateIntervalSeconds(),
+            defs.visibilityPermission(),
+            defs.formatMessage(),
+            defs.startMessage(),
+            defs.endMessage(),
+            java.util.List.<String>of(),
+            defs.zoneId(),
+            false,
+            null,
+            0);
 
         if (type == CountdownType.DURATION || type == CountdownType.MANUAL) {
             countdown.setDurationSeconds(amountSeconds);

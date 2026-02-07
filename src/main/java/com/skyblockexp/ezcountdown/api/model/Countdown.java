@@ -46,6 +46,12 @@ public final class Countdown {
 
     /** Time zone used for date/recurring calculations. */
     private final ZoneId zoneId;
+    /** Whether this countdown should automatically restart when it ends. */
+    private final boolean autoRestart;
+    /** Optional countdown name to start when this countdown ends. */
+    private final String startCountdown;
+    /** Delay in seconds before performing the restart/start action. */
+    private final int restartDelaySeconds;
 
     /* Mutable runtime state */
     private long durationSeconds;
@@ -78,7 +84,10 @@ public final class Countdown {
                      String startMessage,
                      String endMessage,
                      java.util.List<String> endCommands,
-                     ZoneId zoneId) {
+                     ZoneId zoneId,
+                     boolean autoRestart,
+                     String startCountdown,
+                     int restartDelaySeconds) {
         this.name = Objects.requireNonNull(name, "name");
         this.type = Objects.requireNonNull(type, "type");
         this.displayTypes = displayTypes == null ? EnumSet.noneOf(DisplayType.class) : EnumSet.copyOf(displayTypes);
@@ -89,6 +98,29 @@ public final class Countdown {
         this.endMessage = endMessage;
         this.endCommands = endCommands == null ? java.util.List.of() : java.util.List.copyOf(endCommands);
         this.zoneId = zoneId;
+        this.autoRestart = autoRestart;
+        this.startCountdown = startCountdown;
+        this.restartDelaySeconds = restartDelaySeconds;
+    }
+
+    /**
+     * Backwards-compatible constructor matching the previous API that did not
+     * include the auto-restart fields. Delegates to the full constructor with
+     * sensible defaults (no auto-restart, no start-target, zero delay).
+     */
+    public Countdown(String name,
+                     CountdownType type,
+                     EnumSet<DisplayType> displayTypes,
+                     int updateIntervalSeconds,
+                     String visibilityPermission,
+                     String formatMessage,
+                     String startMessage,
+                     String endMessage,
+                     java.util.List<String> endCommands,
+                     ZoneId zoneId) {
+        this(name, type, displayTypes, updateIntervalSeconds, visibilityPermission,
+                formatMessage, startMessage, endMessage, endCommands, zoneId,
+                false, null, 0);
     }
 
     /** @return countdown name */
@@ -158,6 +190,15 @@ public final class Countdown {
 
     /** Set the recurring time. */
     public void setRecurringTime(LocalTime recurringTime) { this.recurringTime = recurringTime; }
+
+    /** @return whether this countdown should automatically restart when finished */
+    public boolean isAutoRestart() { return autoRestart; }
+
+    /** @return configured countdown name to start on end, or null if not set */
+    public String getStartCountdown() { return startCountdown; }
+
+    /** @return configured delay in seconds before restart/start actions */
+    public int getRestartDelaySeconds() { return restartDelaySeconds; }
 
     /**
      * Resolve the next target Instant for a recurring countdown given the provided

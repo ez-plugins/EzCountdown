@@ -58,8 +58,7 @@ public final class CreateSubcommand implements Subcommand {
         // build countdown with defaults
         EnumSet<DisplayType> displayTypes = EnumSet.copyOf(registry.defaults().displayTypes());
         Countdown countdown = new Countdown(name, type, displayTypes, registry.defaults().updateIntervalSeconds(),
-            registry.defaults().visibilityPermission(), registry.defaults().formatMessage(), registry.defaults().startMessage(),
-            registry.defaults().endMessage(), java.util.List.of(), registry.defaults().zoneId());
+            registry.defaults().visibilityPermission(), registry.defaults().formatMessage(), registry.defaults().startMessage(), registry.defaults().endMessage(), java.util.List.<String>of(), registry.defaults().zoneId(), false, null, 0);
         countdown.setRunning(registry.defaults().startOnCreate());
 
         CountdownTypeHandler handler = registry.getHandler(type);

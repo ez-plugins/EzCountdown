@@ -81,6 +81,22 @@ public final class EditorMenu {
         start.setItemMeta(sm);
         inv.setItem(6, start);
 
+        ItemStack auto = new ItemStack(Material.LEVER);
+        ItemMeta am = auto.getItemMeta();
+        boolean enabled = countdown.isAutoRestart();
+        am.setDisplayName((enabled ? ChatColor.GREEN : ChatColor.RED) + "Auto Restart");
+        am.setLore(List.of(ChatColor.GRAY + "Enabled: " + (enabled ? "true" : "false"), ChatColor.GRAY + "Toggle to restart on end"));
+        auto.setItemMeta(am);
+        inv.setItem(5, auto);
+
+        ItemStack startTarget = new ItemStack(Material.NAME_TAG);
+        ItemMeta stm = startTarget.getItemMeta();
+        stm.setDisplayName(ChatColor.AQUA + "Start Countdown On End");
+        String target = countdown.getStartCountdown() == null ? "(none)" : countdown.getStartCountdown();
+        stm.setLore(List.of(ChatColor.GRAY + "Target: " + target, ChatColor.GRAY + "Click to set or clear"));
+        startTarget.setItemMeta(stm);
+        inv.setItem(7, startTarget);
+
         ItemStack end = new ItemStack(MaterialCompat.resolve("BELL", "PAPER"));
         ItemMeta em = end.getItemMeta();
         em.setDisplayName(ChatColor.RED + "Edit End Message");
