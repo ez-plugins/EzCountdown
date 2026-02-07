@@ -14,6 +14,12 @@ import com.skyblockexp.ezcountdown.gui.CommandsEditor;
 import com.skyblockexp.ezcountdown.gui.DisplayEditor;
 import com.skyblockexp.ezcountdown.gui.EditorMenu;
 import com.skyblockexp.ezcountdown.gui.MainGui;
+import com.skyblockexp.ezcountdown.bootstrap.Registry;
+import com.skyblockexp.ezcountdown.listener.actions.GuiActionRegistry;
+import com.skyblockexp.ezcountdown.listener.actions.GuiAction;
+import com.skyblockexp.ezcountdown.listener.actions.ActionResult;
+import java.util.Optional;
+import java.util.Map;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -36,8 +42,8 @@ public final class GuiClickListener implements Listener {
     private final AnvilClickListener anvilHandler;
     private final CountdownManager manager;
     private final MessageManager messageManager;
-    private final com.skyblockexp.ezcountdown.bootstrap.Registry registry;
-    private final com.skyblockexp.ezcountdown.listener.actions.GuiActionRegistry actionRegistry;
+    private final Registry registry;
+    private final GuiActionRegistry actionRegistry;
 
     public GuiClickListener(MainGui mainGui, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor, AnvilClickListener anvilHandler, CountdownManager manager, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
         this.mainGui = mainGui;
@@ -48,7 +54,7 @@ public final class GuiClickListener implements Listener {
         this.manager = manager;
         this.messageManager = messageManager;
         this.registry = registry;
-        this.actionRegistry = new com.skyblockexp.ezcountdown.listener.actions.GuiActionRegistry(manager, messageManager, anvilHandler, registry, editorMenu, displayEditor, commandsEditor);
+        this.actionRegistry = new GuiActionRegistry(manager, messageManager, anvilHandler, registry, editorMenu, displayEditor, commandsEditor);
     }
 
     @EventHandler
@@ -70,9 +76,9 @@ public final class GuiClickListener implements Listener {
                 return;
             }
             ClickType clickType = event.getClick();
-            java.util.Optional<com.skyblockexp.ezcountdown.listener.actions.GuiAction> opt = actionRegistry.forMainGuiClick(clickType);
+            Optional<GuiAction> opt = actionRegistry.forMainGuiClick(clickType);
             if (opt.isPresent()) {
-                com.skyblockexp.ezcountdown.listener.actions.ActionResult res = opt.get().handle(event, player, name, java.util.Optional.ofNullable(countdown));
+                ActionResult res = opt.get().handle(event, player, name, Optional.ofNullable(countdown));
                 if (res != null && res.isMutated()) {
                     manager.save();
                 }
@@ -86,12 +92,12 @@ public final class GuiClickListener implements Listener {
         if (title.startsWith(EditorMenu.getPrefix())) {
             event.setCancelled(true);
             String cdName = title.substring(EditorMenu.getPrefix().length());
-            java.util.Optional<Countdown> cd = manager.getCountdown(cdName);
+            Optional<Countdown> cd = manager.getCountdown(cdName);
             if (cd.isEmpty()) return;
             int slot = event.getRawSlot();
-            java.util.Optional<com.skyblockexp.ezcountdown.listener.actions.GuiAction> actionOpt = actionRegistry.forEditorSlot(slot);
+            Optional<GuiAction> actionOpt = actionRegistry.forEditorSlot(slot);
             if (actionOpt.isPresent()) {
-                com.skyblockexp.ezcountdown.listener.actions.ActionResult res = actionOpt.get().handle(event, player, cdName, cd);
+                ActionResult res = actionOpt.get().handle(event, player, cdName, cd);
                 if (res != null && res.isMutated()) manager.save();
                 if (res != null && res.isCloseInventory()) player.closeInventory();
                 return;
@@ -102,12 +108,12 @@ public final class GuiClickListener implements Listener {
         if (title.startsWith(DisplayEditor.getPrefix())) {
             event.setCancelled(true);
             String cdName = title.substring(DisplayEditor.getPrefix().length());
-            java.util.Optional<Countdown> cd = manager.getCountdown(cdName);
+            Optional<Countdown> cd = manager.getCountdown(cdName);
             if (cd.isEmpty()) return;
             int slot = event.getRawSlot();
-            java.util.Optional<com.skyblockexp.ezcountdown.listener.actions.GuiAction> actionOpt = actionRegistry.forDisplaySlot(slot);
+            Optional<GuiAction> actionOpt = actionRegistry.forDisplaySlot(slot);
             if (actionOpt.isPresent()) {
-                com.skyblockexp.ezcountdown.listener.actions.ActionResult res = actionOpt.get().handle(event, player, cdName, cd);
+                ActionResult res = actionOpt.get().handle(event, player, cdName, cd);
                 if (res != null && res.isMutated()) manager.save();
                 if (res != null && res.isCloseInventory()) player.closeInventory();
             }
@@ -117,11 +123,11 @@ public final class GuiClickListener implements Listener {
         if (title.startsWith(CommandsEditor.getPrefix())) {
             event.setCancelled(true);
             String cdName = title.substring(CommandsEditor.getPrefix().length());
-            java.util.Optional<Countdown> countdown = manager.getCountdown(cdName);
+            Optional<Countdown> countdown = manager.getCountdown(cdName);
             if (countdown.isEmpty()) return;
-            java.util.Optional<com.skyblockexp.ezcountdown.listener.actions.GuiAction> actionOpt = actionRegistry.forCommands();
+            Optional<GuiAction> actionOpt = actionRegistry.forCommands();
             if (actionOpt.isPresent()) {
-                com.skyblockexp.ezcountdown.listener.actions.ActionResult res = actionOpt.get().handle(event, player, cdName, countdown);
+                ActionResult res = actionOpt.get().handle(event, player, cdName, countdown);
                 if (res != null && res.isMutated()) manager.save();
                 if (res != null && res.isCloseInventory()) player.closeInventory();
             }

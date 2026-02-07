@@ -29,8 +29,13 @@ public class ToggleDisplayTypeAction implements GuiAction {
         int slot = event.getRawSlot(); DisplayType[] values = DisplayType.values(); if (slot >=0 && slot < values.length) {
             DisplayType toggled = values[slot]; EnumSet<DisplayType> set = countdown.getDisplayTypes(); EnumSet<DisplayType> newSet = EnumSet.copyOf(set);
             if (newSet.contains(toggled)) newSet.remove(toggled); else newSet.add(toggled);
-            com.skyblockexp.ezcountdown.api.model.Countdown newCd = new com.skyblockexp.ezcountdown.api.model.Countdown(countdown.getName(), countdown.getType(), newSet, countdown.getUpdateIntervalSeconds(), countdown.getVisibilityPermission(), countdown.getFormatMessage(), countdown.getStartMessage(), countdown.getEndMessage(), countdown.getEndCommands(), countdown.getZoneId(), false, null, 0);
-            newCd.setDurationSeconds(countdown.getDurationSeconds()); newCd.setTargetInstant(countdown.getTargetInstant()); newCd.setRecurringMonth(countdown.getRecurringMonth()); newCd.setRecurringDay(countdown.getRecurringDay()); newCd.setRecurringTime(countdown.getRecurringTime()); newCd.setRunning(countdown.isRunning());
+            Countdown newCd = new Countdown(countdown.getName(), countdown.getType(), newSet, countdown.getUpdateIntervalSeconds(), countdown.getVisibilityPermission(), countdown.getFormatMessage(), countdown.getStartMessage(), countdown.getEndMessage(), countdown.getEndCommands(), countdown.getZoneId(), false, null, 0);
+            newCd.setDurationSeconds(countdown.getDurationSeconds());
+            newCd.setTargetInstant(countdown.getTargetInstant());
+            newCd.setRecurringMonth(countdown.getRecurringMonth());
+            newCd.setRecurringDay(countdown.getRecurringDay());
+            newCd.setRecurringTime(countdown.getRecurringTime());
+            newCd.setRunning(countdown.isRunning());
             if (manager.updateCountdown(cdName, newCd)) { manager.save(); player.sendMessage(messageManager.message("gui.display.toggled", java.util.Map.of("name", cdName))); displayEditor.openDisplayEditor(player, newCd); }
             return ActionResult.handledAndMutated();
         }
