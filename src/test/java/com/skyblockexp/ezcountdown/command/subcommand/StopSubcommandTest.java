@@ -13,6 +13,8 @@ public class StopSubcommandTest extends MockBukkitTestBase {
 
     @Test
     public void execute_stopsCountdown() {
+        com.skyblockexp.ezcountdown.manager.MessageManager spy = spyMessages();
+
         Countdown cd = new Countdown("sstop", CountdownType.MANUAL,
                 EnumSet.copyOf(registry.defaults().displayTypes()), registry.defaults().updateIntervalSeconds(),
                 registry.defaults().visibilityPermission(), registry.defaults().formatMessage(), registry.defaults().startMessage(), registry.defaults().endMessage(), java.util.List.of(), registry.defaults().zoneId());
@@ -25,5 +27,6 @@ public class StopSubcommandTest extends MockBukkitTestBase {
         var opt = manager.getCountdown("sstop");
         assertTrue(opt.isPresent(), "Countdown should still exist after stopping");
         assertFalse(opt.get().isRunning(), "Countdown should not be running after stop");
+        org.mockito.Mockito.verify(spy).message("commands.stop.success", java.util.Map.of("name", "sstop"));
     }
 }

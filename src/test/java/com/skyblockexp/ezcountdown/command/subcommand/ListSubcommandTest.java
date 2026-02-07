@@ -13,14 +13,16 @@ public class ListSubcommandTest extends MockBukkitTestBase {
 
     @Test
     public void execute_listsCountdownsWithoutError() {
+        com.skyblockexp.ezcountdown.manager.MessageManager spy = spyMessages();
+
         Countdown cd = new Countdown("lone", CountdownType.MANUAL,
-                EnumSet.copyOf(registry.defaults().displayTypes()), registry.defaults().updateIntervalSeconds(),
-                registry.defaults().visibilityPermission(), registry.defaults().formatMessage(), registry.defaults().startMessage(), registry.defaults().endMessage(), java.util.List.of(), registry.defaults().zoneId());
+            EnumSet.copyOf(registry.defaults().displayTypes()), registry.defaults().updateIntervalSeconds(),
+            registry.defaults().visibilityPermission(), registry.defaults().formatMessage(), registry.defaults().startMessage(), registry.defaults().endMessage(), java.util.List.of(), registry.defaults().zoneId());
         manager.createCountdown(cd);
 
         ListSubcommand sub = new ListSubcommand(registry);
         sub.execute(server.getConsoleSender(), new String[]{"list"});
 
-        assertTrue(true, "List executed without throwing");
+        org.mockito.Mockito.verify(spy).message(org.mockito.Mockito.eq("commands.list.format"), org.mockito.Mockito.anyMap());
     }
 }

@@ -45,10 +45,16 @@ public final class ConfigService {
         FileConfiguration config = plugin.getConfig();
         List<String> displayEntries = config.getStringList("defaults.display-types");
         EnumSet<DisplayType> displayTypes = EnumSet.noneOf(DisplayType.class);
-        for (String entry : displayEntries) {
-            try { displayTypes.add(DisplayType.valueOf(entry.toUpperCase(Locale.ROOT))); } catch (IllegalArgumentException ex) { plugin.getLogger().warning("Unknown display type: " + entry); }
+        // Distinguish between key absent and explicitly set empty list.
+        // If the key is present, honor an explicit empty list (meaning no default displays).
+        if (config.contains("defaults.display-types")) {
+            for (String entry : displayEntries) {
+                try { displayTypes.add(DisplayType.valueOf(entry.toUpperCase(Locale.ROOT))); } catch (IllegalArgumentException ex) { plugin.getLogger().warning("Unknown display type: " + entry); }
+            }
+        } else {
+            // Key missing -> keep legacy behavior of defaulting to ACTION_BAR
+            displayTypes.add(DisplayType.ACTION_BAR);
         }
-        if (displayTypes.isEmpty()) displayTypes.add(DisplayType.ACTION_BAR);
         int updateInterval = config.getInt("defaults.update-interval", 1);
         String visibility = config.getString("defaults.visibility", "all"); if ("all".equalsIgnoreCase(visibility)) visibility = null;
         String formatMessage = messageManager.raw("defaults.format");

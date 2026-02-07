@@ -1,7 +1,19 @@
 defaults:
+  # Available values:
+  # - ACTION_BAR
+  # - BOSS_BAR
+  # - CHAT
+  # - TITLE
+  # - SCOREBOARD
   display-types:
     - ACTION_BAR
   update-interval: 1
+  # Visibility controls who can see countdowns by default.
+  # Available values:
+  # - "all"         -> visible to everyone
+  # - "<permission>" -> require a permission node (e.g. "ezcountdown.use") to view
+  # If set to "all", display visibility checks are disabled. If set to a permission string,
+  # only players with that permission will see countdown displays by default.
   visibility: "all"
   start-on-create: true
   zone: "UTC"
