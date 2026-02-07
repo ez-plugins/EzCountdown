@@ -40,4 +40,10 @@ public final class GuiManager {
     public void openMain(Player player) {
         mainGui.openMain(player);
     }
+
+    public void closeAllOpenInventories() {
+        for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+            try { p.closeInventory(); } catch (Exception ignored) {}
+        }
+    }
 }

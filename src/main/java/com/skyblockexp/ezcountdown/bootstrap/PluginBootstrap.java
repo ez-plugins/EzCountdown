@@ -120,6 +120,8 @@ public final class PluginBootstrap {
                     displayManager.reload(configService);
                     // finally reload countdowns from storage
                     registry.countdowns().load();
+                    // close any open GUI inventories so editors reflect reloaded countdown data
+                    try { if (registry.gui() != null) registry.gui().closeAllOpenInventories(); } catch (Exception ignored) {}
                 } catch (Exception ignored) {}
             };
             // instantiate subcommand implementations (scaffolding)
