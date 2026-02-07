@@ -21,8 +21,8 @@ import java.util.EnumMap;
 public final class Registry {
     private final EzCountdownPlugin plugin;
     private final MessageManager messageManager;
-    private final CountdownDefaults defaults;
-    private final CountdownPermissions permissions;
+    private CountdownDefaults defaults;
+    private CountdownPermissions permissions;
     private final DisplayManager displayManager;
     private final CountdownStorage storage;
     private final LocationManager locationManager;
@@ -44,6 +44,14 @@ public final class Registry {
         this.locationPermissions = locationPermissions;
         this.countdownManager = countdownManager;
         this.guiManager = guiManager;
+    }
+
+    public void setDefaults(CountdownDefaults defaults) {
+        this.defaults = defaults;
+    }
+
+    public void setPermissions(CountdownPermissions permissions) {
+        this.permissions = permissions;
     }
 
     public void setCountdownManager(CountdownManager countdownManager) {

@@ -5,7 +5,7 @@
 
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>ezcountdown</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>EzCountdown Plugin</name>
     <description>Configurable countdowns for server launches, events, and maintenance windows.</description>
     <packaging>jar</packaging>

@@ -63,4 +63,15 @@ public abstract class MockBukkitTestBase {
         try { p.addAttachment(plugin, permission, true); } catch (Exception ignored) {}
         return p;
     }
+
+    protected com.skyblockexp.ezcountdown.manager.MessageManager spyMessages() {
+        com.skyblockexp.ezcountdown.manager.MessageManager orig = registry.messages();
+        com.skyblockexp.ezcountdown.manager.MessageManager spy = org.mockito.Mockito.spy(orig);
+        try {
+            java.lang.reflect.Field f = registry.getClass().getDeclaredField("messageManager");
+            f.setAccessible(true);
+            f.set(registry, spy);
+        } catch (Exception ignored) {}
+        return spy;
+    }
 }

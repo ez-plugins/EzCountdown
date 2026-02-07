@@ -87,14 +87,14 @@ public final class PluginBootstrap {
         countdownManager.load();
 
         // GUI and input handlers
-        AnvilClickListener anvil = new AnvilClickListener();
+        AnvilClickListener anvil = new AnvilClickListener(plugin);
         // register anvil listener
         Bukkit.getPluginManager().registerEvents(anvil, plugin);
 
         // Create GuiManager with shared anvil handler
-        GuiManager guiManager = new GuiManager(countdownManager, messageManager, permissions, anvil);
+        GuiManager guiManager = new GuiManager(countdownManager, messageManager, registry, anvil);
 
-        GuiClickListener guiListener = new GuiClickListener(guiManager.mainGui(), guiManager.editorMenu(), guiManager.displayEditor(), guiManager.commandsEditor(), anvil, countdownManager, messageManager, permissions);
+        GuiClickListener guiListener = new GuiClickListener(guiManager.mainGui(), guiManager.editorMenu(), guiManager.displayEditor(), guiManager.commandsEditor(), anvil, countdownManager, messageManager, registry);
         Bukkit.getPluginManager().registerEvents(guiListener, plugin);
 
         // register gui manager into registry
@@ -103,7 +103,38 @@ public final class PluginBootstrap {
         // Command registration - provide registry so command uses shared components
         var command = plugin.getCommand("countdown");
         if (command != null) {
-            CountdownCommand executor = new CountdownCommand(registry, plugin::reloadConfig);
+            Runnable reloadAction = () -> {
+                try { plugin.reloadConfig(); } catch (Exception ignored) {}
+                try { configService.messages().reload(); } catch (Exception ignored) {}
+                try {
+                    CountdownDefaults newDefaults = configService.loadDefaults();
+                    CountdownPermissions newPerms = configService.loadPermissions();
+                    // update registry
+                    registry.setDefaults(newDefaults);
+                    registry.setPermissions(newPerms);
+                    // update storage defaults if applicable
+                    if (storage instanceof YamlCountdownStorage yamlStorage) {
+                        yamlStorage.setDefaults(newDefaults);
+                    }
+                    // refresh display manager configuration
+                    displayManager.reload(configService);
+                    // finally reload countdowns from storage
+                    registry.countdowns().load();
+                } catch (Exception ignored) {}
+            };
+            // instantiate subcommand implementations (scaffolding)
+            java.util.Map<String, com.skyblockexp.ezcountdown.command.subcommand.Subcommand> subs = new java.util.HashMap<>();
+            subs.put("create", new com.skyblockexp.ezcountdown.command.subcommand.CreateSubcommand(registry));
+            subs.put("start", new com.skyblockexp.ezcountdown.command.subcommand.StartSubcommand(registry));
+            subs.put("stop", new com.skyblockexp.ezcountdown.command.subcommand.StopSubcommand(registry));
+            subs.put("delete", new com.skyblockexp.ezcountdown.command.subcommand.DeleteSubcommand(registry));
+            subs.put("gui", new com.skyblockexp.ezcountdown.command.subcommand.GuiSubcommand(registry));
+            subs.put("list", new com.skyblockexp.ezcountdown.command.subcommand.ListSubcommand(registry));
+            subs.put("info", new com.skyblockexp.ezcountdown.command.subcommand.InfoSubcommand(registry));
+            subs.put("reload", new com.skyblockexp.ezcountdown.command.subcommand.ReloadSubcommand(registry, reloadAction));
+            subs.put("location", new com.skyblockexp.ezcountdown.command.subcommand.LocationSubcommand(registry));
+
+            CountdownCommand executor = new CountdownCommand(registry, java.util.Map.copyOf(subs), reloadAction);
             command.setExecutor(executor);
             command.setTabCompleter(executor);
         }

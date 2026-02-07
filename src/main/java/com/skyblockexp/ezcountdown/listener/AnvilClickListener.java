@@ -12,11 +12,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import org.bukkit.plugin.Plugin;
 
 public final class AnvilClickListener implements Listener {
     private final Map<UUID, Consumer<String>> pending = new ConcurrentHashMap<>();
 
-    public AnvilClickListener() {}
+    private final Plugin plugin;
+
+    public AnvilClickListener(Plugin plugin) {
+        this.plugin = plugin;
+    }
 
     public void request(Player player, Consumer<String> callback) {
         pending.put(player.getUniqueId(), callback);
@@ -32,7 +37,7 @@ public final class AnvilClickListener implements Listener {
             if (result != null && result.hasItemMeta() && result.getItemMeta().hasDisplayName()) {
                 String input = result.getItemMeta().getDisplayName();
                 Consumer<String> cb = pending.remove(player.getUniqueId());
-                if (cb != null) Bukkit.getScheduler().runTask(null, () -> cb.accept(input));
+                if (cb != null) Bukkit.getScheduler().runTask(plugin, () -> cb.accept(input));
             }
             player.closeInventory();
             event.setCancelled(true);
