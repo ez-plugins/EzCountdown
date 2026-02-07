@@ -100,6 +100,9 @@ public final class YamlCountdownStorage implements CountdownStorage {
             section.set("messages.end", countdown.getEndMessage());
             section.set("commands.end", countdown.getEndCommands());
             section.set("zone", countdown.getZoneId().getId());
+            section.set("auto_restart", countdown.isAutoRestart());
+            if (countdown.getStartCountdown() != null) section.set("start_countdown", countdown.getStartCountdown());
+            section.set("restart_delay_seconds", countdown.getRestartDelaySeconds());
             CountdownTypeHandler handler = handlers.get(countdown.getType());
             if (handler != null) {
                 handler.serialize(countdown, section);
@@ -139,7 +142,10 @@ public final class YamlCountdownStorage implements CountdownStorage {
         List<String> endCommands = section.getStringList("commands.end").stream().filter(command -> command != null && !command.isBlank()).toList();
         ZoneId zoneId = ZoneId.of(section.getString("zone", defaults.zoneId().getId()));
 
-        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId);
+        boolean autoRestart = section.getBoolean("auto_restart", false);
+        String startCountdown = section.getString("start_countdown", null);
+        int restartDelay = section.getInt("restart_delay_seconds", 0);
+        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId, autoRestart, startCountdown, restartDelay);
         countdown.setRunning(section.getBoolean("running", type != CountdownType.MANUAL));
 
         switch (type) {

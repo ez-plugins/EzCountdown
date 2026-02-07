@@ -321,6 +321,20 @@ public final class CountdownManager {
         } catch (Exception ex) {
             registry.plugin().getLogger().log(Level.WARNING, "Error while firing CountdownEndEvent", ex);
         }
+        // Handle auto-restart or starting another countdown as configured.
+        try {
+            int delaySeconds = countdown.getRestartDelaySeconds();
+            long delayTicks = Math.max(0, delaySeconds) * 20L;
+            if (countdown.isAutoRestart()) {
+                // Restart the same countdown after delay
+                Bukkit.getScheduler().runTaskLater(registry.plugin(), () -> startCountdown(countdown.getName()), delayTicks);
+            } else if (countdown.getStartCountdown() != null && !countdown.getStartCountdown().isBlank()) {
+                String other = countdown.getStartCountdown();
+                Bukkit.getScheduler().runTaskLater(registry.plugin(), () -> startCountdown(other), delayTicks);
+            }
+        } catch (Exception ex) {
+            registry.plugin().getLogger().log(Level.WARNING, "Error while scheduling auto-restart/start_countdown", ex);
+        }
     }
 
     

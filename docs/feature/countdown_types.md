@@ -80,6 +80,34 @@ countdowns:
   - `RECURRING` computes the next occurrence and, when it completes, advances the next target by one year.
   - If you need weekly or monthly recurrence, use a `DURATION` with `7d` and an `end` command to restart it, or run an external scheduler.
 
+## Auto restart and start-on-end
+
+Add these optional keys to have a countdown automatically restart when it ends or to start another countdown when this one finishes.
+
+- YAML keys:
+  - `auto_restart` — boolean, when `true` the countdown will be restarted after it ends (default `false`).
+  - `start_countdown` — string, the key of another countdown to start when this countdown ends (optional).
+  - `restart_delay_seconds` — integer seconds to wait before performing the restart/start action (default `0`).
+
+- Semantics:
+  - If `auto_restart: true` the manager will restart the same countdown when it ends. If `auto_restart` is omitted it defaults to `false`.
+  - If `auto_restart: false` and `start_countdown` is set, the configured countdown will be started when this countdown ends.
+  - `restart_delay_seconds` lets you delay the restart/start by the given number of seconds.
+
+- Example
+
+```yaml
+countdowns:
+  example_event:
+    type: DURATION
+    duration: "1d"
+    auto_restart: true
+    restart_delay_seconds: 10
+  other_countdown:
+    type: DURATION
+    duration: "2h"
+```
+
 ## Tips & common workflows
 
 - To implement weekly repetition, create a `DURATION` countdown of `7d` and add an `end` command that restarts it (see `commands.end`), or use external tooling to trigger `/countdown start` weekly.

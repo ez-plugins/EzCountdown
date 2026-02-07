@@ -18,7 +18,7 @@ public class FixedDateHandler implements CountdownTypeHandler {
 
     @Override
     public Countdown parse(String name, ConfigurationSection section, CountdownDefaults defaults) throws IllegalArgumentException {
-        Countdown countdown = new Countdown(name, getType(), defaults.displayTypes(), defaults.updateIntervalSeconds(), defaults.visibilityPermission(), defaults.formatMessage(), defaults.startMessage(), defaults.endMessage(), java.util.List.of(), defaults.zoneId());
+        Countdown countdown = new Countdown(name, getType(), defaults.displayTypes(), defaults.updateIntervalSeconds(), defaults.visibilityPermission(), defaults.formatMessage(), defaults.startMessage(), defaults.endMessage(), java.util.List.<String>of(), defaults.zoneId(), false, null, 0);
         countdown.setRunning(section.getBoolean("running", defaults.startOnCreate()));
         String target = section.getString("target");
         if (target == null) throw new IllegalArgumentException("Missing target date for fixed date countdown.");

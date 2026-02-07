@@ -24,6 +24,9 @@ public final class CountdownBuilder {
     private String endMessage = null;
     private List<String> endCommands = List.of();
     private ZoneId zoneId = ZoneId.systemDefault();
+    private boolean autoRestart = false;
+    private String startCountdown = null;
+    private int restartDelaySeconds = 0;
 
     /* optional runtime values that the builder can configure */
     private long durationSeconds = -1L;
@@ -96,6 +99,21 @@ public final class CountdownBuilder {
         return this;
     }
 
+    public CountdownBuilder autoRestart(boolean autoRestart) {
+        this.autoRestart = autoRestart;
+        return this;
+    }
+
+    public CountdownBuilder startCountdown(String startCountdown) {
+        this.startCountdown = startCountdown;
+        return this;
+    }
+
+    public CountdownBuilder restartDelaySeconds(int seconds) {
+        this.restartDelaySeconds = Math.max(0, seconds);
+        return this;
+    }
+
     public CountdownBuilder duration(Duration duration) {
         if (duration != null) this.durationSeconds = duration.getSeconds();
         return this;
@@ -115,16 +133,19 @@ public final class CountdownBuilder {
 
     public Countdown build() {
         Countdown countdown = new Countdown(
-                name,
-                type,
-                displayTypes,
-                updateIntervalSeconds,
-                visibilityPermission,
-                formatMessage,
-                startMessage,
-                endMessage,
-                endCommands,
-                zoneId
+            name,
+            type,
+            displayTypes,
+            updateIntervalSeconds,
+            visibilityPermission,
+            formatMessage,
+            startMessage,
+            endMessage,
+            endCommands,
+            zoneId,
+            autoRestart,
+            startCountdown,
+            restartDelaySeconds
         );
 
         if (durationSeconds >= 0L) countdown.setDurationSeconds(durationSeconds);
