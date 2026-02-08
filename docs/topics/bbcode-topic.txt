@@ -13,6 +13,7 @@ Found an issue or have a question? Please contact me through [URL='https://disco
 [*][B]Permission control[/B] - Limit visibility or management to specific ranks. Keep control in the hands of your staff or VIPs.
 [*][B]PlaceholderAPI support[/B] - Use %ezcountdown_<name>_formatted% and time-part placeholders in any plugin or message.
 [*][B]Config-driven[/B] - Tune update intervals, messaging, and defaults in YAML. No coding required, just edit and reload.
+[*][B]Translation variables[/B] - Centralize message text in `messages.yml` and reference keys from `countdowns.yml` using `{translate:key.path}` so owners can reset countdowns without losing localized text.
 [/LIST]
 
 [IMG]https://i.ibb.co/7tg3Tgz9/image.png[/IMG]
