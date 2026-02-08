@@ -68,3 +68,9 @@ commands:
     no-permission: "{prefix}<red>You do not have permission to reload.</red>"
     success: "{prefix}<green>EzCountdown reloaded.</green>"
     unsupported: "{prefix}<red>Reload is not supported.</red>"
+
+# Example translations referenced from countdowns.yml with {translate:example.*}
+example:
+  format: "<white>Example Event</white> <gray>starts in</gray> <yellow>{formatted}</yellow>"
+  start: "<green>Example countdown started.</green>"
+  end: "<gold>Example countdown ended!</gold>"

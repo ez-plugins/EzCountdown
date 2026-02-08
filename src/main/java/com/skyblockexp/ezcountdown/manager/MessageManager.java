@@ -3,6 +3,9 @@ package com.skyblockexp.ezcountdown.manager;
 import java.io.File;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import com.skyblockexp.ezcountdown.EzCountdownPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -22,6 +25,8 @@ public final class MessageManager {
             .hexColors()
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
+    private static final int TRANSLATE_MAX_DEPTH = 3;
+    private static final Pattern TRANSLATE_PATTERN = Pattern.compile("\\{translate:([^}]+)\\}");
 
     public MessageManager(File messagesFile) {
         this.messagesFile = Objects.requireNonNull(messagesFile, "messagesFile");
@@ -51,9 +56,44 @@ public final class MessageManager {
     }
 
     public String formatWithPrefix(String input, Map<String, String> placeholders) {
-        String message = applyPlaceholders(input, placeholders);
+        // Resolve {translate:...} tokens first so translated text can contain placeholders
+        String resolved = resolveTranslations(input, 0);
+        String message = applyPlaceholders(resolved, placeholders);
         message = message.replace("{prefix}", prefix == null ? "" : prefix);
         return serialize(message);
+    }
+
+    private String resolveTranslations(String input, int depth) {
+        if (input == null) return "";
+        if (depth > TRANSLATE_MAX_DEPTH) return input;
+
+        Matcher matcher = TRANSLATE_PATTERN.matcher(input);
+        StringBuffer sb = new StringBuffer();
+        boolean found = false;
+        while (matcher.find()) {
+            found = true;
+            String key = matcher.group(1);
+            String val = configuration.getString(key, null);
+            if (val == null) {
+                try {
+                    EzCountdownPlugin plugin = JavaPlugin.getPlugin(EzCountdownPlugin.class);
+                    if (plugin != null) plugin.getLogger().warning("Missing translation key: " + key);
+                } catch (Throwable ignored) {}
+                val = "";
+            } else {
+                // resolve nested translations up to the depth limit
+                val = resolveTranslations(val, depth + 1);
+            }
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(val));
+        }
+        matcher.appendTail(sb);
+
+        String result = sb.toString();
+        // If we found replacements and there may be further translate tokens, handle remaining up to limit
+        if (found && depth < TRANSLATE_MAX_DEPTH && TRANSLATE_PATTERN.matcher(result).find()) {
+            return resolveTranslations(result, depth + 1);
+        }
+        return result;
     }
 
     private String applyPlaceholders(String input, Map<String, String> placeholders) {

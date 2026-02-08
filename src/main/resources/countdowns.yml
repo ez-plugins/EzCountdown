@@ -8,9 +8,15 @@ countdowns:
   #     update-interval: 1
   #     visibility: "all"
   #   messages:
-  #     format: "{prefix}<white>Example Event</white> <gray>starts in</gray> <yellow>{formatted}</yellow>"
-  #     start: "{prefix}<green>Example countdown started.</green>"
-  #     end: "{prefix}<gold>Example countdown ended!</gold>"
+  #   messages:
+  #     # You can reference translations from messages.yml using {translate:key.path}
+  #     # Example: in messages.yml add:
+  #     # example:
+  #     #   format: "<white>Example Event</white> <gray>starts in</gray> <yellow>{formatted}</yellow>"
+  #     # Then in this file you can reference it like below so the text is managed in messages.yml
+  #     format: "{translate:example.format}"
+  #     start: "{translate:example.start}"
+  #     end: "{translate:example.end}"
   #   commands:
   #     end:
   #       - "say Countdown finished!"

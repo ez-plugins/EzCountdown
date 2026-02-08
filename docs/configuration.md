@@ -39,6 +39,26 @@ Server-owner tips
 
 - Always back up `countdowns.yml` before large edits.
 - Use `messages.yml` to localize or brand the messages; test MiniMessage outputs on a test server.
+ - Use `messages.yml` to localize or brand the messages; test MiniMessage outputs on a test server.
+ - Translation variables: you can reference message keys from `messages.yml` directly inside `countdowns.yml` (or other config strings) using the `{translate:key.path}` token. Example:
+
+```yaml
+# messages.yml
+example:
+  format: "<white>Example Event</white> <gray>starts in</gray> <yellow>{formatted}</yellow>"
+
+# countdowns.yml
+countdowns:
+  my_event:
+    messages:
+      format: "{translate:example.format}"
+```
+
+Behavior notes:
+
+ - Missing keys: if a `{translate:...}` key is not present in `messages.yml`, the plugin will log a warning and replace the token with an empty string in the output.
+ - Nesting: translated values may themselves contain `{translate:...}` tokens; nesting is resolved up to 3 levels to avoid infinite loops.
+ - Ordering: translation resolution happens before runtime placeholder replacement (for example `{name}`, `{formatted}`) and before MiniMessage serialization, so translated text can include placeholders and MiniMessage markup.
  - `commands_on_end` run as console - avoid dangerous or untested commands in production.
 - Use `display-overrides.force-enable` only when you understand the compatibility risks; the plugin includes runtime fallbacks but some features may not work correctly on older servers.
 
