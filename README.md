@@ -25,6 +25,26 @@ See [docs/permissions.md](docs/permissions.md) for permission details.
 ## Configuration
 See [docs/configuration.md](docs/configuration.md) for configuration details and examples.
 
+### Clock-aligned recurring schedules
+
+You can configure recurring countdowns to align to real-world clock boundaries and specify a timezone. Example keys in `countdowns.yml`:
+
+```
+# every 2 hours on the UTC clock: 00:00, 02:00, 04:00...
+my_recurring_countdown:
+	type: RECURRING
+	align_to_clock: true
+	align_interval: "2h"
+	timezone: "UTC"
+	missed_run_policy: SKIP
+```
+
+Behavior:
+- `align_to_clock` (default: `false`) enables clock alignment.
+- `align_interval` accepts duration strings like `2h`, `1d`, `30m`.
+- `timezone` is an IANA ZoneId (e.g. `Europe/London`). If omitted the plugin default zone is used.
+- `missed_run_policy` controls what happens if the server was down for one or more scheduled occurrences (defaults to `SKIP`).
+
 ## Documentation
 
 Comprehensive documentation is available in the `docs/` folder. Quick links:

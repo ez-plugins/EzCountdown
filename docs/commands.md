@@ -22,6 +22,13 @@ Core commands
   - `manual` - Duration-based but stays stopped until `start`.
   - `recurring` - Yearly event: provide `month day time` (e.g. `12 31 23:59`).
 
+    New flags for `create recurring` (clock-aligned schedules)
+
+    - `--align-to-clock` — enable clock alignment for recurring schedules.
+    - `--align-interval <value>` — alignment interval (e.g. `2h`, `1d`, `30m`).
+    - `--timezone <ZoneId>` — IANA timezone to use (e.g. `UTC`, `Europe/London`).
+    - `--missed-run-policy <SKIP|RUN_SINGLE|RUN_ALL>` — how to handle missed runs when the server was down.
+
  - `start` / `stop` - Start or stop a running countdown by name.
  - `delete` - Remove a countdown from `countdowns.yml` (use `reload` to apply).
  - `list` - Show all configured countdowns and whether they are running.
@@ -45,6 +52,7 @@ Examples
 /countdown create new_year 2026-01-01 00:00
 /countdown create maintenance duration 2h
 /countdown create festival recurring 12 31 23:59
+/countdown create announce recurring 0 0 00:00 --align-to-clock --align-interval 2h --timezone UTC --missed-run-policy SKIP
 /ezcd location add spawn
 ```
 

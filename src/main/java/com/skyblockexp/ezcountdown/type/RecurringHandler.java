@@ -14,7 +14,19 @@ public class RecurringHandler implements CountdownTypeHandler {
 
     @Override
     public Countdown parse(String name, ConfigurationSection section, CountdownDefaults defaults) throws IllegalArgumentException {
-        Countdown countdown = new Countdown(name, getType(), defaults.displayTypes(), defaults.updateIntervalSeconds(), defaults.visibilityPermission(), defaults.formatMessage(), defaults.startMessage(), defaults.endMessage(), java.util.List.<String>of(), defaults.zoneId(), false, null, 0);
+        String zoneKey = section.isSet("timezone") ? section.getString("timezone") : section.getString("zone", defaults.zoneId().getId());
+        java.time.ZoneId zone = java.time.ZoneId.of(zoneKey);
+        boolean alignToClock = section.getBoolean("align_to_clock", false);
+        String alignInterval = section.getString("align_interval", null);
+        String missedRunRaw = section.getString("missed_run_policy", "SKIP");
+        com.skyblockexp.ezcountdown.api.model.MissedRunPolicy missedPolicy;
+        try {
+            missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.valueOf(missedRunRaw.toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP;
+        }
+
+        Countdown countdown = new Countdown(name, getType(), defaults.displayTypes(), defaults.updateIntervalSeconds(), defaults.visibilityPermission(), defaults.formatMessage(), defaults.startMessage(), defaults.endMessage(), java.util.List.<String>of(), zone, false, null, 0, alignToClock, alignInterval, missedPolicy);
         countdown.setRunning(section.getBoolean("running", true));
         countdown.setRecurringMonth(section.getInt("recurring.month", 1));
         countdown.setRecurringDay(section.getInt("recurring.day", 1));

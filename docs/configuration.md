@@ -17,6 +17,13 @@ Important settings to review
  - `display-overrides.force-enable.<display>` - Force-enable a display type when the server lacks native support (use with caution).
  - `placeholder-support` - If enabled, PlaceholderAPI placeholders are available. Example placeholders: `%ezcountdown_<name>_formatted%`.
 
+Recurring alignment options
+
+- `align_to_clock` — boolean, when `true` enables clock-aligned repeats (default `false`).
+- `align_interval` — duration string like `2h`, `1d`, or `30m` describing the alignment interval used when `align_to_clock: true`.
+- `timezone` / `zone` — an IANA timezone identifier (e.g. `UTC`, `Europe/London`) used to resolve calendar times; `timezone` is an alias for the existing `zone` key.
+- `missed_run_policy` — controls behavior when the server was down for scheduled occurrences. Values: `SKIP` (default), `RUN_SINGLE`, `RUN_ALL`.
+
 Example `countdowns.yml` entry
 
 ```yaml
@@ -33,6 +40,19 @@ countdowns:
     teleport:
       start: spawn
       end: arena
+```
+
+Clock-aligned recurring example
+
+```yaml
+countdowns:
+  two_hour_utc:
+    type: RECURRING
+    align_to_clock: true
+    align_interval: "2h"
+    timezone: "UTC"
+    # (other recurring keys like recurring.month/day/time are optional when using align_interval)
+    running: true
 ```
 
 Server-owner tips

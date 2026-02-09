@@ -69,6 +69,52 @@ public final class CountdownManager {
         for (Countdown countdown : storage.loadCountdowns()) {
             countdowns.put(normalizeName(countdown.getName()), countdown);
         }
+        // Handle missed-run policies for aligned recurring countdowns.
+        Instant now = Instant.now();
+        for (Countdown countdown : countdowns.values()) {
+            if (countdown.getType() != CountdownType.RECURRING) continue;
+            if (!countdown.isAlignToClock()) continue;
+            if (countdown.getAlignInterval() == null) continue;
+            com.skyblockexp.ezcountdown.api.model.MissedRunPolicy policy = countdown.getMissedRunPolicy();
+            if (policy == com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP) continue;
+            long intervalSeconds;
+            try {
+                intervalSeconds = com.skyblockexp.ezcountdown.util.DurationParser.parseToSeconds(countdown.getAlignInterval());
+                if (intervalSeconds <= 0) continue;
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+            Instant next = countdown.resolveNextRecurringTarget(now);
+            Instant previous = next.minusSeconds(intervalSeconds);
+            // Only consider a missed run if it occurred within the past week to avoid firing very old occurrences.
+            Instant weekAgo = now.minusSeconds(7 * 24 * 3600);
+            if (previous.isBefore(now) && previous.isAfter(weekAgo)) {
+                if (policy == com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.RUN_SINGLE) {
+                    // Execute a single missed occurrence immediately: run end actions and then schedule next occurrence.
+                    try {
+                        fireEnd(countdown);
+                    } catch (Exception ex) {
+                        registry.plugin().getLogger().log(java.util.logging.Level.WARNING, "Error while executing missed-run end action", ex);
+                    }
+                    // Recompute next target after firing
+                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now().plusSeconds(1)));
+                    countdown.setRunning(true);
+                } else if (policy == com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.RUN_ALL) {
+                    // Run all missed occurrences in the window (cautious approach): iterate and fire until catch up to now
+                    Instant iter = previous;
+                    while (iter.isBefore(now) && iter.isAfter(weekAgo)) {
+                        try {
+                            fireEnd(countdown);
+                        } catch (Exception ex) {
+                            registry.plugin().getLogger().log(java.util.logging.Level.WARNING, "Error while executing missed-run end action", ex);
+                        }
+                        iter = iter.plusSeconds(intervalSeconds);
+                    }
+                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now().plusSeconds(1)));
+                    countdown.setRunning(true);
+                }
+            }
+        }
         startTask();
     }
 

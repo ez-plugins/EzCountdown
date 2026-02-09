@@ -28,6 +28,10 @@ public final class CountdownBuilder {
     private String startCountdown = null;
     private int restartDelaySeconds = 0;
 
+    private boolean alignToClock = false;
+    private String alignInterval = null;
+    private com.skyblockexp.ezcountdown.api.model.MissedRunPolicy missedRunPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP;
+
     /* optional runtime values that the builder can configure */
     private long durationSeconds = -1L;
     private int recurringMonth = 0;
@@ -99,6 +103,21 @@ public final class CountdownBuilder {
         return this;
     }
 
+    public CountdownBuilder alignToClock(boolean align) {
+        this.alignToClock = align;
+        return this;
+    }
+
+    public CountdownBuilder alignInterval(String interval) {
+        this.alignInterval = interval;
+        return this;
+    }
+
+    public CountdownBuilder missedRunPolicy(com.skyblockexp.ezcountdown.api.model.MissedRunPolicy policy) {
+        this.missedRunPolicy = policy == null ? com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP : policy;
+        return this;
+    }
+
     public CountdownBuilder autoRestart(boolean autoRestart) {
         this.autoRestart = autoRestart;
         return this;
@@ -145,7 +164,10 @@ public final class CountdownBuilder {
             zoneId,
             autoRestart,
             startCountdown,
-            restartDelaySeconds
+            restartDelaySeconds,
+            alignToClock,
+            alignInterval,
+            missedRunPolicy
         );
 
         if (durationSeconds >= 0L) countdown.setDurationSeconds(durationSeconds);

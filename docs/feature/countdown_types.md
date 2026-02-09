@@ -79,6 +79,30 @@ countdowns:
 - Notes
   - `RECURRING` computes the next occurrence and, when it completes, advances the next target by one year.
   - If you need weekly or monthly recurrence, use a `DURATION` with `7d` and an `end` command to restart it, or run an external scheduler.
+  
+### Clock-aligned recurring schedules
+
+EzCountdown now supports clock-aligned recurring schedules which fire on natural clock boundaries (for example: every 2 hours at 00:00, 02:00, 04:00...). These are useful for announcements that must occur on the wall-clock rather than relative to server uptime.
+
+- New YAML keys (per-countdown):
+  - `align_to_clock` — boolean, enable clock-aligned scheduling when `true` (default `false`).
+  - `align_interval` — duration string like `2h`, `1d`, `30m` describing the alignment interval.
+  - `timezone` — IANA timezone used to compute aligned boundaries (falls back to plugin default zone if omitted).
+  - `missed_run_policy` — how to handle missed occurrences while the server was down. Values: `SKIP` (default), `RUN_SINGLE`, `RUN_ALL`.
+
+When `align_to_clock: true` and `align_interval` is set, the plugin computes the next occurrence relative to the start of the day in the configured timezone and snaps to the next multiple of the interval. DST transitions are handled using `java.time` so daily and hourly alignments follow local time semantics.
+
+Example: announce every two hours on the UTC clock
+
+```yaml
+countdowns:
+  regular_announce:
+    type: RECURRING
+    align_to_clock: true
+    align_interval: "2h"
+    timezone: "UTC"
+    running: true
+```
 
 ## Auto restart and start-on-end
 

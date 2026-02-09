@@ -100,6 +100,10 @@ public final class YamlCountdownStorage implements CountdownStorage {
             section.set("messages.end", countdown.getEndMessage());
             section.set("commands.end", countdown.getEndCommands());
             section.set("zone", countdown.getZoneId().getId());
+            section.set("timezone", countdown.getZoneId().getId());
+            section.set("align_to_clock", countdown.isAlignToClock());
+            if (countdown.getAlignInterval() != null) section.set("align_interval", countdown.getAlignInterval());
+            section.set("missed_run_policy", countdown.getMissedRunPolicy().name());
             section.set("auto_restart", countdown.isAutoRestart());
             if (countdown.getStartCountdown() != null) section.set("start_countdown", countdown.getStartCountdown());
             section.set("restart_delay_seconds", countdown.getRestartDelaySeconds());
@@ -140,12 +144,24 @@ public final class YamlCountdownStorage implements CountdownStorage {
         String start = section.getString("messages.start", defaults.startMessage());
         String end = section.getString("messages.end", defaults.endMessage());
         List<String> endCommands = section.getStringList("commands.end").stream().filter(command -> command != null && !command.isBlank()).toList();
-        ZoneId zoneId = ZoneId.of(section.getString("zone", defaults.zoneId().getId()));
+        String zoneKey = section.isSet("timezone") ? section.getString("timezone") : section.getString("zone", defaults.zoneId().getId());
+        ZoneId zoneId = ZoneId.of(zoneKey);
 
         boolean autoRestart = section.getBoolean("auto_restart", false);
         String startCountdown = section.getString("start_countdown", null);
         int restartDelay = section.getInt("restart_delay_seconds", 0);
-        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId, autoRestart, startCountdown, restartDelay);
+
+        boolean alignToClock = section.getBoolean("align_to_clock", false);
+        String alignInterval = section.getString("align_interval", null);
+        String missedRunRaw = section.getString("missed_run_policy", "SKIP");
+        com.skyblockexp.ezcountdown.api.model.MissedRunPolicy missedPolicy;
+        try {
+            missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.valueOf(missedRunRaw.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP;
+        }
+
+        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy);
         countdown.setRunning(section.getBoolean("running", type != CountdownType.MANUAL));
 
         switch (type) {
