@@ -45,6 +45,8 @@ Behavior:
 - `timezone` is an IANA ZoneId (e.g. `Europe/London`). If omitted the plugin default zone is used.
 - `missed_run_policy` controls what happens if the server was down for one or more scheduled occurrences (defaults to `SKIP`).
 
+See the full timezone reference for recommended IANA identifiers: [docs/feature/timezones.md](docs/feature/timezones.md)
+
 ## Documentation
 
 Comprehensive documentation is available in the `docs/` folder. Quick links:
