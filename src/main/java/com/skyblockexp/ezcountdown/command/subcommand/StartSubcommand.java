@@ -31,6 +31,15 @@ public final class StartSubcommand implements Subcommand {
             sender.sendMessage(messageManager.message("commands.start.usage"));
             return;
         }
+        var opt = manager.getCountdown(args[1]);
+        if (opt.isEmpty()) {
+            sender.sendMessage(messageManager.message("commands.start.missing", Map.of("name", args[1])));
+            return;
+        }
+        if (opt.get().isRunning()) {
+            sender.sendMessage(messageManager.message("commands.start.already", Map.of("name", args[1])));
+            return;
+        }
         if (manager.startCountdown(args[1])) {
             sender.sendMessage(messageManager.message("commands.start.success", Map.of("name", args[1])));
         } else {

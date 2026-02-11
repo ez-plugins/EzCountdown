@@ -21,6 +21,10 @@ countdowns:
   #     end:
   #       - "say Countdown finished!"
   #   zone: "UTC"
+  #   # Example: clock-aligned recurring every 2 hours on the UTC clock (00:00, 02:00, ...)
+  #   align_to_clock: true
+  #   align_interval: "2h"
+  #   missed_run_policy: SKIP
   #   teleport:
   #     start: spawn
   #     end: arena

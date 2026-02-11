@@ -4,7 +4,7 @@ import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
 import com.skyblockexp.ezcountdown.command.CountdownPermissions;
-import com.skyblockexp.ezcountdown.listener.AnvilClickListener;
+import com.skyblockexp.ezcountdown.listener.ChatInputListener;
 import org.bukkit.entity.Player;
 
 public final class GuiManager {
@@ -16,18 +16,17 @@ public final class GuiManager {
     private final EditorMenu editorMenu;
     private final DisplayEditor displayEditor;
     private final CommandsEditor commandsEditor;
-    private final AnvilClickListener anvilHandler;
+    private final ChatInputListener chatInputListener;
 
-    public GuiManager(CountdownManager manager, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry, AnvilClickListener anvilHandler) {
+    public GuiManager(CountdownManager manager, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry, ChatInputListener chatInputListener) {
         this.manager = manager;
         this.messageManager = messageManager;
         this.registry = registry;
-
-        this.anvilHandler = anvilHandler;
+        this.chatInputListener = chatInputListener;
         this.mainGui = new MainGui(manager);
-        this.editorMenu = new EditorMenu(manager, anvilHandler, messageManager, registry);
+        this.editorMenu = new EditorMenu(manager, chatInputListener, messageManager, registry);
         this.displayEditor = new DisplayEditor(manager, messageManager);
-        this.commandsEditor = new CommandsEditor(manager, anvilHandler, messageManager, registry);
+        this.commandsEditor = new CommandsEditor(manager, chatInputListener, messageManager, registry);
         // Listener registration is handled by bootstrap
     }
 
@@ -35,7 +34,7 @@ public final class GuiManager {
     public EditorMenu editorMenu() { return editorMenu; }
     public DisplayEditor displayEditor() { return displayEditor; }
     public CommandsEditor commandsEditor() { return commandsEditor; }
-    public AnvilClickListener anvilHandler() { return anvilHandler; }
+    public ChatInputListener chatInputListener() { return chatInputListener; }
 
     public void openMain(Player player) {
         mainGui.openMain(player);

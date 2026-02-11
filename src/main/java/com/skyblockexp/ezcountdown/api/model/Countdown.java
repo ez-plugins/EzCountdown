@@ -2,11 +2,14 @@ package com.skyblockexp.ezcountdown.api.model;
 
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import java.time.Instant;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.EnumSet;
 import java.util.Objects;
+import com.skyblockexp.ezcountdown.util.DurationParser;
 
 /**
  * Represents a configured countdown with metadata and runtime state.
@@ -46,6 +49,12 @@ public final class Countdown {
 
     /** Time zone used for date/recurring calculations. */
     private final ZoneId zoneId;
+    /** Whether the recurring schedule should align to clock boundaries. */
+    private final boolean alignToClock;
+    /** Interval string to align to (e.g. "2h", "1d"). May be null. */
+    private final String alignInterval;
+    /** Policy for handling missed runs across restarts. */
+    private final MissedRunPolicy missedRunPolicy;
     /** Whether this countdown should automatically restart when it ends. */
     private final boolean autoRestart;
     /** Optional countdown name to start when this countdown ends. */
@@ -98,6 +107,9 @@ public final class Countdown {
         this.endMessage = endMessage;
         this.endCommands = endCommands == null ? java.util.List.of() : java.util.List.copyOf(endCommands);
         this.zoneId = zoneId;
+        this.alignToClock = false;
+        this.alignInterval = null;
+        this.missedRunPolicy = MissedRunPolicy.SKIP;
         this.autoRestart = autoRestart;
         this.startCountdown = startCountdown;
         this.restartDelaySeconds = restartDelaySeconds;
@@ -119,9 +131,46 @@ public final class Countdown {
                      java.util.List<String> endCommands,
                      ZoneId zoneId) {
         this(name, type, displayTypes, updateIntervalSeconds, visibilityPermission,
-                formatMessage, startMessage, endMessage, endCommands, zoneId,
-                false, null, 0);
+            formatMessage, startMessage, endMessage, endCommands, zoneId,
+            false, null, 0);
     }
+
+        /**
+         * New full constructor including alignment options.
+         */
+        public Countdown(String name,
+                 CountdownType type,
+                 EnumSet<DisplayType> displayTypes,
+                 int updateIntervalSeconds,
+                 String visibilityPermission,
+                 String formatMessage,
+                 String startMessage,
+                 String endMessage,
+                 java.util.List<String> endCommands,
+                 ZoneId zoneId,
+                 boolean autoRestart,
+                 String startCountdown,
+                 int restartDelaySeconds,
+                 boolean alignToClock,
+                 String alignInterval,
+                 MissedRunPolicy missedRunPolicy) {
+        this.name = Objects.requireNonNull(name, "name");
+        this.type = Objects.requireNonNull(type, "type");
+        this.displayTypes = displayTypes == null ? EnumSet.noneOf(DisplayType.class) : EnumSet.copyOf(displayTypes);
+        this.updateIntervalSeconds = updateIntervalSeconds;
+        this.visibilityPermission = visibilityPermission;
+        this.formatMessage = formatMessage;
+        this.startMessage = startMessage;
+        this.endMessage = endMessage;
+        this.endCommands = endCommands == null ? java.util.List.of() : java.util.List.copyOf(endCommands);
+        this.zoneId = zoneId;
+        this.autoRestart = autoRestart;
+        this.startCountdown = startCountdown;
+        this.restartDelaySeconds = restartDelaySeconds;
+        this.alignToClock = alignToClock;
+        this.alignInterval = alignInterval;
+        this.missedRunPolicy = missedRunPolicy == null ? MissedRunPolicy.SKIP : missedRunPolicy;
+        }
 
     /** @return countdown name */
     public String getName() { return name; }
@@ -209,6 +258,30 @@ public final class Countdown {
      * @return the next occurrence Instant for the recurring countdown
      */
     public Instant resolveNextRecurringTarget(Instant now) {
+        // If alignment to clock is enabled and an align interval is provided,
+        // compute the next occurrence aligned to the given interval relative
+        // to the start of day in the configured zone. This supports values
+        // like "2h" or "1d" and ensures DST-handling via ZonedDateTime.
+        if (alignToClock && alignInterval != null && !alignInterval.isBlank()) {
+            try {
+                long intervalSeconds = DurationParser.parseToSeconds(alignInterval);
+                if (intervalSeconds > 0) {
+                    ZonedDateTime zoneNow = ZonedDateTime.ofInstant(now, zoneId);
+                    ZonedDateTime startOfDay = zoneNow.toLocalDate().atStartOfDay(zoneId);
+                    long secondsSinceStart = Duration.between(startOfDay.toInstant(), zoneNow.toInstant()).getSeconds();
+                    long rem = secondsSinceStart % intervalSeconds;
+                    long delta = rem == 0 ? 0 : (intervalSeconds - rem);
+                    ZonedDateTime candidate = zoneNow.plusSeconds(delta);
+                    if (candidate.toInstant().isBefore(now)) candidate = candidate.plusSeconds(intervalSeconds);
+                    return candidate.toInstant();
+                }
+            } catch (IllegalArgumentException ex) {
+                // fall through to legacy behavior if parse fails
+            }
+        }
+
+        // Legacy behavior: resolve next occurrence based on configured
+        // recurring month/day/time (yearly-like behavior).
         LocalDate currentDate = LocalDate.ofInstant(now, zoneId);
         LocalDate targetDate = LocalDate.of(currentDate.getYear(), recurringMonth, recurringDay);
         if (!targetDate.isAfter(currentDate) || targetDate.isEqual(currentDate)) {
@@ -218,4 +291,13 @@ public final class Countdown {
         }
         return targetDate.atTime(recurringTime).atZone(zoneId).toInstant();
     }
+
+    /** @return whether this countdown aligns recurring runs to clock boundaries */
+    public boolean isAlignToClock() { return alignToClock; }
+
+    /** @return align interval string (e.g. "2h"), or null if not set */
+    public String getAlignInterval() { return alignInterval; }
+
+    /** @return policy describing how missed runs are handled across restarts */
+    public MissedRunPolicy getMissedRunPolicy() { return missedRunPolicy; }
 }

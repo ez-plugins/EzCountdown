@@ -69,6 +69,52 @@ public final class CountdownManager {
         for (Countdown countdown : storage.loadCountdowns()) {
             countdowns.put(normalizeName(countdown.getName()), countdown);
         }
+        // Handle missed-run policies for aligned recurring countdowns.
+        Instant now = Instant.now();
+        for (Countdown countdown : countdowns.values()) {
+            if (countdown.getType() != CountdownType.RECURRING) continue;
+            if (!countdown.isAlignToClock()) continue;
+            if (countdown.getAlignInterval() == null) continue;
+            com.skyblockexp.ezcountdown.api.model.MissedRunPolicy policy = countdown.getMissedRunPolicy();
+            if (policy == com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP) continue;
+            long intervalSeconds;
+            try {
+                intervalSeconds = com.skyblockexp.ezcountdown.util.DurationParser.parseToSeconds(countdown.getAlignInterval());
+                if (intervalSeconds <= 0) continue;
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+            Instant next = countdown.resolveNextRecurringTarget(now);
+            Instant previous = next.minusSeconds(intervalSeconds);
+            // Only consider a missed run if it occurred within the past week to avoid firing very old occurrences.
+            Instant weekAgo = now.minusSeconds(7 * 24 * 3600);
+            if (previous.isBefore(now) && previous.isAfter(weekAgo)) {
+                if (policy == com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.RUN_SINGLE) {
+                    // Execute a single missed occurrence immediately: run end actions and then schedule next occurrence.
+                    try {
+                        fireEnd(countdown);
+                    } catch (Exception ex) {
+                        registry.plugin().getLogger().log(java.util.logging.Level.WARNING, "Error while executing missed-run end action", ex);
+                    }
+                    // Recompute next target after firing
+                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now().plusSeconds(1)));
+                    countdown.setRunning(true);
+                } else if (policy == com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.RUN_ALL) {
+                    // Run all missed occurrences in the window (cautious approach): iterate and fire until catch up to now
+                    Instant iter = previous;
+                    while (iter.isBefore(now) && iter.isAfter(weekAgo)) {
+                        try {
+                            fireEnd(countdown);
+                        } catch (Exception ex) {
+                            registry.plugin().getLogger().log(java.util.logging.Level.WARNING, "Error while executing missed-run end action", ex);
+                        }
+                        iter = iter.plusSeconds(intervalSeconds);
+                    }
+                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now().plusSeconds(1)));
+                    countdown.setRunning(true);
+                }
+            }
+        }
         startTask();
     }
 
@@ -146,6 +192,7 @@ public final class CountdownManager {
         if (countdown.isRunning()) {
             return true;
         }
+        // persist change only if state actually changes
         countdown.setRunning(true);
         CountdownTypeHandler handler = registry.getHandler(countdown.getType());
         if (handler != null) {
@@ -158,6 +205,7 @@ public final class CountdownManager {
             }
         }
         fireStart(countdown);
+        try { save(); } catch (Exception ignored) {}
         return true;
     }
 
@@ -165,6 +213,9 @@ public final class CountdownManager {
         Countdown countdown = countdowns.get(normalizeName(name));
         if (countdown == null) {
             return false;
+        }
+        if (!countdown.isRunning()) {
+            return true;
         }
         countdown.setRunning(false);
         CountdownTypeHandler handler = registry.getHandler(countdown.getType());
@@ -176,12 +227,41 @@ public final class CountdownManager {
             }
         }
         displayManager.clearCountdown(countdown);
+        try { save(); } catch (Exception ignored) {}
         return true;
     }
 
     // Only call this after explicit config changes (create/delete/edit), not on runtime events
     public void save() {
         storage.saveCountdowns(countdowns.values());
+    }
+
+    /**
+     * Initialize in-memory state for countdowns that are already marked as running
+     * (used after loading from storage so handlers can restore their runtime state
+     * without firing start events or broadcasting start messages).
+     */
+    public void resumeRunningCountdowns() {
+        Instant now = Instant.now();
+        for (Countdown countdown : countdowns.values()) {
+            if (!countdown.isRunning()) continue;
+            CountdownTypeHandler handler = registry.getHandler(countdown.getType());
+            if (handler != null) {
+                try {
+                    handler.onStart(countdown, now);
+                } catch (Exception ex) {
+                    registry.plugin().getLogger().log(java.util.logging.Level.WARNING, "Error while resuming countdown handler", ex);
+                }
+            } else {
+                if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
+                    countdown.setTargetInstant(now.plusSeconds(countdown.getDurationSeconds()));
+                } else if (countdown.getType() == CountdownType.RECURRING) {
+                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(now));
+                }
+            }
+            // force an immediate update on next tick
+            lastUpdate.put(countdown.getName(), Instant.EPOCH);
+        }
     }
 
     private void startTask() {

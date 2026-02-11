@@ -6,7 +6,7 @@ import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
 import com.skyblockexp.ezcountdown.util.TimeFormat;
 import com.skyblockexp.ezcountdown.util.DurationParser;
-import com.skyblockexp.ezcountdown.listener.AnvilClickListener;
+import com.skyblockexp.ezcountdown.listener.ChatInputListener;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import org.bukkit.Bukkit;
@@ -25,13 +25,13 @@ public final class EditorMenu {
     private static final String PREFIX = ChatColor.DARK_AQUA + "Edit: ";
 
     private final CountdownManager manager;
-    private final AnvilClickListener anvilHandler;
+    private final ChatInputListener chatInputListener;
     private final MessageManager messageManager;
     private final com.skyblockexp.ezcountdown.bootstrap.Registry registry;
 
-    public EditorMenu(CountdownManager manager, AnvilClickListener anvilHandler, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
+    public EditorMenu(CountdownManager manager, ChatInputListener chatInputListener, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
         this.manager = manager;
-        this.anvilHandler = anvilHandler;
+        this.chatInputListener = chatInputListener;
         this.messageManager = messageManager;
         this.registry = registry;
     }
@@ -70,14 +70,16 @@ public final class EditorMenu {
         ItemStack format = new ItemStack(Material.PAPER);
         ItemMeta fm = format.getItemMeta();
         fm.setDisplayName(ChatColor.YELLOW + "Edit Format Message");
-        fm.setLore(List.of(ChatColor.GRAY + countdown.getFormatMessage()));
+        String resolvedFormat = messageManager.formatWithPrefix(countdown.getFormatMessage(), java.util.Map.of("name", countdown.getName()));
+        fm.setLore(List.of(resolvedFormat == null ? "" : resolvedFormat));
         format.setItemMeta(fm);
         inv.setItem(4, format);
 
         ItemStack start = new ItemStack(MaterialCompat.resolve("FIREWORK_ROCKET", "FIREWORK"));
         ItemMeta sm = start.getItemMeta();
         sm.setDisplayName(ChatColor.AQUA + "Edit Start Message");
-        sm.setLore(List.of(ChatColor.GRAY + (countdown.getStartMessage() == null ? "" : countdown.getStartMessage())));
+        String resolvedStart = messageManager.formatWithPrefix(countdown.getStartMessage(), java.util.Map.of("name", countdown.getName()));
+        sm.setLore(List.of(resolvedStart == null ? "" : resolvedStart));
         start.setItemMeta(sm);
         inv.setItem(6, start);
 
@@ -100,7 +102,8 @@ public final class EditorMenu {
         ItemStack end = new ItemStack(MaterialCompat.resolve("BELL", "PAPER"));
         ItemMeta em = end.getItemMeta();
         em.setDisplayName(ChatColor.RED + "Edit End Message");
-        em.setLore(List.of(ChatColor.GRAY + (countdown.getEndMessage() == null ? "" : countdown.getEndMessage())));
+        String resolvedEnd = messageManager.formatWithPrefix(countdown.getEndMessage(), java.util.Map.of("name", countdown.getName()));
+        em.setLore(List.of(resolvedEnd == null ? "" : resolvedEnd));
         end.setItemMeta(em);
         inv.setItem(8, end);
 

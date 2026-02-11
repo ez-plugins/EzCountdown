@@ -55,13 +55,23 @@ public final class CreateSubcommand implements Subcommand {
             type = CountdownType.FIXED_DATE;
         }
 
-        // build countdown with defaults
+        // build countdown with defaults using the builder so we can set new alignment options
         EnumSet<DisplayType> displayTypes = EnumSet.copyOf(registry.defaults().displayTypes());
-        Countdown countdown = new Countdown(name, type, displayTypes, registry.defaults().updateIntervalSeconds(),
-            registry.defaults().visibilityPermission(), registry.defaults().formatMessage(), registry.defaults().startMessage(), registry.defaults().endMessage(), java.util.List.<String>of(), registry.defaults().zoneId(), false, null, 0);
-        countdown.setRunning(registry.defaults().startOnCreate());
+        com.skyblockexp.ezcountdown.api.model.CountdownBuilder builder = com.skyblockexp.ezcountdown.api.model.CountdownBuilder.builder(name)
+            .type(type)
+            .displayTypes(displayTypes)
+            .updateIntervalSeconds(registry.defaults().updateIntervalSeconds())
+            .visibilityPermission(registry.defaults().visibilityPermission())
+            .formatMessage(registry.defaults().formatMessage())
+            .startMessage(registry.defaults().startMessage())
+            .endMessage(registry.defaults().endMessage())
+            .endCommands(java.util.List.of())
+            .zoneId(registry.defaults().zoneId())
+            .autoRestart(false)
+            .restartDelaySeconds(0);
 
         CountdownTypeHandler handler = registry.getHandler(type);
+        Countdown countdown = null;
         try {
             String[] handlerArgs;
             if (type == CountdownType.FIXED_DATE) {
@@ -70,6 +80,9 @@ public final class CreateSubcommand implements Subcommand {
                 handlerArgs = java.util.Arrays.copyOfRange(args, 3, args.length);
             }
             if (handler != null) {
+                // build a Countdown instance for handler to configure
+                countdown = builder.build();
+                countdown.setRunning(registry.defaults().startOnCreate());
                 handler.configureFromCreateArgs(countdown, handlerArgs, registry.defaults());
             } else {
                 if (type == CountdownType.FIXED_DATE) {
@@ -78,6 +91,7 @@ public final class CreateSubcommand implements Subcommand {
                     try {
                         LocalDateTime parsed = LocalDateTime.parse(date + " " + time, DATE_TIME_FORMAT);
                         ZoneId zoneId = registry.defaults().zoneId();
+                        countdown = builder.build();
                         countdown.setTargetInstant(parsed.atZone(zoneId).toInstant());
                         countdown.setRunning(registry.defaults().startOnCreate());
                     } catch (DateTimeParseException ex) {
@@ -90,6 +104,7 @@ public final class CreateSubcommand implements Subcommand {
                         return;
                     }
                     try {
+                        countdown = builder.build();
                         countdown.setDurationSeconds(DurationParser.parseToSeconds(args[3]));
                     } catch (IllegalArgumentException ex) {
                         sender.sendMessage(messageManager.message("commands.create.invalid-duration", Map.of("reason", ex.getMessage())));
@@ -114,9 +129,32 @@ public final class CreateSubcommand implements Subcommand {
                         sender.sendMessage(messageManager.message("commands.create.invalid-recurring"));
                         return;
                     }
-                    countdown.setRecurringMonth(month);
-                    countdown.setRecurringDay(day);
-                    countdown.setRecurringTime(time);
+                    // apply recurring fields to builder first so builder-based options are included
+                    builder.recurringDate(month, day, time);
+                    // parse any additional flags (optional)
+                    for (int i = 6; i < args.length; i++) {
+                        String tok = args[i];
+                        if ("--align-to-clock".equalsIgnoreCase(tok)) {
+                            builder.alignToClock(true);
+                        } else if ("--align-interval".equalsIgnoreCase(tok) && i + 1 < args.length) {
+                            builder.alignInterval(args[++i]);
+                        } else if ("--timezone".equalsIgnoreCase(tok) && i + 1 < args.length) {
+                            try {
+                                builder.zoneId(java.time.ZoneId.of(args[++i]));
+                            } catch (Exception ex) {
+                                sender.sendMessage(messageManager.message("commands.create.invalid-timezone"));
+                                return;
+                            }
+                        } else if ("--missed-run-policy".equalsIgnoreCase(tok) && i + 1 < args.length) {
+                            try {
+                                builder.missedRunPolicy(com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.valueOf(args[++i].toUpperCase(java.util.Locale.ROOT)));
+                            } catch (IllegalArgumentException ex) {
+                                sender.sendMessage(messageManager.message("commands.create.invalid-missed-run-policy"));
+                                return;
+                            }
+                        }
+                    }
+                    countdown = builder.build();
                     countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now()));
                     countdown.setRunning(true);
                 }

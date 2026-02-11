@@ -36,11 +36,13 @@ commands:
     usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown start <name></gray>"
     success: "{prefix}<green>Countdown</green> <white>{name}</white> <green>started.</green>"
     missing: "{prefix}<red>Countdown</red> <white>{name}</white> <red>was not found.</red>"
+    already: "{prefix}<yellow>Countdown</yellow> <white>{name}</white> <gray>is already running.</gray>"
   stop:
     no-permission: "{prefix}<red>You do not have permission to stop countdowns.</red>"
     usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown stop <name></gray>"
     success: "{prefix}<green>Countdown</green> <white>{name}</white> <green>stopped.</green>"
     missing: "{prefix}<red>Countdown</red> <white>{name}</white> <red>was not found.</red>"
+    already: "{prefix}<yellow>Countdown</yellow> <white>{name}</white> <gray>is already stopped.</gray>"
   delete:
     no-permission: "{prefix}<red>You do not have permission to delete countdowns.</red>"
     usage: "{prefix}<yellow>Usage:</yellow> <gray>/countdown delete <name></gray>"
