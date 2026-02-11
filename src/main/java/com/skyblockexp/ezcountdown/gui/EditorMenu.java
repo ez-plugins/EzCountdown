@@ -6,7 +6,7 @@ import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
 import com.skyblockexp.ezcountdown.util.TimeFormat;
 import com.skyblockexp.ezcountdown.util.DurationParser;
-import com.skyblockexp.ezcountdown.listener.AnvilClickListener;
+import com.skyblockexp.ezcountdown.listener.ChatInputListener;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import org.bukkit.Bukkit;
@@ -25,13 +25,13 @@ public final class EditorMenu {
     private static final String PREFIX = ChatColor.DARK_AQUA + "Edit: ";
 
     private final CountdownManager manager;
-    private final AnvilClickListener anvilHandler;
+    private final ChatInputListener chatInputListener;
     private final MessageManager messageManager;
     private final com.skyblockexp.ezcountdown.bootstrap.Registry registry;
 
-    public EditorMenu(CountdownManager manager, AnvilClickListener anvilHandler, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
+    public EditorMenu(CountdownManager manager, ChatInputListener chatInputListener, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
         this.manager = manager;
-        this.anvilHandler = anvilHandler;
+        this.chatInputListener = chatInputListener;
         this.messageManager = messageManager;
         this.registry = registry;
     }

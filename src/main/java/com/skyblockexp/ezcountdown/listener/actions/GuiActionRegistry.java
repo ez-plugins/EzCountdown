@@ -5,7 +5,7 @@ import com.skyblockexp.ezcountdown.gui.DisplayEditor;
 import com.skyblockexp.ezcountdown.gui.EditorMenu;
 import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
-import com.skyblockexp.ezcountdown.listener.AnvilClickListener;
+import com.skyblockexp.ezcountdown.listener.ChatInputListener;
 import com.skyblockexp.ezcountdown.bootstrap.Registry;
 import org.bukkit.event.inventory.ClickType;
 
@@ -27,21 +27,21 @@ public class GuiActionRegistry {
     private final ToggleDisplayTypeAction toggleDisplayTypeAction;
     private final CommandsEditorActions commandsEditorActions;
 
-    public GuiActionRegistry(CountdownManager manager, MessageManager messageManager, AnvilClickListener anvilHandler, Registry registry, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor) {
+    public GuiActionRegistry(CountdownManager manager, MessageManager messageManager, ChatInputListener chatInputListener, Registry registry, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor) {
         this.openEditorAction = new OpenEditorAction(editorMenu);
         this.previewAction = new PreviewCountdownAction(messageManager);
         this.deleteAction = new DeleteCountdownAction(manager, messageManager, registry);
         this.toggleRunningAction = new ToggleRunningAction(manager, messageManager);
         this.openDisplayEditorAction = new OpenDisplayEditorAction(displayEditor);
-        this.editDurationOrTargetAction = new EditDurationOrTargetAction(manager, messageManager, anvilHandler);
+        this.editDurationOrTargetAction = new EditDurationOrTargetAction(manager, messageManager, chatInputListener, registry);
         this.openCommandsEditorAction = new OpenCommandsEditorAction(commandsEditor);
-        this.editFormatMessageAction = new EditFormatMessageAction(manager, messageManager, anvilHandler);
+        this.editFormatMessageAction = new EditFormatMessageAction(manager, messageManager, chatInputListener, registry);
         this.toggleAutoRestartAction = new ToggleAutoRestartAction(manager, messageManager, editorMenu);
-        this.editStartMessageAction = new EditStartMessageAction(manager, messageManager, anvilHandler);
-        this.editStartCountdownTargetAction = new EditStartCountdownTargetAction(manager, messageManager, anvilHandler);
-        this.editEndMessageAction = new EditEndMessageAction(manager, messageManager, anvilHandler);
+        this.editStartMessageAction = new EditStartMessageAction(manager, messageManager, chatInputListener, registry);
+        this.editStartCountdownTargetAction = new EditStartCountdownTargetAction(manager, messageManager, chatInputListener, registry);
+        this.editEndMessageAction = new EditEndMessageAction(manager, messageManager, chatInputListener, registry);
         this.toggleDisplayTypeAction = new ToggleDisplayTypeAction(manager, messageManager, displayEditor);
-        this.commandsEditorActions = new CommandsEditorActions(manager, messageManager, anvilHandler, commandsEditor, registry);
+        this.commandsEditorActions = new CommandsEditorActions(manager, messageManager, chatInputListener, commandsEditor, registry);
     }
 
     public Optional<GuiAction> forMainGuiClick(ClickType clickType) {

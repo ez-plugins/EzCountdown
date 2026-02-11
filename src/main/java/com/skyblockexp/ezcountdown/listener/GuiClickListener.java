@@ -9,7 +9,7 @@ import com.skyblockexp.ezcountdown.command.CountdownPermissions;
 import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
 import com.skyblockexp.ezcountdown.display.DisplayType;
-import com.skyblockexp.ezcountdown.listener.AnvilClickListener;
+import com.skyblockexp.ezcountdown.listener.ChatInputListener;
 import com.skyblockexp.ezcountdown.gui.CommandsEditor;
 import com.skyblockexp.ezcountdown.gui.DisplayEditor;
 import com.skyblockexp.ezcountdown.gui.EditorMenu;
@@ -39,22 +39,22 @@ public final class GuiClickListener implements Listener {
     private final EditorMenu editorMenu;
     private final DisplayEditor displayEditor;
     private final CommandsEditor commandsEditor;
-    private final AnvilClickListener anvilHandler;
+    private final ChatInputListener chatInputListener;
     private final CountdownManager manager;
     private final MessageManager messageManager;
     private final Registry registry;
     private final GuiActionRegistry actionRegistry;
 
-    public GuiClickListener(MainGui mainGui, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor, AnvilClickListener anvilHandler, CountdownManager manager, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
+    public GuiClickListener(MainGui mainGui, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor, ChatInputListener chatInputListener, CountdownManager manager, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
         this.mainGui = mainGui;
         this.editorMenu = editorMenu;
         this.displayEditor = displayEditor;
         this.commandsEditor = commandsEditor;
-        this.anvilHandler = anvilHandler;
+        this.chatInputListener = chatInputListener;
         this.manager = manager;
         this.messageManager = messageManager;
         this.registry = registry;
-        this.actionRegistry = new GuiActionRegistry(manager, messageManager, anvilHandler, registry, editorMenu, displayEditor, commandsEditor);
+        this.actionRegistry = new GuiActionRegistry(manager, messageManager, chatInputListener, registry, editorMenu, displayEditor, commandsEditor);
     }
 
     @EventHandler

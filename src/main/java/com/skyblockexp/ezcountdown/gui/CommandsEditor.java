@@ -4,7 +4,7 @@ import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
 import com.skyblockexp.ezcountdown.command.CountdownPermissions;
-import com.skyblockexp.ezcountdown.listener.AnvilClickListener;
+import com.skyblockexp.ezcountdown.listener.ChatInputListener;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.Inventory;
@@ -20,13 +20,13 @@ import java.util.List;
 public final class CommandsEditor {
     private static final String PREFIX = ChatColor.DARK_PURPLE + "Commands: ";
     private final CountdownManager manager;
-    private final AnvilClickListener anvilHandler;
+    private final ChatInputListener chatInputListener;
     private final MessageManager messageManager;
     private final com.skyblockexp.ezcountdown.bootstrap.Registry registry;
 
-    public CommandsEditor(CountdownManager manager, AnvilClickListener anvilHandler, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
+    public CommandsEditor(CountdownManager manager, ChatInputListener chatInputListener, MessageManager messageManager, com.skyblockexp.ezcountdown.bootstrap.Registry registry) {
         this.manager = manager;
-        this.anvilHandler = anvilHandler;
+        this.chatInputListener = chatInputListener;
         this.messageManager = messageManager;
         this.registry = registry;
     }

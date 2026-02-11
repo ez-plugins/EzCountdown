@@ -48,21 +48,8 @@ public class EditorAnvilIntegrationTest extends MockBukkitTestBase {
         org.bukkit.event.inventory.InventoryClickEvent click = new org.bukkit.event.inventory.InventoryClickEvent(view, org.bukkit.event.inventory.InventoryType.SlotType.CONTAINER, 4, ClickType.LEFT, InventoryAction.PICKUP_ALL);
         plugin.getServer().getPluginManager().callEvent(click);
 
-        // After clicking, the anvil UI should be opened by AnvilClickListener.request
-        var anvilView = player.getOpenInventory();
-        assertNotNull(anvilView);
-        assertEquals(InventoryType.ANVIL, anvilView.getTopInventory().getType());
-
-        // Place the result item into the output slot (raw slot 2) with the display name to submit
-        var result = new org.bukkit.inventory.ItemStack(Material.PAPER);
-        var meta = result.getItemMeta();
-        meta.setDisplayName(ChatColor.WHITE + "Edited Format {name}");
-        result.setItemMeta(meta);
-        anvilView.getTopInventory().setItem(2, result);
-
-        // Simulate clicking the anvil result slot
-        org.bukkit.event.inventory.InventoryClickEvent submit = new org.bukkit.event.inventory.InventoryClickEvent(anvilView, org.bukkit.event.inventory.InventoryType.SlotType.RESULT, 2, ClickType.LEFT, InventoryAction.PICKUP_ALL);
-        plugin.getServer().getPluginManager().callEvent(submit);
+        // After clicking, the listener should prompt for chat input. Simulate player chat submission.
+        plugin.getServer().getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(false, player, "Edited Format {name}", java.util.Set.of()));
 
         // After submit, countdown should be updated
         var updated = registry.countdowns().getCountdown("anvil-test").orElseThrow();

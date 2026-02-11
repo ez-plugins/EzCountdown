@@ -12,7 +12,7 @@ import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import com.skyblockexp.ezcountdown.manager.MessageManager;
 import com.skyblockexp.ezcountdown.storage.CountdownStorage;
 import com.skyblockexp.ezcountdown.storage.YamlCountdownStorage;
-import com.skyblockexp.ezcountdown.listener.AnvilClickListener;
+import com.skyblockexp.ezcountdown.listener.ChatInputListener;
 import com.skyblockexp.ezcountdown.gui.MainGui;
 import com.skyblockexp.ezcountdown.gui.EditorMenu;
 import com.skyblockexp.ezcountdown.gui.DisplayEditor;
@@ -87,14 +87,14 @@ public final class PluginBootstrap {
         countdownManager.load();
 
         // GUI and input handlers
-        AnvilClickListener anvil = new AnvilClickListener(plugin);
-        // register anvil listener
-        Bukkit.getPluginManager().registerEvents(anvil, plugin);
+        ChatInputListener chatInput = new ChatInputListener(plugin);
+        // register chat input listener
+        Bukkit.getPluginManager().registerEvents(chatInput, plugin);
 
-        // Create GuiManager with shared anvil handler
-        GuiManager guiManager = new GuiManager(countdownManager, messageManager, registry, anvil);
+        // Create GuiManager with shared chat input handler
+        GuiManager guiManager = new GuiManager(countdownManager, messageManager, registry, chatInput);
 
-        GuiClickListener guiListener = new GuiClickListener(guiManager.mainGui(), guiManager.editorMenu(), guiManager.displayEditor(), guiManager.commandsEditor(), anvil, countdownManager, messageManager, registry);
+        GuiClickListener guiListener = new GuiClickListener(guiManager.mainGui(), guiManager.editorMenu(), guiManager.displayEditor(), guiManager.commandsEditor(), chatInput, countdownManager, messageManager, registry);
         Bukkit.getPluginManager().registerEvents(guiListener, plugin);
 
         // register gui manager into registry
