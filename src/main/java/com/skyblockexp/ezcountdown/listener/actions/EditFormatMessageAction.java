@@ -47,7 +47,8 @@ public class EditFormatMessageAction implements GuiAction {
 
         @Override
         public void accept(String input) {
-            com.skyblockexp.ezcountdown.api.model.Countdown newCd = new com.skyblockexp.ezcountdown.api.model.Countdown(cd.getName(), cd.getType(), cd.getDisplayTypes(), cd.getUpdateIntervalSeconds(), cd.getVisibilityPermission(), input, cd.getStartMessage(), cd.getEndMessage(), cd.getEndCommands(), cd.getZoneId(), false, null, 0);
+            String stripped = org.bukkit.ChatColor.stripColor(input == null ? "" : input);
+            com.skyblockexp.ezcountdown.api.model.Countdown newCd = new com.skyblockexp.ezcountdown.api.model.Countdown(cd.getName(), cd.getType(), cd.getDisplayTypes(), cd.getUpdateIntervalSeconds(), cd.getVisibilityPermission(), stripped, cd.getStartMessage(), cd.getEndMessage(), cd.getEndCommands(), cd.getZoneId(), false, null, 0);
             CountdownCloner.copyRuntimeFields(cd, newCd);
             if (manager.updateCountdown(cdName, newCd)) { manager.save(); player.sendMessage(messageManager.message("gui.edit.saved", java.util.Map.of("name", cdName))); }
         }

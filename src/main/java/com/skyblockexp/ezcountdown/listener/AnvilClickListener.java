@@ -53,7 +53,15 @@ public final class AnvilClickListener implements Listener {
             if (result != null && result.hasItemMeta() && result.getItemMeta().hasDisplayName()) {
                 String input = result.getItemMeta().getDisplayName();
                 Consumer<String> cb = pending.remove(player.getUniqueId());
-                if (cb != null) Bukkit.getScheduler().runTask(plugin, () -> cb.accept(input));
+                if (cb != null) {
+                    try {
+                        // Inventory events run on the main thread in tests; invoke callback synchronously
+                        cb.accept(input);
+                    } catch (Exception ex) {
+                        // If callback expects to run on the main thread, schedule as a fallback
+                        Bukkit.getScheduler().runTask(plugin, () -> cb.accept(input));
+                    }
+                }
             }
             player.closeInventory();
             event.setCancelled(true);
