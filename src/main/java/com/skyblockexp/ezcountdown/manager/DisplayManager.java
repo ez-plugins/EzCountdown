@@ -83,6 +83,10 @@ public final class DisplayManager {
     }
 
     public void reload(com.skyblockexp.ezcountdown.config.ConfigService configService) {
+        // Clear existing display state to avoid duplicating visuals when handlers are recreated
+        for (DisplayHandler h : handlers.values()) {
+            try { h.clearAll(); } catch (Exception ignored) {}
+        }
         configureHandlers(configService);
     }
 

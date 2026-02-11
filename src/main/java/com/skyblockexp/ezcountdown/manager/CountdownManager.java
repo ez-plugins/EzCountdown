@@ -192,6 +192,7 @@ public final class CountdownManager {
         if (countdown.isRunning()) {
             return true;
         }
+        // persist change only if state actually changes
         countdown.setRunning(true);
         CountdownTypeHandler handler = registry.getHandler(countdown.getType());
         if (handler != null) {
@@ -204,6 +205,7 @@ public final class CountdownManager {
             }
         }
         fireStart(countdown);
+        try { save(); } catch (Exception ignored) {}
         return true;
     }
 
@@ -211,6 +213,9 @@ public final class CountdownManager {
         Countdown countdown = countdowns.get(normalizeName(name));
         if (countdown == null) {
             return false;
+        }
+        if (!countdown.isRunning()) {
+            return true;
         }
         countdown.setRunning(false);
         CountdownTypeHandler handler = registry.getHandler(countdown.getType());
@@ -222,12 +227,41 @@ public final class CountdownManager {
             }
         }
         displayManager.clearCountdown(countdown);
+        try { save(); } catch (Exception ignored) {}
         return true;
     }
 
     // Only call this after explicit config changes (create/delete/edit), not on runtime events
     public void save() {
         storage.saveCountdowns(countdowns.values());
+    }
+
+    /**
+     * Initialize in-memory state for countdowns that are already marked as running
+     * (used after loading from storage so handlers can restore their runtime state
+     * without firing start events or broadcasting start messages).
+     */
+    public void resumeRunningCountdowns() {
+        Instant now = Instant.now();
+        for (Countdown countdown : countdowns.values()) {
+            if (!countdown.isRunning()) continue;
+            CountdownTypeHandler handler = registry.getHandler(countdown.getType());
+            if (handler != null) {
+                try {
+                    handler.onStart(countdown, now);
+                } catch (Exception ex) {
+                    registry.plugin().getLogger().log(java.util.logging.Level.WARNING, "Error while resuming countdown handler", ex);
+                }
+            } else {
+                if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
+                    countdown.setTargetInstant(now.plusSeconds(countdown.getDurationSeconds()));
+                } else if (countdown.getType() == CountdownType.RECURRING) {
+                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(now));
+                }
+            }
+            // force an immediate update on next tick
+            lastUpdate.put(countdown.getName(), Instant.EPOCH);
+        }
     }
 
     private void startTask() {

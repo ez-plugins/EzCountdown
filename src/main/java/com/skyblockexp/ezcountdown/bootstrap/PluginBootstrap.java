@@ -104,8 +104,25 @@ public final class PluginBootstrap {
         var command = plugin.getCommand("countdown");
         if (command != null) {
             Runnable reloadAction = () -> {
-                try { plugin.reloadConfig(); } catch (Exception ignored) {}
-                try { configService.messages().reload(); } catch (Exception ignored) {}
+                // stop ticking and clear existing displays to avoid duplicate visuals
+                try {
+                    if (registry.countdowns() != null) registry.countdowns().shutdown();
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Error while shutting down countdowns before reload", ex);
+                }
+
+                try {
+                    plugin.reloadConfig();
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload plugin config", ex);
+                }
+
+                try {
+                    configService.messages().reload();
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload messages.yml", ex);
+                }
+
                 try {
                     CountdownDefaults newDefaults = configService.loadDefaults();
                     CountdownPermissions newPerms = configService.loadPermissions();
@@ -116,13 +133,29 @@ public final class PluginBootstrap {
                     if (storage instanceof YamlCountdownStorage yamlStorage) {
                         yamlStorage.setDefaults(newDefaults);
                     }
-                    // refresh display manager configuration
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload defaults or permissions", ex);
+                }
+
+                try {
+                    // refresh display manager configuration (clears handlers)
                     displayManager.reload(configService);
-                    // finally reload countdowns from storage
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload display manager", ex);
+                }
+
+                try {
+                    plugin.getLogger().info("Reloading countdowns from " + new File(plugin.getDataFolder(), "countdowns.yml").getAbsolutePath());
                     registry.countdowns().load();
-                    // close any open GUI inventories so editors reflect reloaded countdown data
-                    try { if (registry.gui() != null) registry.gui().closeAllOpenInventories(); } catch (Exception ignored) {}
-                } catch (Exception ignored) {}
+                    // Initialize in-memory handlers for countdowns that were saved as running
+                    try { registry.countdowns().resumeRunningCountdowns(); } catch (Exception ex) { plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to resume running countdowns after reload", ex); }
+                    plugin.getLogger().info("Countdowns reloaded: " + registry.countdowns().getCountdownCount());
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to reload countdowns from storage", ex);
+                }
+
+                // close any open GUI inventories so editors reflect reloaded countdown data
+                try { if (registry.gui() != null) registry.gui().closeAllOpenInventories(); } catch (Exception ex) { plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to close GUIs after reload", ex); }
             };
             // instantiate subcommand implementations (scaffolding)
             java.util.Map<String, com.skyblockexp.ezcountdown.command.subcommand.Subcommand> subs = new java.util.HashMap<>();

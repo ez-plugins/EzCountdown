@@ -70,14 +70,16 @@ public final class EditorMenu {
         ItemStack format = new ItemStack(Material.PAPER);
         ItemMeta fm = format.getItemMeta();
         fm.setDisplayName(ChatColor.YELLOW + "Edit Format Message");
-        fm.setLore(List.of(ChatColor.GRAY + countdown.getFormatMessage()));
+        String resolvedFormat = messageManager.formatWithPrefix(countdown.getFormatMessage(), java.util.Map.of("name", countdown.getName()));
+        fm.setLore(List.of(resolvedFormat == null ? "" : resolvedFormat));
         format.setItemMeta(fm);
         inv.setItem(4, format);
 
         ItemStack start = new ItemStack(MaterialCompat.resolve("FIREWORK_ROCKET", "FIREWORK"));
         ItemMeta sm = start.getItemMeta();
         sm.setDisplayName(ChatColor.AQUA + "Edit Start Message");
-        sm.setLore(List.of(ChatColor.GRAY + (countdown.getStartMessage() == null ? "" : countdown.getStartMessage())));
+        String resolvedStart = messageManager.formatWithPrefix(countdown.getStartMessage(), java.util.Map.of("name", countdown.getName()));
+        sm.setLore(List.of(resolvedStart == null ? "" : resolvedStart));
         start.setItemMeta(sm);
         inv.setItem(6, start);
 
@@ -100,7 +102,8 @@ public final class EditorMenu {
         ItemStack end = new ItemStack(MaterialCompat.resolve("BELL", "PAPER"));
         ItemMeta em = end.getItemMeta();
         em.setDisplayName(ChatColor.RED + "Edit End Message");
-        em.setLore(List.of(ChatColor.GRAY + (countdown.getEndMessage() == null ? "" : countdown.getEndMessage())));
+        String resolvedEnd = messageManager.formatWithPrefix(countdown.getEndMessage(), java.util.Map.of("name", countdown.getName()));
+        em.setLore(List.of(resolvedEnd == null ? "" : resolvedEnd));
         end.setItemMeta(em);
         inv.setItem(8, end);
 

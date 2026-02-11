@@ -31,6 +31,15 @@ public final class StopSubcommand implements Subcommand {
             sender.sendMessage(messageManager.message("commands.stop.usage"));
             return;
         }
+        var opt = manager.getCountdown(args[1]);
+        if (opt.isEmpty()) {
+            sender.sendMessage(messageManager.message("commands.stop.missing", Map.of("name", args[1])));
+            return;
+        }
+        if (!opt.get().isRunning()) {
+            sender.sendMessage(messageManager.message("commands.stop.already", Map.of("name", args[1])));
+            return;
+        }
         if (manager.stopCountdown(args[1])) {
             sender.sendMessage(messageManager.message("commands.stop.success", Map.of("name", args[1])));
         } else {

@@ -6,7 +6,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.Material;
 
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +28,19 @@ public final class AnvilClickListener implements Listener {
 
     public void request(Player player, Consumer<String> callback) {
         pending.put(player.getUniqueId(), callback);
+        try {
+            Inventory inv = Bukkit.createInventory(null, InventoryType.ANVIL, "Input");
+            ItemStack paper = new ItemStack(Material.PAPER);
+            ItemMeta meta = paper.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(" ");
+                paper.setItemMeta(meta);
+            }
+            inv.setItem(0, paper);
+            player.openInventory(inv);
+        } catch (Throwable ignored) {
+            // best-effort: if creating an anvil fails, still rely on external UI or prior opening
+        }
     }
 
     @EventHandler
