@@ -16,7 +16,12 @@ public class ReloadSubcommandFeatureTest extends MockBukkitTestBase {
         countdown.setRunning(true);
         boolean created = manager.createCountdown(countdown);
         org.junit.jupiter.api.Assertions.assertTrue(created);
+        // Persist so reload will restore it from storage (tests should not rely on implicit save behavior)
+        manager.save();
+        // verify created and running
         assertEquals(1, manager.getCountdownCount());
+        org.junit.jupiter.api.Assertions.assertTrue(manager.getCountdown("feature-dup").isPresent());
+        org.junit.jupiter.api.Assertions.assertTrue(manager.getCountdown("feature-dup").get().isRunning());
 
         // Execute the reload subcommand as console
         boolean dispatched = server.dispatchCommand(server.getConsoleSender(), "countdown reload");
@@ -24,8 +29,10 @@ public class ReloadSubcommandFeatureTest extends MockBukkitTestBase {
 
         // Debug: print running countdowns before and after reload
         System.out.println("Running before reload: " + manager.getCountdowns().stream().filter(c -> c.isRunning()).map(com.skyblockexp.ezcountdown.api.model.Countdown::getName).toList());
-        // After reload, ensure still exactly one countdown exists
+        // After reload, ensure still exactly one countdown exists and it's the same running countdown
         System.out.println("Running after reload: " + manager.getCountdowns().stream().filter(c -> c.isRunning()).map(com.skyblockexp.ezcountdown.api.model.Countdown::getName).toList());
         assertEquals(1, manager.getCountdownCount());
+        org.junit.jupiter.api.Assertions.assertTrue(manager.getCountdown("feature-dup").isPresent());
+        org.junit.jupiter.api.Assertions.assertTrue(manager.getCountdown("feature-dup").get().isRunning());
     }
 }
