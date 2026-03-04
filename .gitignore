@@ -59,4 +59,7 @@ Thumbs.db
 # Other
 target/
 .mvn/
+!.mvn/wrapper/
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
 .settings/
