@@ -29,6 +29,7 @@ import com.skyblockexp.ezcountdown.integration.PlaceholderIntegration;
 import com.skyblockexp.ezcountdown.integration.SpigotIntegration;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
@@ -179,6 +180,16 @@ public final class PluginBootstrap {
         // Register PlaceholderAPI expansion if available and store on plugin
         var expansion = PlaceholderIntegration.registerIfPresent(registry);
         if (expansion != null) registry.setPlaceholderExpansion(expansion);
+
+        // Create and register public API for other plugins to discover
+        try {
+            com.skyblockexp.ezcountdown.api.EzCountdownApi api = new com.skyblockexp.ezcountdown.api.EzCountdownApiImpl(registry);
+            registry.setApi(api);
+            Bukkit.getServicesManager().register(com.skyblockexp.ezcountdown.api.EzCountdownApi.class, api, plugin, ServicePriority.Normal);
+            plugin.getLogger().info("EzCountdown API registered with ServicesManager.");
+        } catch (Throwable t) {
+            plugin.getLogger().warning("Failed to register EzCountdown API: " + t.getMessage());
+        }
 
         // Initialize metrics
         try {
