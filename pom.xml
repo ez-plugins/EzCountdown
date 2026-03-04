@@ -5,7 +5,7 @@
 
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>ezcountdown</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <name>EzCountdown Plugin</name>
     <description>Configurable countdowns for server launches, events, and maintenance windows.</description>
     <packaging>jar</packaging>
@@ -86,7 +86,6 @@
         <!-- Default to Java 8 for maximum compatibility with older JDKs. -->
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <maven.compiler.release>8</maven.compiler.release>
 
         <!-- Target Java 21 to match Paper API (class file version 65) -->
         <!-- Allow CI to override the Paper API version with -Dpaper.version -->
@@ -169,7 +168,6 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
-                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -255,7 +253,6 @@
             <properties>
                 <maven.compiler.source>17</maven.compiler.source>
                 <maven.compiler.target>17</maven.compiler.target>
-                <maven.compiler.release>17</maven.compiler.release>
             </properties>
         </profile>
         <!-- If the build runs on JDK 21 or newer, enable Java 21 compilation. -->
@@ -267,7 +264,6 @@
             <properties>
                 <maven.compiler.source>21</maven.compiler.source>
                 <maven.compiler.target>21</maven.compiler.target>
-                <maven.compiler.release>21</maven.compiler.release>
             </properties>
         </profile>
         <profile>
