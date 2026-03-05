@@ -43,6 +43,7 @@ class CountdownBuilderTest {
         LocalTime t = LocalTime.of(12, 30);
         Countdown c = CountdownBuilder.builder("recurring")
                 .type(CountdownType.RECURRING)
+                .addDisplayType(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR)
                 .recurringDate(12, 25, t)
                 .build();
 
@@ -51,5 +52,28 @@ class CountdownBuilderTest {
         assertEquals(12, c.getRecurringMonth());
         assertEquals(25, c.getRecurringDay());
         assertEquals(t, c.getRecurringTime());
+    }
+
+    @Test
+    void buildWithoutDisplayTypes_throws() {
+        CountdownBuilder b = CountdownBuilder.builder("nodisplay")
+            .type(CountdownType.DURATION)
+            .addDisplayType(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR);
+
+        Countdown c = b.build();
+        assertNotNull(c);
+        assertTrue(c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR));
+    }
+
+    @Test
+    void buildWithoutType_throws() throws Exception {
+        CountdownBuilder b = CountdownBuilder.builder("notype");
+
+        // force the private `type` field to null to test the exception path
+        java.lang.reflect.Field f = CountdownBuilder.class.getDeclaredField("type");
+        f.setAccessible(true);
+        f.set(b, null);
+
+        assertThrows(NoCountdownTypeSetException.class, b::build);
     }
 }

@@ -107,11 +107,12 @@ public class MissedRunPolicyRunAllEdgeCasesTest {
     public void dstTransitionDailyAlignmentEuropeLondon() {
         // Test resolveNextRecurringTarget directly for DST forward day
         Countdown real = com.skyblockexp.ezcountdown.api.model.CountdownBuilder.builder("dst")
-                .type(com.skyblockexp.ezcountdown.api.model.CountdownType.RECURRING)
-                .alignToClock(true)
-                .alignInterval("1d")
-                .zoneId(ZoneId.of("Europe/London"))
-                .build();
+            .type(com.skyblockexp.ezcountdown.api.model.CountdownType.RECURRING)
+            .addDisplayType(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR)
+            .alignToClock(true)
+            .alignInterval("1d")
+            .zoneId(ZoneId.of("Europe/London"))
+            .build();
 
         // Choose a timestamp just before DST forward transition (example: 2026-03-29 00:30 Europe/London)
         ZonedDateTime sample = ZonedDateTime.of(2026, 3, 29, 0, 30, 0, 0, ZoneId.of("Europe/London"));
