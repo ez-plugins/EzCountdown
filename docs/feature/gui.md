@@ -9,7 +9,6 @@ Opening the GUI
  What you can do in the GUI
  
  - `Main` - see a list of configured countdowns, their running state, and quick start/stop/delete actions.
- - `Display Editor` - pick which `display.types` will show for a countdown and edit per-display settings.
  - `Display Editor` - pick which `display.types` will show for a countdown and edit per-display settings. For the `BOSS_BAR` display the editor also exposes `color` and `style` options so you can match event themes or improve visibility; the GUI validates input and will show an error if an invalid option is selected.
  - `Messages` - edit `messages.format`, `messages.start`, and `messages.end` templates with live preview.
  - `Commands Editor` - add, remove, or reorder `commands.end` to run console commands when a countdown completes.
