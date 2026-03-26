@@ -7,6 +7,12 @@ countdowns:
   #     types: [ACTION_BAR, BOSS_BAR]
   #     update-interval: 1
   #     visibility: "all"
+  #     # Boss bar appearance (optional)
+  #     # color: one of the BarColor names (BLUE, RED, GREEN, YELLOW, PINK, PURPLE, WHITE)
+  #     # style: one of the BarStyle names (SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20)
+  #     bossbar:
+  #       color: BLUE
+  #       style: SOLID
   #   messages:
   #   messages:
   #     # You can reference translations from messages.yml using {translate:key.path}

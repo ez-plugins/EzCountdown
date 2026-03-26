@@ -32,6 +32,9 @@ public final class CountdownBuilder {
     private String alignInterval = null;
     private com.skyblockexp.ezcountdown.api.model.MissedRunPolicy missedRunPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP;
 
+    private org.bukkit.boss.BarColor bossBarColor = org.bukkit.boss.BarColor.BLUE;
+    private org.bukkit.boss.BarStyle bossBarStyle = org.bukkit.boss.BarStyle.SOLID;
+
     /* optional runtime values that the builder can configure */
     private long durationSeconds = -1L;
     private int recurringMonth = 0;
@@ -167,7 +170,9 @@ public final class CountdownBuilder {
             restartDelaySeconds,
             alignToClock,
             alignInterval,
-            missedRunPolicy
+            missedRunPolicy,
+            bossBarColor,
+            bossBarStyle
         );
 
         if (durationSeconds >= 0L) countdown.setDurationSeconds(durationSeconds);
@@ -176,5 +181,15 @@ public final class CountdownBuilder {
         if (recurringTime != null) countdown.setRecurringTime(recurringTime);
 
         return countdown;
+    }
+
+    public CountdownBuilder bossBarColor(org.bukkit.boss.BarColor color) {
+        this.bossBarColor = color == null ? org.bukkit.boss.BarColor.BLUE : color;
+        return this;
+    }
+
+    public CountdownBuilder bossBarStyle(org.bukkit.boss.BarStyle style) {
+        this.bossBarStyle = style == null ? org.bukkit.boss.BarStyle.SOLID : style;
+        return this;
     }
 }
