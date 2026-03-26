@@ -18,8 +18,11 @@ public class BossBarDisplay implements DisplayHandler {
     public void display(Countdown countdown, String message, long remainingSeconds) {
         if (!BossBarSupport.isSupported()) return;
         try {
-            BossBar bossBar = bossBars.computeIfAbsent(countdown.getName(),
-                    name -> Bukkit.createBossBar(message, BarColor.BLUE, BarStyle.SOLID));
+            BossBar bossBar = bossBars.get(countdown.getName());
+            if (bossBar == null) {
+                bossBar = Bukkit.createBossBar(message, countdown.getBossBarColor(), countdown.getBossBarStyle());
+                bossBars.put(countdown.getName(), bossBar);
+            }
             bossBar.setTitle(message);
             bossBar.setProgress(calculateProgress(countdown, remainingSeconds));
             for (Player player : Bukkit.getOnlinePlayers()) {
