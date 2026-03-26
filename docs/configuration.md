@@ -42,6 +42,30 @@ countdowns:
       end: arena
 ```
 
+**Boss Bar Customization**
+
+- `display.bossbar.color`: (optional) A `BarColor` name used for the countdown's boss bar. Valid values include `BLUE`, `RED`, `GREEN`, `YELLOW`, `PINK`, `PURPLE`, `WHITE` (matching Bukkit's `BarColor` enum). Default: `BLUE`.
+- `display.bossbar.style`: (optional) A `BarStyle` name used for the boss bar's segment style. Valid values include `SOLID`, `SEGMENTED_6`, `SEGMENTED_10`, `SEGMENTED_12`, `SEGMENTED_20` (matching Bukkit's `BarStyle` enum). Default: `SOLID`.
+
+Example with boss bar options:
+
+```yaml
+countdowns:
+  holiday_sale:
+    type: FIXED_DATE
+    target: "2026-12-20 12:00"
+    display:
+      types: [BOSS_BAR, ACTION_BAR]
+      update-interval: 1
+      bossbar:
+        color: RED
+        style: SEGMENTED_10
+    messages:
+      format: "{translate:sales.format}"
+      start: "{translate:sales.start}"
+      end: "{translate:sales.end}"
+```
+
 Clock-aligned recurring example
 
 ```yaml

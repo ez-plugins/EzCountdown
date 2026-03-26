@@ -5,6 +5,7 @@ EzCountdown supports four primary countdown modes. Each section below explains w
 Important keys used by the plugin
 - `type` - one of `FIXED_DATE`, `DURATION`, `MANUAL`, `RECURRING` (case-insensitive).
 - `display.types` - list of enabled displays (e.g. `ACTION_BAR`, `BOSS_BAR`).
+- `display.bossbar.color` / `display.bossbar.style` - optional per-countdown boss bar appearance keys. If present, `display.bossbar.color` must be a `BarColor` name (e.g. `BLUE`, `RED`) and `display.bossbar.style` must be a `BarStyle` name (e.g. `SOLID`, `SEGMENTED_10`). On reload the plugin will log a warning and fall back to defaults (`BLUE` / `SOLID`) for unknown values.
 - `messages.*`, `commands.end`, `zone` - per-countdown messages, end commands, and timezone.
 
 ## Fixed Date
