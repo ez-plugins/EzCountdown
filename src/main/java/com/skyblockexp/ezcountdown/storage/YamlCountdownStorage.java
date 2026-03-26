@@ -121,6 +121,13 @@ public final class YamlCountdownStorage implements CountdownStorage {
                     }
                 }
             }
+            // Persist boss bar color/style for per-countdown customization
+            try {
+                section.set("display.bossbar.color", countdown.getBossBarColor().name());
+                section.set("display.bossbar.style", countdown.getBossBarStyle().name());
+            } catch (NoClassDefFoundError ignored) {
+                // If running in an environment without the BossBar API, skip persisting these values
+            }
         }
         try {
             config.save(storageFile);
@@ -161,7 +168,25 @@ public final class YamlCountdownStorage implements CountdownStorage {
             missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP;
         }
 
-        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy);
+        // Parse optional boss bar color/style (fallback to BLUE/SOLID on invalid/missing)
+        String bossColorRaw = section.getString("display.bossbar.color", "BLUE");
+        String bossStyleRaw = section.getString("display.bossbar.style", "SOLID");
+        org.bukkit.boss.BarColor bossColor;
+        org.bukkit.boss.BarStyle bossStyle;
+        try {
+            bossColor = org.bukkit.boss.BarColor.valueOf(bossColorRaw.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            logger.warning("Invalid boss bar color '" + bossColorRaw + "' for countdown '" + name + "' — using default BLUE.");
+            bossColor = org.bukkit.boss.BarColor.BLUE;
+        }
+        try {
+            bossStyle = org.bukkit.boss.BarStyle.valueOf(bossStyleRaw.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            logger.warning("Invalid boss bar style '" + bossStyleRaw + "' for countdown '" + name + "' — using default SOLID.");
+            bossStyle = org.bukkit.boss.BarStyle.SOLID;
+        }
+
+        Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy, bossColor, bossStyle);
         countdown.setRunning(section.getBoolean("running", type != CountdownType.MANUAL));
 
         switch (type) {
