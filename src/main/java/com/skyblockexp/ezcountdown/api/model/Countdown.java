@@ -10,6 +10,8 @@ import java.time.ZonedDateTime;
 import java.util.EnumSet;
 import java.util.Objects;
 import com.skyblockexp.ezcountdown.util.DurationParser;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 
 /**
  * Represents a configured countdown with metadata and runtime state.
@@ -61,6 +63,10 @@ public final class Countdown {
     private final String startCountdown;
     /** Delay in seconds before performing the restart/start action. */
     private final int restartDelaySeconds;
+    /** Boss bar color for this countdown's boss bar display. */
+    private final BarColor bossBarColor;
+    /** Boss bar style for this countdown's boss bar display. */
+    private final BarStyle bossBarStyle;
 
     /* Mutable runtime state */
     private long durationSeconds;
@@ -113,6 +119,8 @@ public final class Countdown {
         this.autoRestart = autoRestart;
         this.startCountdown = startCountdown;
         this.restartDelaySeconds = restartDelaySeconds;
+        this.bossBarColor = BarColor.BLUE;
+        this.bossBarStyle = BarStyle.SOLID;
     }
 
     /**
@@ -170,7 +178,50 @@ public final class Countdown {
         this.alignToClock = alignToClock;
         this.alignInterval = alignInterval;
         this.missedRunPolicy = missedRunPolicy == null ? MissedRunPolicy.SKIP : missedRunPolicy;
+        this.bossBarColor = BarColor.BLUE;
+        this.bossBarStyle = BarStyle.SOLID;
         }
+
+    /**
+     * Extended constructor that allows specifying boss bar color and style.
+     */
+    public Countdown(String name,
+                     CountdownType type,
+                     EnumSet<DisplayType> displayTypes,
+                     int updateIntervalSeconds,
+                     String visibilityPermission,
+                     String formatMessage,
+                     String startMessage,
+                     String endMessage,
+                     java.util.List<String> endCommands,
+                     ZoneId zoneId,
+                     boolean autoRestart,
+                     String startCountdown,
+                     int restartDelaySeconds,
+                     boolean alignToClock,
+                     String alignInterval,
+                     MissedRunPolicy missedRunPolicy,
+                     BarColor bossBarColor,
+                     BarStyle bossBarStyle) {
+        this.name = Objects.requireNonNull(name, "name");
+        this.type = Objects.requireNonNull(type, "type");
+        this.displayTypes = displayTypes == null ? EnumSet.noneOf(DisplayType.class) : EnumSet.copyOf(displayTypes);
+        this.updateIntervalSeconds = updateIntervalSeconds;
+        this.visibilityPermission = visibilityPermission;
+        this.formatMessage = formatMessage;
+        this.startMessage = startMessage;
+        this.endMessage = endMessage;
+        this.endCommands = endCommands == null ? java.util.List.of() : java.util.List.copyOf(endCommands);
+        this.zoneId = zoneId;
+        this.autoRestart = autoRestart;
+        this.startCountdown = startCountdown;
+        this.restartDelaySeconds = restartDelaySeconds;
+        this.alignToClock = alignToClock;
+        this.alignInterval = alignInterval;
+        this.missedRunPolicy = missedRunPolicy == null ? MissedRunPolicy.SKIP : missedRunPolicy;
+        this.bossBarColor = bossBarColor == null ? BarColor.BLUE : bossBarColor;
+        this.bossBarStyle = bossBarStyle == null ? BarStyle.SOLID : bossBarStyle;
+    }
 
     /** @return countdown name */
     public String getName() { return name; }
@@ -300,4 +351,10 @@ public final class Countdown {
 
     /** @return policy describing how missed runs are handled across restarts */
     public MissedRunPolicy getMissedRunPolicy() { return missedRunPolicy; }
+
+    /** @return configured boss bar color for this countdown */
+    public BarColor getBossBarColor() { return bossBarColor; }
+
+    /** @return configured boss bar style for this countdown */
+    public BarStyle getBossBarStyle() { return bossBarStyle; }
 }
