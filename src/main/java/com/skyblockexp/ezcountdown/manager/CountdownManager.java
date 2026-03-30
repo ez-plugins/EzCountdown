@@ -335,14 +335,18 @@ public final class CountdownManager {
     private String buildMessage(Countdown countdown, long remaining) {
         TimeParts parts = TimeFormat.toParts(remaining);
         String formatted = TimeFormat.format(parts);
-        String message = countdown.getFormatMessage();
-        message = message.replace("{name}", countdown.getName())
-                .replace("{days}", String.valueOf(parts.days()))
-                .replace("{hours}", String.valueOf(parts.hours()))
-                .replace("{minutes}", String.valueOf(parts.minutes()))
-                .replace("{seconds}", String.valueOf(parts.seconds()))
-                .replace("{formatted}", formatted);
-        return messageManager.formatWithPrefix(message, Map.of());
+        String template = countdown.getFormatMessage();
+        if (template == null || template.isBlank()) {
+            template = messageManager.raw("defaults.format");
+        }
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("name", countdown.getName());
+        placeholders.put("days", String.valueOf(parts.days()));
+        placeholders.put("hours", String.valueOf(parts.hours()));
+        placeholders.put("minutes", String.valueOf(parts.minutes()));
+        placeholders.put("seconds", String.valueOf(parts.seconds()));
+        placeholders.put("formatted", formatted);
+        return messageManager.formatWithPrefix(template, placeholders);
     }
 
     private void fireStart(Countdown countdown) {

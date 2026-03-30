@@ -14,6 +14,7 @@ public class RecurringAlignmentTest {
     public void nextOccurrenceUtcTwoHourInterval() {
         Countdown cd = CountdownBuilder.builder("test")
                 .type(com.skyblockexp.ezcountdown.api.model.CountdownType.RECURRING)
+                .addDisplayType(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR)
                 .alignToClock(true)
                 .alignInterval("2h")
                 .zoneId(ZoneId.of("UTC"))
@@ -30,6 +31,7 @@ public class RecurringAlignmentTest {
     public void nextOccurrenceLondonOneDayInterval() {
         Countdown cd = CountdownBuilder.builder("daily")
                 .type(com.skyblockexp.ezcountdown.api.model.CountdownType.RECURRING)
+            .addDisplayType(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR)
                 .alignToClock(true)
                 .alignInterval("1d")
                 .zoneId(ZoneId.of("Europe/London"))

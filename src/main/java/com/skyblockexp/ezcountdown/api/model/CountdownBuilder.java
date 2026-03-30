@@ -154,6 +154,9 @@ public final class CountdownBuilder {
     }
 
     public Countdown build() {
+        if (type == null) throw new NoCountdownTypeSetException();
+        if (displayTypes == null || displayTypes.isEmpty()) throw new NoDisplayTypeSetException();
+
         Countdown countdown = new Countdown(
             name,
             type,
