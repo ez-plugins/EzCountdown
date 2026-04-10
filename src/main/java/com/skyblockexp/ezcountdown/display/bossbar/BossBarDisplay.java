@@ -17,6 +17,12 @@ public class BossBarDisplay implements StackableDisplay {
 
     private void updateSingle(Countdown countdown, String message, long remainingSeconds) {
         if (!BossBarSupport.isSupported()) return;
+        // remove bossbar when timer is zero
+        if (remainingSeconds <= 0L) {
+            BossBar removed = bossBars.remove(countdown.getName());
+            if (removed != null) removed.removeAll();
+            return;
+        }
         try {
             BossBar bossBar = bossBars.get(countdown.getName());
             if (bossBar == null) {

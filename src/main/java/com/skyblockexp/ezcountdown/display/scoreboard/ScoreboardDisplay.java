@@ -24,6 +24,22 @@ public class ScoreboardDisplay implements StackableDisplay {
 
     @Override
     public void display(Countdown countdown, String message, long remainingSeconds) {
+        // If timer reached zero, remove any displayed objective for this countdown
+        if (remainingSeconds <= 0L) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                try {
+                    Scoreboard scoreboard = player.getScoreboard();
+                    if (scoreboard == null) continue;
+                    String objectiveName = buildObjectiveName(countdown.getName());
+                    Objective objective = scoreboard.getObjective(objectiveName);
+                    if (objective != null) objective.unregister();
+                } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException ignored) {
+                    // ignore
+                }
+            }
+            return;
+        }
+
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -97,6 +113,8 @@ public class ScoreboardDisplay implements StackableDisplay {
                 // Build list of messages visible to this player
                 java.util.List<String> visible = new java.util.ArrayList<>();
                 for (com.skyblockexp.ezcountdown.api.model.Countdown c : countdowns) {
+                    long rem = remaining.getOrDefault(c, 0L);
+                    if (rem <= 0L) continue; // skip timers at zero
                     String perm = c.getVisibilityPermission();
                     if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
                         String msg = messages.get(c);

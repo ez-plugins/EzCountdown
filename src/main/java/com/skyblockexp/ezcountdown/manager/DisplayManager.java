@@ -91,6 +91,9 @@ public final class DisplayManager {
     }
 
     public void display(Countdown countdown, String message, long remainingSeconds) {
+        // Do not show displays for countdowns that reached zero
+        if (remainingSeconds <= 0L) return;
+
         for (DisplayType type : countdown.getDisplayTypes()) {
             DisplayHandler h = handlers.get(type);
             if (h != null) {
@@ -116,7 +119,9 @@ public final class DisplayManager {
                 // Fallback: call single display for each countdown that uses this type
                 for (Countdown c : countdowns) {
                     if (c.getDisplayTypes().contains(type)) {
-                        try { h.display(c, messages.get(c), remaining.getOrDefault(c, 0L)); } catch (Exception ignored) {}
+                        long rem = remaining.getOrDefault(c, 0L);
+                        if (rem <= 0L) continue; // skip showing zero timers
+                        try { h.display(c, messages.get(c), rem); } catch (Exception ignored) {}
                     }
                 }
             }
