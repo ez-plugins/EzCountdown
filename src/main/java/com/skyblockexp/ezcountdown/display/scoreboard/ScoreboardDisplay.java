@@ -2,6 +2,12 @@ package com.skyblockexp.ezcountdown.display.scoreboard;
 
 import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.display.DisplayHandler;
+import com.skyblockexp.ezcountdown.display.StackableDisplay;
+import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Locale;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,7 +17,10 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
-public class ScoreboardDisplay implements DisplayHandler {
+public class ScoreboardDisplay implements StackableDisplay {
+
+    // Track per-player batch objective names so we can clear them later
+    private final Map<UUID, String> batchObjectiveNames = new ConcurrentHashMap<>();
 
     @Override
     public void display(Countdown countdown, String message, long remainingSeconds) {
@@ -57,7 +66,100 @@ public class ScoreboardDisplay implements DisplayHandler {
 
     @Override
     public void clearAll() {
-        // per-player scoreboards will be reset by clear routines
+        // Remove any batch objectives we created for players
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) return;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            try {
+                Scoreboard scoreboard = player.getScoreboard();
+                if (scoreboard == null) continue;
+                String name = batchObjectiveNames.remove(player.getUniqueId());
+                if (name != null) {
+                    Objective obj = scoreboard.getObjective(name);
+                    if (obj != null) obj.unregister();
+                }
+            } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException ignored) {
+                // ignore
+            }
+        }
+    }
+
+    @Override
+    public void displayMultiple(Collection<com.skyblockexp.ezcountdown.api.model.Countdown> countdowns, Map<com.skyblockexp.ezcountdown.api.model.Countdown, String> messages, Map<com.skyblockexp.ezcountdown.api.model.Countdown, Long> remaining) {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) return;
+
+        // Track batch objective names per-player so clearAll can remove them later
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            try {
+                // Build list of messages visible to this player
+                java.util.List<String> visible = new java.util.ArrayList<>();
+                for (com.skyblockexp.ezcountdown.api.model.Countdown c : countdowns) {
+                    String perm = c.getVisibilityPermission();
+                    if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+                        String msg = messages.get(c);
+                        if (msg != null) visible.add(msg);
+                    }
+                }
+
+                // If nothing to show, remove any existing batch objective for this player
+                if (visible.isEmpty()) {
+                    String existing = this.batchObjectiveNames.remove(player.getUniqueId());
+                    if (existing != null) {
+                        Scoreboard scoreboard = player.getScoreboard();
+                        if (scoreboard != null) {
+                            Objective obj = scoreboard.getObjective(existing);
+                            if (obj != null) obj.unregister();
+                        }
+                    }
+                    continue;
+                }
+
+                Scoreboard scoreboard = player.getScoreboard();
+                if (scoreboard == manager.getMainScoreboard()) {
+                    scoreboard = manager.getNewScoreboard();
+                    player.setScoreboard(scoreboard);
+                }
+
+                String objectiveName = buildBatchObjectiveName(player.getUniqueId());
+                batchObjectiveNames.put(player.getUniqueId(), objectiveName);
+                this.batchObjectiveNames.put(player.getUniqueId(), objectiveName);
+
+                Objective objective = scoreboard.getObjective(objectiveName);
+                if (objective == null) {
+                    objective = scoreboard.registerNewObjective(objectiveName, "dummy", ChatColor.AQUA + "Countdowns");
+                }
+                objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+                scoreboard.getEntries().forEach(scoreboard::resetScores);
+
+                // Add entries (higher score displays higher on sidebar)
+                int score = visible.size();
+                for (String msg : visible) {
+                    try {
+                        objective.getScore(msg).setScore(score--);
+                    } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException e) {
+                        player.sendMessage(msg);
+                    }
+                }
+            } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException e) {
+                // fallback to chat if scoreboard ops fail
+                for (com.skyblockexp.ezcountdown.api.model.Countdown c : countdowns) {
+                    String perm = c.getVisibilityPermission();
+                    if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+                        String msg = messages.get(c);
+                        if (msg != null) player.sendMessage(msg);
+                    }
+                }
+            }
+        }
+    }
+
+    private String buildBatchObjectiveName(UUID uid) {
+        String hex = uid.toString().replaceAll("-", "");
+        String base = "ezcd_b_" + (hex.length() > 8 ? hex.substring(0, 8) : hex);
+        return base.length() > 16 ? base.substring(0, 16) : base;
     }
 
     private String buildObjectiveName(String name) {
