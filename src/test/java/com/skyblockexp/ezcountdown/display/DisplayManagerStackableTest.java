@@ -21,6 +21,20 @@ public class DisplayManagerStackableTest {
     public void setup() {
         com.skyblockexp.ezcountdown.config.ConfigService cs = mock(com.skyblockexp.ezcountdown.config.ConfigService.class);
         when(cs.loadDisplayOverrides()).thenReturn(Collections.emptyMap());
+        // ensure Bukkit.server is set to a mock to avoid NPEs when constructing DisplayManager
+        org.bukkit.Server bukkitServer = mock(org.bukkit.Server.class);
+        org.bukkit.plugin.PluginManager pm = mock(org.bukkit.plugin.PluginManager.class);
+        org.bukkit.command.ConsoleCommandSender console = mock(org.bukkit.command.ConsoleCommandSender.class);
+        when(bukkitServer.getPluginManager()).thenReturn(pm);
+        when(bukkitServer.getConsoleSender()).thenReturn(console);
+        when(bukkitServer.getLogger()).thenReturn(java.util.logging.Logger.getLogger("test"));
+        try {
+            java.lang.reflect.Field serverField = org.bukkit.Bukkit.class.getDeclaredField("server");
+            serverField.setAccessible(true);
+            serverField.set(null, bukkitServer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         displayManager = new DisplayManager(cs);
     }
 

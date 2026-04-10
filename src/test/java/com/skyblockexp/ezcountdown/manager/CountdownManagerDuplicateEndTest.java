@@ -117,6 +117,6 @@ public class CountdownManagerDuplicateEndTest {
         assertTrue(manager.getExecutedCount() >= 1);
         // Verify broadcast/display happened at least once
         verify(displayManager, atLeastOnce()).broadcastMessage(nullable(String.class));
-        verify(displayManager, atLeastOnce()).display(any(com.skyblockexp.ezcountdown.api.model.Countdown.class), nullable(String.class), anyLong());
+        verify(displayManager, atLeastOnce()).displayAll(anyCollection(), anyMap(), anyMap());
     }
 }
