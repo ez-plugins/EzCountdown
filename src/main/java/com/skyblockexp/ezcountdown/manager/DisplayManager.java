@@ -99,6 +99,30 @@ public final class DisplayManager {
         }
     }
 
+    /**
+     * Batch-display multiple countdowns in a single pass. Handlers that implement
+     * {@link com.skyblockexp.ezcountdown.display.StackableDisplay} will receive a
+     * single bulk call; other handlers will be invoked per-countdown.
+     */
+    public void displayAll(java.util.Collection<Countdown> countdowns, java.util.Map<Countdown, String> messages, java.util.Map<Countdown, Long> remaining) {
+        for (DisplayType type : DisplayType.values()) {
+            DisplayHandler h = handlers.get(type);
+            if (h == null) continue;
+            if (h instanceof com.skyblockexp.ezcountdown.display.StackableDisplay sd) {
+                try {
+                    sd.displayMultiple(countdowns, messages, remaining);
+                } catch (Exception ignored) {}
+            } else {
+                // Fallback: call single display for each countdown that uses this type
+                for (Countdown c : countdowns) {
+                    if (c.getDisplayTypes().contains(type)) {
+                        try { h.display(c, messages.get(c), remaining.getOrDefault(c, 0L)); } catch (Exception ignored) {}
+                    }
+                }
+            }
+        }
+    }
+
     public void broadcastMessage(String message) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(message);
