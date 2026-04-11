@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-public class CountdownManagerDuplicateEndTest {
+public class CountdownManagerDebounceEndTest {
 
     private CountdownManager manager;
     private Registry registry;
@@ -26,7 +26,7 @@ public class CountdownManagerDuplicateEndTest {
     private DisplayManager displayManager;
     private MessageManager messageManager;
     private LocationManager locationManager;
-    private java.util.concurrent.atomic.AtomicInteger dispatchCount;
+    private AtomicInteger dispatchCount;
 
     @BeforeEach
     public void setup() {
@@ -46,7 +46,7 @@ public class CountdownManagerDuplicateEndTest {
         org.bukkit.plugin.PluginManager pm = mock(org.bukkit.plugin.PluginManager.class);
         when(bukkitServer.getPluginManager()).thenReturn(pm);
 
-        dispatchCount = new java.util.concurrent.atomic.AtomicInteger(0);
+        dispatchCount = new AtomicInteger(0);
         try {
             when(bukkitServer.dispatchCommand(any(org.bukkit.command.CommandSender.class), anyString())).thenAnswer(invocation -> {
                 // Simulate a slow command execution to create overlap between concurrent ticks
@@ -74,7 +74,7 @@ public class CountdownManagerDuplicateEndTest {
     }
 
     @Test
-    public void concurrentTicksOnlyExecuteEndOnce() throws Exception {
+    public void concurrentTicksAndImmediateRetryExecuteEndOnlyOnce() throws Exception {
         Countdown c = new Countdown("race", CountdownType.MANUAL, EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class), 1, null, "{formatted}", "start", "end", List.of("/say done"), ZoneId.systemDefault());
         c.setRunning(true);
         c.setTargetInstant(java.time.Instant.now().minusSeconds(2));
@@ -114,9 +114,12 @@ public class CountdownManagerDuplicateEndTest {
         t1.join();
         t2.join();
 
-        // executedCount should be incremented once and dispatchCommand should have been called exactly once
+        // Immediately invoke tick again (simulate another rapid scheduler run)
+        tick.invoke(manager);
+
+        // executedCount should be incremented at least once and dispatchCommand should have been called exactly once
         assertTrue(manager.getExecutedCount() >= 1);
-        org.junit.jupiter.api.Assertions.assertEquals(1, dispatchCount.get(), "Console dispatchCommand should be executed exactly once");
+        assertEquals(1, dispatchCount.get(), "Console dispatchCommand should be executed exactly once");
         // Verify broadcast/display happened at least once
         verify(displayManager, atLeastOnce()).broadcastMessage(nullable(String.class));
         verify(displayManager, atLeastOnce()).displayAll(anyCollection(), anyMap(), anyMap());

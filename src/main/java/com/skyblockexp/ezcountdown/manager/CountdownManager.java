@@ -46,8 +46,10 @@ public final class CountdownManager {
     private final LocationManager locationManager;
     private final FireworkShowManager fireworkShowManager = new FireworkShowManager();
 
-    // Guard to prevent duplicate end execution when ticks race (e.g., duplicate scheduler runs)
-    private final java.util.Set<String> ending = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    // Per-countdown guard to prevent duplicate end execution when ticks race
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicBoolean> endingFlags = new java.util.concurrent.ConcurrentHashMap<>();
+    // Last time an end was executed for a countdown (debounce window)
+    private final java.util.concurrent.ConcurrentHashMap<String, Instant> lastEndAt = new java.util.concurrent.ConcurrentHashMap<>();
 
     private BukkitTask task;
 
@@ -269,7 +271,14 @@ public final class CountdownManager {
 
     private void startTask() {
         stopTask();
-        task = Bukkit.getScheduler().runTaskTimer(registry.plugin(), this::tick, 20L, 20L);
+        int intervalSeconds = 1;
+        try {
+            if (registry != null && registry.defaults() != null) {
+                intervalSeconds = Math.max(1, registry.defaults().updateIntervalSeconds());
+            }
+        } catch (Exception ignored) {}
+        long periodTicks = Math.max(1L, intervalSeconds) * 20L;
+        task = Bukkit.getScheduler().runTaskTimer(registry.plugin(), this::tick, periodTicks, periodTicks);
     }
 
     private void stopTask() {
@@ -322,12 +331,23 @@ public final class CountdownManager {
             }
 
             if (remaining <= 0L) {
-                String nameKey = countdown.getName();
-                if (!ending.add(nameKey)) {
+                String nameKey = normalizeName(countdown.getName());
+                java.util.concurrent.atomic.AtomicBoolean flag = endingFlags.computeIfAbsent(nameKey, k -> new java.util.concurrent.atomic.AtomicBoolean(false));
+                // Try to claim the end handling for this countdown
+                if (!flag.compareAndSet(false, true)) {
                     // Another tick is already handling the end for this countdown.
                     continue;
                 }
                 try {
+                    // Debounce: if we ran an end very recently, skip to avoid duplicate execution
+                    Instant lastEnd = lastEndAt.getOrDefault(nameKey, Instant.EPOCH);
+                    if (lastEnd.isAfter(now.minusSeconds(1))) {
+                        // recent end already executed
+                        continue;
+                    }
+                    // mark last end now to prevent very close duplicates
+                    lastEndAt.put(nameKey, now);
+
                     fireEnd(countdown);
                     CountdownTypeHandler endHandler = registry.getHandler(countdown.getType());
                     if (endHandler != null) {
@@ -344,7 +364,7 @@ public final class CountdownManager {
                     countdown.setRunning(false);
                     displayManager.clearCountdown(countdown);
                 } finally {
-                    ending.remove(nameKey);
+                    flag.set(false);
                 }
             }
         }

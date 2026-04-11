@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-public class CountdownManagerDuplicateEndTest {
+public class CountdownManagerReentrantDisplayTest {
 
     private CountdownManager manager;
     private Registry registry;
@@ -26,7 +26,7 @@ public class CountdownManagerDuplicateEndTest {
     private DisplayManager displayManager;
     private MessageManager messageManager;
     private LocationManager locationManager;
-    private java.util.concurrent.atomic.AtomicInteger dispatchCount;
+    private AtomicInteger dispatchCount;
 
     @BeforeEach
     public void setup() {
@@ -46,7 +46,7 @@ public class CountdownManagerDuplicateEndTest {
         org.bukkit.plugin.PluginManager pm = mock(org.bukkit.plugin.PluginManager.class);
         when(bukkitServer.getPluginManager()).thenReturn(pm);
 
-        dispatchCount = new java.util.concurrent.atomic.AtomicInteger(0);
+        dispatchCount = new AtomicInteger(0);
         try {
             when(bukkitServer.dispatchCommand(any(org.bukkit.command.CommandSender.class), anyString())).thenAnswer(invocation -> {
                 // Simulate a slow command execution to create overlap between concurrent ticks
@@ -74,8 +74,8 @@ public class CountdownManagerDuplicateEndTest {
     }
 
     @Test
-    public void concurrentTicksOnlyExecuteEndOnce() throws Exception {
-        Countdown c = new Countdown("race", CountdownType.MANUAL, EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class), 1, null, "{formatted}", "start", "end", List.of("/say done"), ZoneId.systemDefault());
+    public void displayAllReentrantTickDoesNotDoubleExecuteEnd() throws Exception {
+        Countdown c = new Countdown("multi", CountdownType.MANUAL, EnumSet.of(com.skyblockexp.ezcountdown.display.DisplayType.ACTION_BAR, com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD), 1, null, "{formatted}", "start", "end", List.of("/say hey"), ZoneId.systemDefault());
         c.setRunning(true);
         c.setTargetInstant(java.time.Instant.now().minusSeconds(2));
         manager.createCountdown(c);
@@ -83,42 +83,18 @@ public class CountdownManagerDuplicateEndTest {
         java.lang.reflect.Method tick = CountdownManager.class.getDeclaredMethod("tick");
         tick.setAccessible(true);
 
-        CountDownLatch ready = new CountDownLatch(2);
-        CountDownLatch start = new CountDownLatch(1);
+        // make displayManager.displayAll call tick() reentrantly
+        doAnswer(invocation -> {
+            // re-enter tick (simulating a display handler triggering a scheduler)
+            tick.invoke(manager);
+            return null;
+        }).when(displayManager).displayAll(anyCollection(), anyMap(), anyMap());
 
-        Thread t1 = new Thread(() -> {
-            ready.countDown();
-            try {
-                start.await();
-                tick.invoke(manager);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-        Thread t2 = new Thread(() -> {
-            ready.countDown();
-            try {
-                start.await();
-                tick.invoke(manager);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        // invoke first tick
+        tick.invoke(manager);
 
-        t1.start();
-        t2.start();
-        // wait for both threads ready, then release them together
-        assertTrue(ready.await(1, TimeUnit.SECONDS));
-        start.countDown();
-
-        t1.join();
-        t2.join();
-
-        // executedCount should be incremented once and dispatchCommand should have been called exactly once
+        // after reentrant call, ensure end commands executed exactly once
         assertTrue(manager.getExecutedCount() >= 1);
-        org.junit.jupiter.api.Assertions.assertEquals(1, dispatchCount.get(), "Console dispatchCommand should be executed exactly once");
-        // Verify broadcast/display happened at least once
-        verify(displayManager, atLeastOnce()).broadcastMessage(nullable(String.class));
-        verify(displayManager, atLeastOnce()).displayAll(anyCollection(), anyMap(), anyMap());
+        assertEquals(1, dispatchCount.get(), "Console dispatchCommand should be executed exactly once even with reentrant displayAll");
     }
 }
