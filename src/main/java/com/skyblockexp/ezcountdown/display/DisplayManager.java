@@ -36,6 +36,9 @@ final class LegacyDisplayManager {
     }
 
     public void display(Countdown countdown, String message, long remainingSeconds) {
+        // Do not show displays when timer reached zero
+        if (remainingSeconds <= 0L) return;
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!canSee(player, countdown)) {
                 continue;
@@ -94,6 +97,13 @@ final class LegacyDisplayManager {
         if (!bossbarValidation.isValid()) {
             return;
         }
+        // Remove bossbar when timer reached zero
+        if (remainingSeconds <= 0L) {
+            BossBar removed = bossBars.remove(countdown.getName());
+            if (removed != null) removed.removeAll();
+            return;
+        }
+
         BossBar bossBar = bossBars.get(countdown.getName());
         if (bossBar == null) {
             bossBar = Bukkit.createBossBar(message, countdown.getBossBarColor(), countdown.getBossBarStyle());

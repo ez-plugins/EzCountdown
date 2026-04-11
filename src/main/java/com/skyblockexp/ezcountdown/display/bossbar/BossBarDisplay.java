@@ -2,6 +2,7 @@ package com.skyblockexp.ezcountdown.display.bossbar;
 
 import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.display.DisplayHandler;
+import com.skyblockexp.ezcountdown.display.StackableDisplay;
 import com.skyblockexp.ezcountdown.display.bossbar.BossBarSupport;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,12 +12,17 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 
-public class BossBarDisplay implements DisplayHandler {
+public class BossBarDisplay implements StackableDisplay {
     private final Map<String, BossBar> bossBars = new HashMap<>();
 
-    @Override
-    public void display(Countdown countdown, String message, long remainingSeconds) {
+    private void updateSingle(Countdown countdown, String message, long remainingSeconds) {
         if (!BossBarSupport.isSupported()) return;
+        // remove bossbar when timer is zero
+        if (remainingSeconds <= 0L) {
+            BossBar removed = bossBars.remove(countdown.getName());
+            if (removed != null) removed.removeAll();
+            return;
+        }
         try {
             BossBar bossBar = bossBars.get(countdown.getName());
             if (bossBar == null) {
@@ -43,6 +49,11 @@ public class BossBarDisplay implements DisplayHandler {
     }
 
     @Override
+    public void display(Countdown countdown, String message, long remainingSeconds) {
+        updateSingle(countdown, message, remainingSeconds);
+    }
+
+    @Override
     public void clear(Countdown countdown) {
         BossBar bossBar = bossBars.remove(countdown.getName());
         if (bossBar != null) bossBar.removeAll();
@@ -54,6 +65,16 @@ public class BossBarDisplay implements DisplayHandler {
             bossBar.removeAll();
         }
         bossBars.clear();
+    }
+
+    @Override
+    public void displayMultiple(java.util.Collection<Countdown> countdowns, java.util.Map<Countdown, String> messages, java.util.Map<Countdown, Long> remaining) {
+        if (!BossBarSupport.isSupported()) return;
+        for (Countdown c : countdowns) {
+            String msg = messages.get(c);
+            long rem = remaining.getOrDefault(c, 0L);
+            updateSingle(c, msg, rem);
+        }
     }
 
     private double calculateProgress(Countdown countdown, long remainingSeconds) {

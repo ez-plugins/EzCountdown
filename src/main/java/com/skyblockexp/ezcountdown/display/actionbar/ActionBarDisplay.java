@@ -9,6 +9,7 @@ public class ActionBarDisplay implements DisplayHandler {
 
     @Override
     public void display(Countdown countdown, String message, long remainingSeconds) {
+        if (remainingSeconds <= 0L) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
             String perm = countdown.getVisibilityPermission();
             if (perm == null || perm.isBlank() || player.hasPermission(perm)) {

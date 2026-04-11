@@ -115,7 +115,7 @@ public class CountdownManagerBehaviorTest {
         // after tick, executed count should have increased and displays should have been updated
         assertTrue(manager.getExecutedCount() >= 1);
         verify(displayManager, atLeastOnce()).broadcastMessage(nullable(String.class));
-        verify(displayManager, atLeastOnce()).display(any(com.skyblockexp.ezcountdown.api.model.Countdown.class), nullable(String.class), anyLong());
+        verify(displayManager, atLeastOnce()).displayAll(anyCollection(), anyMap(), anyMap());
     }
 }
 

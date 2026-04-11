@@ -91,10 +91,39 @@ public final class DisplayManager {
     }
 
     public void display(Countdown countdown, String message, long remainingSeconds) {
+        // Do not show displays for countdowns that reached zero
+        if (remainingSeconds <= 0L) return;
+
         for (DisplayType type : countdown.getDisplayTypes()) {
             DisplayHandler h = handlers.get(type);
             if (h != null) {
                 h.display(countdown, message, remainingSeconds);
+            }
+        }
+    }
+
+    /**
+     * Batch-display multiple countdowns in a single pass. Handlers that implement
+     * {@link com.skyblockexp.ezcountdown.display.StackableDisplay} will receive a
+     * single bulk call; other handlers will be invoked per-countdown.
+     */
+    public void displayAll(java.util.Collection<Countdown> countdowns, java.util.Map<Countdown, String> messages, java.util.Map<Countdown, Long> remaining) {
+        for (DisplayType type : DisplayType.values()) {
+            DisplayHandler h = handlers.get(type);
+            if (h == null) continue;
+            if (h instanceof com.skyblockexp.ezcountdown.display.StackableDisplay sd) {
+                try {
+                    sd.displayMultiple(countdowns, messages, remaining);
+                } catch (Exception ignored) {}
+            } else {
+                // Fallback: call single display for each countdown that uses this type
+                for (Countdown c : countdowns) {
+                    if (c.getDisplayTypes().contains(type)) {
+                        long rem = remaining.getOrDefault(c, 0L);
+                        if (rem <= 0L) continue; // skip showing zero timers
+                        try { h.display(c, messages.get(c), rem); } catch (Exception ignored) {}
+                    }
+                }
             }
         }
     }

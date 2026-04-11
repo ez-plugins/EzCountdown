@@ -46,6 +46,11 @@ public final class CountdownManager {
     private final LocationManager locationManager;
     private final FireworkShowManager fireworkShowManager = new FireworkShowManager();
 
+    // Per-countdown guard to prevent duplicate end execution when ticks race
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicBoolean> endingFlags = new java.util.concurrent.ConcurrentHashMap<>();
+    // Last time an end was executed for a countdown (debounce window)
+    private final java.util.concurrent.ConcurrentHashMap<String, Instant> lastEndAt = new java.util.concurrent.ConcurrentHashMap<>();
+
     private BukkitTask task;
 
     public CountdownManager(Registry registry,
@@ -266,7 +271,14 @@ public final class CountdownManager {
 
     private void startTask() {
         stopTask();
-        task = Bukkit.getScheduler().runTaskTimer(registry.plugin(), this::tick, 20L, 20L);
+        int intervalSeconds = 1;
+        try {
+            if (registry != null && registry.defaults() != null) {
+                intervalSeconds = Math.max(1, registry.defaults().updateIntervalSeconds());
+            }
+        } catch (Exception ignored) {}
+        long periodTicks = Math.max(1L, intervalSeconds) * 20L;
+        task = Bukkit.getScheduler().runTaskTimer(registry.plugin(), this::tick, periodTicks, periodTicks);
     }
 
     private void stopTask() {
@@ -278,6 +290,10 @@ public final class CountdownManager {
 
     private void tick() {
         Instant now = Instant.now();
+        java.util.List<Countdown> toUpdate = new java.util.ArrayList<>();
+        java.util.Map<Countdown, String> messages = new java.util.HashMap<>();
+        java.util.Map<Countdown, Long> remainingMap = new java.util.HashMap<>();
+
         for (Countdown countdown : countdowns.values()) {
             if (!countdown.isRunning()) {
                 continue;
@@ -308,27 +324,55 @@ public final class CountdownManager {
             if (now.isAfter(last.plusSeconds(countdown.getUpdateIntervalSeconds()))) {
                 lastUpdate.put(countdown.getName(), now);
                 String message = buildMessage(countdown, remaining);
-                displayManager.display(countdown, message, remaining);
+                toUpdate.add(countdown);
+                messages.put(countdown, message);
+                remainingMap.put(countdown, remaining);
                 fireTick(countdown, remaining);
             }
 
             if (remaining <= 0L) {
-                fireEnd(countdown);
-                CountdownTypeHandler endHandler = registry.getHandler(countdown.getType());
-                if (endHandler != null) {
-                    try {
-                        endHandler.ensureTarget(countdown, now);
-                    } catch (Exception ignore) {}
-                }
-                // If a handler scheduled a new *future* target, keep running.
-                Instant newTarget = countdown.getTargetInstant();
-                if (newTarget != null && newTarget.isAfter(now) && countdown.isRunning()) {
+                String nameKey = normalizeName(countdown.getName());
+                java.util.concurrent.atomic.AtomicBoolean flag = endingFlags.computeIfAbsent(nameKey, k -> new java.util.concurrent.atomic.AtomicBoolean(false));
+                // Try to claim the end handling for this countdown
+                if (!flag.compareAndSet(false, true)) {
+                    // Another tick is already handling the end for this countdown.
                     continue;
                 }
-                // Otherwise stop the countdown and clear displays to avoid repeated end events.
-                countdown.setRunning(false);
-                displayManager.clearCountdown(countdown);
+                try {
+                    // Debounce: if we ran an end very recently, skip to avoid duplicate execution
+                    Instant lastEnd = lastEndAt.getOrDefault(nameKey, Instant.EPOCH);
+                    if (lastEnd.isAfter(now.minusSeconds(1))) {
+                        // recent end already executed
+                        continue;
+                    }
+                    // mark last end now to prevent very close duplicates
+                    lastEndAt.put(nameKey, now);
+
+                    fireEnd(countdown);
+                    CountdownTypeHandler endHandler = registry.getHandler(countdown.getType());
+                    if (endHandler != null) {
+                        try {
+                            endHandler.ensureTarget(countdown, now);
+                        } catch (Exception ignore) {}
+                    }
+                    // If a handler scheduled a new *future* target, keep running.
+                    Instant newTarget = countdown.getTargetInstant();
+                    if (newTarget != null && newTarget.isAfter(now) && countdown.isRunning()) {
+                        continue;
+                    }
+                    // Otherwise stop the countdown and clear displays to avoid repeated end events.
+                    countdown.setRunning(false);
+                    displayManager.clearCountdown(countdown);
+                } finally {
+                    flag.set(false);
+                }
             }
+        }
+        // Dispatch batch updates to display manager so stackable handlers can render multiple countdowns together
+        if (!toUpdate.isEmpty()) {
+            try {
+                displayManager.displayAll(toUpdate, messages, remainingMap);
+            } catch (Exception ignored) {}
         }
     }
 
