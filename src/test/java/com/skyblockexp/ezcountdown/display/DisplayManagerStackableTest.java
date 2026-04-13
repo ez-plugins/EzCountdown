@@ -71,8 +71,8 @@ public class DisplayManagerStackableTest {
         // Stackable should be called once with both countdowns
         verify(stackable, times(1)).displayMultiple(eq(list), eq(messages), eq(remaining));
 
-        // Non-stackable should be called per-countdown (fallback path)
-        verify(nonStackable, times(2)).display(any(Countdown.class), anyString(), anyLong());
+        // Non-stackable should be called per-countdown via displayBatched
+        verify(nonStackable, times(2)).displayBatched(any(Countdown.class), anyString(), anyLong(), any(MessageBatch.class));
     }
 
     @Test
@@ -89,6 +89,6 @@ public class DisplayManagerStackableTest {
 
         displayManager.display(c, "hello", 3L);
 
-        verify(nonStackable, times(1)).display(eq(c), eq("hello"), eq(3L));
+        verify(nonStackable, times(1)).displayBatched(eq(c), eq("hello"), eq(3L), any(MessageBatch.class));
     }
 }
