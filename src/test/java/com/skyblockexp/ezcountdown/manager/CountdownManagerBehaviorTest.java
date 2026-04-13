@@ -11,6 +11,7 @@ import java.time.ZoneId;
 import java.util.EnumSet;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class CountdownManagerBehaviorTest {
@@ -116,6 +117,29 @@ public class CountdownManagerBehaviorTest {
         assertTrue(manager.getExecutedCount() >= 1);
         verify(displayManager, atLeastOnce()).broadcastMessage(nullable(String.class));
         verify(displayManager, atLeastOnce()).displayAll(anyCollection(), anyMap(), anyMap());
+    }
+
+    @Test
+    public void tickPersistsRunningFalseAfterNaturalEnd() throws Exception {
+        // Regression: if running=false is not saved after a natural end, the end message will
+        // re-fire on the next reload/restart because storage still has running=true.
+        Countdown c = new Countdown("persist-test", CountdownType.MANUAL,
+                EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class),
+                1, null, "{formatted}", "", "",
+                java.util.List.of(), ZoneId.systemDefault());
+        c.setRunning(true);
+        c.setTargetInstant(java.time.Instant.now().minusSeconds(2));
+        manager.createCountdown(c);
+
+        java.lang.reflect.Method tick = CountdownManager.class.getDeclaredMethod("tick");
+        tick.setAccessible(true);
+        tick.invoke(manager);
+
+        // Countdown should be stopped in-memory
+        assertFalse(manager.getCountdown("persist-test").orElseThrow().isRunning());
+        // And the stopped state must have been saved to storage
+        verify(storage, atLeastOnce()).saveCountdowns(argThat(col ->
+                col.stream().anyMatch(cd -> cd.getName().equals("persist-test") && !cd.isRunning())));
     }
 }
 
