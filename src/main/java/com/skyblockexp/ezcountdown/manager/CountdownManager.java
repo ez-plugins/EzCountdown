@@ -363,6 +363,8 @@ public final class CountdownManager {
                     // Otherwise stop the countdown and clear displays to avoid repeated end events.
                     countdown.setRunning(false);
                     displayManager.clearCountdown(countdown);
+                    // Persist the stopped state so a reload/restart does not re-fire the end event.
+                    try { save(); } catch (Exception ignored) {}
                 } finally {
                     flag.set(false);
                 }
