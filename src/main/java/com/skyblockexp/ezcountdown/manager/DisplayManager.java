@@ -14,6 +14,7 @@ import com.skyblockexp.ezcountdown.display.scoreboard.ScoreboardValidator;
 import com.skyblockexp.ezcountdown.display.chat.ChatValidator;
 import com.skyblockexp.ezcountdown.display.title.TitleValidator;
 import com.skyblockexp.ezcountdown.display.title.TitleDisplay;
+import com.skyblockexp.ezcountdown.display.MessageBatch;
 import java.util.EnumMap;
 import java.util.Map;
 import org.bukkit.Bukkit;
@@ -94,12 +95,14 @@ public final class DisplayManager {
         // Do not show displays for countdowns that reached zero
         if (remainingSeconds <= 0L) return;
 
+        MessageBatch batch = new MessageBatch();
         for (DisplayType type : countdown.getDisplayTypes()) {
             DisplayHandler h = handlers.get(type);
             if (h != null) {
-                h.display(countdown, message, remainingSeconds);
+                h.displayBatched(countdown, message, remainingSeconds, batch);
             }
         }
+        batch.flush();
     }
 
     /**
@@ -108,6 +111,7 @@ public final class DisplayManager {
      * single bulk call; other handlers will be invoked per-countdown.
      */
     public void displayAll(java.util.Collection<Countdown> countdowns, java.util.Map<Countdown, String> messages, java.util.Map<Countdown, Long> remaining) {
+        MessageBatch batch = new MessageBatch();
         for (DisplayType type : DisplayType.values()) {
             DisplayHandler h = handlers.get(type);
             if (h == null) continue;
@@ -116,16 +120,17 @@ public final class DisplayManager {
                     sd.displayMultiple(countdowns, messages, remaining);
                 } catch (Exception ignored) {}
             } else {
-                // Fallback: call single display for each countdown that uses this type
+                // Route non-stackable handlers through the batch to deduplicate chat-channel messages
                 for (Countdown c : countdowns) {
                     if (c.getDisplayTypes().contains(type)) {
                         long rem = remaining.getOrDefault(c, 0L);
                         if (rem <= 0L) continue; // skip showing zero timers
-                        try { h.display(c, messages.get(c), rem); } catch (Exception ignored) {}
+                        try { h.displayBatched(c, messages.get(c), rem, batch); } catch (Exception ignored) {}
                     }
                 }
             }
         }
+        batch.flush();
     }
 
     public void broadcastMessage(String message) {
