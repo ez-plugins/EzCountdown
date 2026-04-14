@@ -271,14 +271,9 @@ public final class CountdownManager {
 
     private void startTask() {
         stopTask();
-        int intervalSeconds = 1;
-        try {
-            if (registry != null && registry.defaults() != null) {
-                intervalSeconds = Math.max(1, registry.defaults().updateIntervalSeconds());
-            }
-        } catch (Exception ignored) {}
-        long periodTicks = Math.max(1L, intervalSeconds) * 20L;
-        task = Bukkit.getScheduler().runTaskTimer(registry.plugin(), this::tick, periodTicks, periodTicks);
+        // Schedule at every game tick (1 tick = 50 ms) so bossbar and scoreboard can refresh
+        // smoothly. Text-based displays are still throttled per-countdown by updateIntervalSeconds.
+        task = Bukkit.getScheduler().runTaskTimer(registry.plugin(), this::tick, 1L, 1L);
     }
 
     private void stopTask() {
@@ -291,6 +286,7 @@ public final class CountdownManager {
     private void tick() {
         Instant now = Instant.now();
         java.util.List<Countdown> toUpdate = new java.util.ArrayList<>();
+        java.util.List<Countdown> allRunning = new java.util.ArrayList<>();
         java.util.Map<Countdown, String> messages = new java.util.HashMap<>();
         java.util.Map<Countdown, Long> remainingMap = new java.util.HashMap<>();
 
@@ -298,6 +294,7 @@ public final class CountdownManager {
             if (!countdown.isRunning()) {
                 continue;
             }
+            allRunning.add(countdown);
             Instant target = countdown.getTargetInstant();
             if (target == null) {
                 CountdownTypeHandler handler = registry.getHandler(countdown.getType());
@@ -321,7 +318,9 @@ public final class CountdownManager {
 
             long remaining = Math.max(0L, target.getEpochSecond() - now.getEpochSecond());
             Instant last = lastUpdate.getOrDefault(countdown.getName(), Instant.EPOCH);
-            if (now.isAfter(last.plusSeconds(countdown.getUpdateIntervalSeconds()))) {
+            // Use !isBefore (>=) rather than isAfter (>) so a tick that fires at exactly
+            // last + interval is not skipped due to strict comparison.
+            if (!now.isBefore(last.plusSeconds(countdown.getUpdateIntervalSeconds()))) {
                 lastUpdate.put(countdown.getName(), now);
                 String message = buildMessage(countdown, remaining);
                 toUpdate.add(countdown);
@@ -363,17 +362,33 @@ public final class CountdownManager {
                     // Otherwise stop the countdown and clear displays to avoid repeated end events.
                     countdown.setRunning(false);
                     displayManager.clearCountdown(countdown);
+                    // Guarantee the ended countdown is passed to displayAll with rem=0 so that
+                    // batch display handlers (ScoreboardDisplay batch sidebar, BossBarDisplay) also
+                    // clean up, even when the per-countdown update-interval was not due this tick.
+                    if (!messages.containsKey(countdown)) {
+                        toUpdate.add(countdown);
+                        messages.put(countdown, buildMessage(countdown, 0L));
+                    }
+                    remainingMap.put(countdown, 0L);
+                    // Persist the stopped state so a reload/restart does not re-fire the end event.
+                    try { save(); } catch (Exception ignored) {}
                 } finally {
                     flag.set(false);
                 }
             }
         }
-        // Dispatch batch updates to display manager so stackable handlers can render multiple countdowns together
+        // Dispatch batch updates to display manager so stackable handlers (BossBar, Scoreboard)
+        // can render and clean up together. Ended countdowns are included at remaining=0 so
+        // StackableDisplay implementations receive the signal to remove their visuals (bossbar
+        // removeAll, scoreboard batch objective removal). Non-stackable handlers (Chat, ActionBar,
+        // Title) already guard against remainingSeconds<=0 and will not send extra messages.
         if (!toUpdate.isEmpty()) {
             try {
                 displayManager.displayAll(toUpdate, messages, remainingMap);
             } catch (Exception ignored) {}
         }
+        // Fast-refresh: update bossbar (smooth progress) and scoreboard every configured tick interval
+        displayManager.onTick(allRunning);
     }
 
     private String buildMessage(Countdown countdown, long remaining) {

@@ -86,6 +86,9 @@ public final class PluginBootstrap {
         // register into registry
         registry.setCountdownManager(countdownManager);
         countdownManager.load();
+        int loadedCount = countdownManager.getCountdownCount();
+        long runningCount = countdownManager.getCountdowns().stream().filter(c -> c.isRunning()).count();
+        plugin.getLogger().info("Loaded " + loadedCount + " countdown(s) (" + runningCount + " running).");
 
         // GUI and input handlers
         ChatInputListener chatInput = new ChatInputListener(plugin);
@@ -221,6 +224,24 @@ public final class PluginBootstrap {
         }
 
         plugin.reloadConfig();
+
+        // Startup summary
+        StringBuilder displaySb = new StringBuilder();
+        for (DisplayType dt : defaults.displayTypes()) {
+            if (displaySb.length() > 0) displaySb.append(", ");
+            displaySb.append(dt.name());
+        }
+        String displayStr = displaySb.length() > 0 ? displaySb.toString() : "none";
+        StringBuilder integrationsSb = new StringBuilder();
+        if (expansion != null) integrationsSb.append("PlaceholderAPI");
+        long enabledWebhooks = discordWebhookConfig.getWebhooks().stream().filter(w -> w.enabled).count();
+        if (enabledWebhooks > 0) {
+            if (integrationsSb.length() > 0) integrationsSb.append(", ");
+            integrationsSb.append("Discord (").append(enabledWebhooks)
+                    .append(enabledWebhooks == 1 ? " webhook)" : " webhooks)");
+        }
+        plugin.getLogger().info("Displays: [" + displayStr + "] | Timezone: " + defaults.zoneId().getId()
+                + " | Integrations: " + (integrationsSb.length() > 0 ? integrationsSb : "none"));
 
         return registry;
     }

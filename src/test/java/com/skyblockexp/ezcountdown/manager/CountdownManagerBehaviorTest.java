@@ -11,6 +11,7 @@ import java.time.ZoneId;
 import java.util.EnumSet;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class CountdownManagerBehaviorTest {
@@ -114,8 +115,55 @@ public class CountdownManagerBehaviorTest {
 
         // after tick, executed count should have increased and displays should have been updated
         assertTrue(manager.getExecutedCount() >= 1);
+        // broadcastMessage fires for the start (via createCountdown) and the end — at least once each
         verify(displayManager, atLeastOnce()).broadcastMessage(nullable(String.class));
+        // displayAll receives the ended countdown at rem=0 so StackableDisplay handlers can clean up
         verify(displayManager, atLeastOnce()).displayAll(anyCollection(), anyMap(), anyMap());
+    }
+
+    @Test
+    public void endMessageSentExactlyOnceAcrossMultipleTicks() throws Exception {
+        // Configure the message manager stub to return the end message as-is so we can assert the exact value.
+        when(messageManager.formatWithPrefix(anyString(), anyMap())).thenAnswer(i -> i.getArgument(0));
+
+        Countdown c = new Countdown("once", CountdownType.MANUAL,
+                EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class),
+                1, null, "{formatted}", "", "Ended!",
+                java.util.List.of(), ZoneId.systemDefault());
+        c.setRunning(true);
+        c.setTargetInstant(java.time.Instant.now().minusSeconds(5));
+        manager.createCountdown(c);
+
+        java.lang.reflect.Method tick = CountdownManager.class.getDeclaredMethod("tick");
+        tick.setAccessible(true);
+        // Run tick twice; end handling should fire on the first and be suppressed on the second
+        tick.invoke(manager);
+        tick.invoke(manager);
+
+        verify(displayManager, times(1)).broadcastMessage(eq("Ended!"));
+    }
+
+    @Test
+    public void tickPersistsRunningFalseAfterNaturalEnd() throws Exception {
+        // Regression: if running=false is not saved after a natural end, the end message will
+        // re-fire on the next reload/restart because storage still has running=true.
+        Countdown c = new Countdown("persist-test", CountdownType.MANUAL,
+                EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class),
+                1, null, "{formatted}", "", "",
+                java.util.List.of(), ZoneId.systemDefault());
+        c.setRunning(true);
+        c.setTargetInstant(java.time.Instant.now().minusSeconds(2));
+        manager.createCountdown(c);
+
+        java.lang.reflect.Method tick = CountdownManager.class.getDeclaredMethod("tick");
+        tick.setAccessible(true);
+        tick.invoke(manager);
+
+        // Countdown should be stopped in-memory
+        assertFalse(manager.getCountdown("persist-test").orElseThrow().isRunning());
+        // And the stopped state must have been saved to storage
+        verify(storage, atLeastOnce()).saveCountdowns(argThat(col ->
+                col.stream().anyMatch(cd -> cd.getName().equals("persist-test") && !cd.isRunning())));
     }
 }
 

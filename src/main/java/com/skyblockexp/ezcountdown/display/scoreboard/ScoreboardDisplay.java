@@ -162,8 +162,11 @@ public class ScoreboardDisplay implements StackableDisplay {
                     }
                 }
             } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException e) {
-                // fallback to chat if scoreboard ops fail
+                // fallback to chat if scoreboard ops fail — mirror the same guards used in the happy path
                 for (com.skyblockexp.ezcountdown.api.model.Countdown c : countdowns) {
+                    long rem = remaining.getOrDefault(c, 0L);
+                    if (rem <= 0L) continue; // skip countdown whose timer has reached zero
+                    if (!c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD)) continue;
                     String perm = c.getVisibilityPermission();
                     if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
                         String msg = messages.get(c);

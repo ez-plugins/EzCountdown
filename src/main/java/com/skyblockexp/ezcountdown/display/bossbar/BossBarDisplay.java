@@ -78,10 +78,17 @@ public class BossBarDisplay implements StackableDisplay {
     }
 
     private double calculateProgress(Countdown countdown, long remainingSeconds) {
-        long duration = countdown.getDurationSeconds();
-        if (duration <= 0L) return 1.0;
-        double progress = (double) remainingSeconds / (double) duration;
-        if (progress < 0.0) return 0.0;
-        return Math.min(1.0, progress);
+        long durationSeconds = countdown.getDurationSeconds();
+        if (durationSeconds <= 0L) return 1.0;
+        java.time.Instant target = countdown.getTargetInstant();
+        if (target == null) {
+            double progress = (double) remainingSeconds / (double) durationSeconds;
+            return Math.min(1.0, Math.max(0.0, progress));
+        }
+        // Use millisecond precision for smooth animation when called at sub-second frequency
+        long nowMillis = java.time.Instant.now().toEpochMilli();
+        long remainingMillis = Math.max(0L, target.toEpochMilli() - nowMillis);
+        double progress = (double) remainingMillis / ((double) durationSeconds * 1000.0);
+        return Math.min(1.0, Math.max(0.0, progress));
     }
 }
