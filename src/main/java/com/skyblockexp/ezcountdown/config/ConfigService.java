@@ -94,6 +94,16 @@ public final class ConfigService {
         return new DiscordWebhookConfig();
     }
 
+    public int loadBossbarRefreshTicks() {
+        int v = plugin.getConfig().getInt("display.refresh.bossbar-ticks", 1);
+        return Math.max(1, v);
+    }
+
+    public int loadScoreboardRefreshTicks() {
+        int v = plugin.getConfig().getInt("display.refresh.scoreboard-ticks", 1);
+        return Math.max(1, v);
+    }
+
     private void ensureResource(String name) {
         File file = new File(plugin.getDataFolder(), name);
         if (!file.exists()) plugin.saveResource(name, false);

@@ -23,8 +23,15 @@ import org.bukkit.entity.Player;
 public final class DisplayManager {
     private final Map<DisplayType, DisplayHandler> handlers = new EnumMap<>(DisplayType.class);
     private Validator.ValidationResult bossbarValidation;
+    /** Cached last-known display message per countdown name; used by the fast-refresh path. */
+    private final java.util.Map<String, String> lastMessageCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private int bossbarRefreshTicks = 1;
+    private int scoreboardRefreshTicks = 1;
+    private long tickCount = 0;
 
     public DisplayManager(com.skyblockexp.ezcountdown.config.ConfigService configService) {
+        this.bossbarRefreshTicks = configService.loadBossbarRefreshTicks();
+        this.scoreboardRefreshTicks = configService.loadScoreboardRefreshTicks();
         configureHandlers(configService);
     }
 
@@ -88,6 +95,10 @@ public final class DisplayManager {
         for (DisplayHandler h : handlers.values()) {
             try { h.clearAll(); } catch (Exception ignored) {}
         }
+        lastMessageCache.clear();
+        tickCount = 0;
+        bossbarRefreshTicks = configService.loadBossbarRefreshTicks();
+        scoreboardRefreshTicks = configService.loadScoreboardRefreshTicks();
         configureHandlers(configService);
     }
 
@@ -110,7 +121,55 @@ public final class DisplayManager {
      * {@link com.skyblockexp.ezcountdown.display.StackableDisplay} will receive a
      * single bulk call; other handlers will be invoked per-countdown.
      */
+    /**
+     * Called every game tick (by default 1-tick scheduler) to fast-refresh bossbar progress
+     * and scoreboard visuals using cached messages, without triggering chat/actionbar/title spam.
+     */
+    public void onTick(java.util.Collection<Countdown> allRunning) {
+        tickCount++;
+        boolean doBossbar = (tickCount % bossbarRefreshTicks == 0) && handlers.containsKey(DisplayType.BOSS_BAR);
+        boolean doScoreboard = (tickCount % scoreboardRefreshTicks == 0) && handlers.containsKey(DisplayType.SCOREBOARD);
+        if (!doBossbar && !doScoreboard) return;
+
+        java.time.Instant now = java.time.Instant.now();
+        java.util.List<Countdown> bossbarList = new java.util.ArrayList<>();
+        java.util.List<Countdown> scoreboardList = new java.util.ArrayList<>();
+        java.util.Map<Countdown, String> msgMap = new java.util.HashMap<>();
+        java.util.Map<Countdown, Long> remMap = new java.util.HashMap<>();
+
+        for (Countdown c : allRunning) {
+            if (!c.isRunning() || c.getTargetInstant() == null) continue;
+            boolean hasBossbar = doBossbar && c.getDisplayTypes().contains(DisplayType.BOSS_BAR);
+            boolean hasScoreboard = doScoreboard && c.getDisplayTypes().contains(DisplayType.SCOREBOARD);
+            if (!hasBossbar && !hasScoreboard) continue;
+
+            long rem = Math.max(0L, c.getTargetInstant().getEpochSecond() - now.getEpochSecond());
+            msgMap.put(c, lastMessageCache.getOrDefault(c.getName(), ""));
+            remMap.put(c, rem);
+            if (hasBossbar) bossbarList.add(c);
+            if (hasScoreboard) scoreboardList.add(c);
+        }
+
+        if (doBossbar && !bossbarList.isEmpty()) {
+            DisplayHandler bh = handlers.get(DisplayType.BOSS_BAR);
+            if (bh instanceof com.skyblockexp.ezcountdown.display.StackableDisplay sd) {
+                try { sd.displayMultiple(bossbarList, msgMap, remMap); } catch (Exception ignored) {}
+            }
+        }
+        if (doScoreboard && !scoreboardList.isEmpty()) {
+            DisplayHandler sh = handlers.get(DisplayType.SCOREBOARD);
+            if (sh instanceof com.skyblockexp.ezcountdown.display.StackableDisplay sd) {
+                try { sd.displayMultiple(scoreboardList, msgMap, remMap); } catch (Exception ignored) {}
+            }
+        }
+    }
+
     public void displayAll(java.util.Collection<Countdown> countdowns, java.util.Map<Countdown, String> messages, java.util.Map<Countdown, Long> remaining) {
+        // Cache messages so the fast-refresh path (onTick) can use up-to-date text
+        for (Countdown c : countdowns) {
+            String msg = messages.get(c);
+            if (msg != null) lastMessageCache.put(c.getName(), msg);
+        }
         MessageBatch batch = new MessageBatch();
         for (DisplayType type : DisplayType.values()) {
             DisplayHandler h = handlers.get(type);
@@ -140,6 +199,7 @@ public final class DisplayManager {
     }
 
     public void clearCountdown(Countdown countdown) {
+        lastMessageCache.remove(countdown.getName());
         for (DisplayType type : countdown.getDisplayTypes()) {
             DisplayHandler h = handlers.get(type);
             if (h != null) h.clear(countdown);
@@ -147,6 +207,7 @@ public final class DisplayManager {
     }
 
     public void clearAll() {
+        lastMessageCache.clear();
         for (DisplayHandler h : handlers.values()) h.clearAll();
     }
 }

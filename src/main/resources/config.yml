@@ -28,6 +28,14 @@ permissions:
   info: "ezcountdown.use"
   reload: "ezcountdown.admin"
 
+display:
+  refresh:
+    # How often the bossbar progress bar and title are refreshed, in ticks (20 ticks = 1 second).
+    # Lower values produce smoother animation. Minimum is 1.
+    bossbar-ticks: 1
+    # How often the scoreboard sidebar is refreshed, in ticks. Minimum is 1.
+    scoreboard-ticks: 1
+
 display-overrides:
   # Set to true to force-enable a display type even if runtime checks fail.
   force-enable:
