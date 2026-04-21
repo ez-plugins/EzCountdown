@@ -82,4 +82,41 @@ public class ScoreboardDisplayStackableTest {
         verify(objective, times(1)).getScore("m1");
         verify(objective, times(1)).getScore("m2");
     }
+
+    @Test
+    public void displayMultiple_skipsObjectiveWhenScoreboardNotConfiguredAsDisplayType() {
+        ScoreboardManager manager = mock(ScoreboardManager.class);
+        Scoreboard mainScore = mock(Scoreboard.class);
+        Scoreboard newScore = mock(Scoreboard.class);
+
+        when(Bukkit.getScoreboardManager()).thenReturn(manager);
+        when(manager.getMainScoreboard()).thenReturn(mainScore);
+        when(manager.getNewScoreboard()).thenReturn(newScore);
+
+        Player player = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(player.getScoreboard()).thenReturn(mainScore);
+        when(player.hasPermission(anyString())).thenReturn(true);
+
+        Set<Player> players = new HashSet<>();
+        players.add(player);
+        @SuppressWarnings("unchecked")
+        java.util.Collection<Player> coll = (java.util.Collection<Player>) (java.util.Collection<?>) players;
+        when(Bukkit.getOnlinePlayers()).thenAnswer(invocation -> coll);
+
+        // Countdown configured with CHAT only — SCOREBOARD not enabled
+        Countdown c = new Countdown("no-score", com.skyblockexp.ezcountdown.api.model.CountdownType.MANUAL,
+                EnumSet.of(com.skyblockexp.ezcountdown.display.DisplayType.CHAT), 1, null,
+                "{formatted}", "s", "e", Collections.emptyList(), ZoneId.systemDefault());
+
+        Map<Countdown, String> messages = new HashMap<>();
+        messages.put(c, "msg");
+        Map<Countdown, Long> remaining = new HashMap<>();
+        remaining.put(c, 5L);
+
+        new ScoreboardDisplay().displayMultiple(List.of(c), messages, remaining);
+
+        verify(newScore, never()).registerNewObjective(anyString(), anyString(), anyString());
+        verify(player, never()).setScoreboard(any());
+    }
 }
