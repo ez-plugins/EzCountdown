@@ -61,9 +61,9 @@ public class ScoreboardDisplayStackableTest {
             org.bukkit.scoreboard.Score mockScore = mock(org.bukkit.scoreboard.Score.class);
             when(objective.getScore(anyString())).thenReturn(mockScore);
 
-        // Create two countdowns
-        Countdown c1 = new Countdown("one", com.skyblockexp.ezcountdown.api.model.CountdownType.MANUAL, EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class), 1, null, "{formatted}", "s", "e", Collections.emptyList(), ZoneId.systemDefault());
-        Countdown c2 = new Countdown("two", com.skyblockexp.ezcountdown.api.model.CountdownType.MANUAL, EnumSet.noneOf(com.skyblockexp.ezcountdown.display.DisplayType.class), 1, null, "{formatted}", "s", "e", Collections.emptyList(), ZoneId.systemDefault());
+        // Create two countdowns with SCOREBOARD enabled
+        Countdown c1 = new Countdown("one", com.skyblockexp.ezcountdown.api.model.CountdownType.MANUAL, EnumSet.of(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD), 1, null, "{formatted}", "s", "e", Collections.emptyList(), ZoneId.systemDefault());
+        Countdown c2 = new Countdown("two", com.skyblockexp.ezcountdown.api.model.CountdownType.MANUAL, EnumSet.of(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD), 1, null, "{formatted}", "s", "e", Collections.emptyList(), ZoneId.systemDefault());
 
         List<Countdown> list = List.of(c1, c2);
         Map<Countdown, String> messages = new HashMap<>();

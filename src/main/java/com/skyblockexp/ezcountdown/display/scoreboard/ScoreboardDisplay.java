@@ -115,6 +115,7 @@ public class ScoreboardDisplay implements StackableDisplay {
                 for (com.skyblockexp.ezcountdown.api.model.Countdown c : countdowns) {
                     long rem = remaining.getOrDefault(c, 0L);
                     if (rem <= 0L) continue; // skip timers at zero
+                    if (!c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD)) continue;
                     String perm = c.getVisibilityPermission();
                     if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
                         String msg = messages.get(c);
