@@ -71,6 +71,7 @@ public class BossBarDisplay implements StackableDisplay {
     public void displayMultiple(java.util.Collection<Countdown> countdowns, java.util.Map<Countdown, String> messages, java.util.Map<Countdown, Long> remaining) {
         if (!BossBarSupport.isSupported()) return;
         for (Countdown c : countdowns) {
+            if (!c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.BOSS_BAR)) continue;
             String msg = messages.get(c);
             long rem = remaining.getOrDefault(c, 0L);
             updateSingle(c, msg, rem);

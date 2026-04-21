@@ -175,8 +175,11 @@ public final class DisplayManager {
             DisplayHandler h = handlers.get(type);
             if (h == null) continue;
             if (h instanceof com.skyblockexp.ezcountdown.display.StackableDisplay sd) {
+                java.util.List<Countdown> typed = countdowns.stream()
+                        .filter(c -> c.getDisplayTypes().contains(type))
+                        .toList();
                 try {
-                    sd.displayMultiple(countdowns, messages, remaining);
+                    sd.displayMultiple(typed, messages, remaining);
                 } catch (Exception ignored) {}
             } else {
                 // Route non-stackable handlers through the batch to deduplicate chat-channel messages
