@@ -42,6 +42,25 @@ public final class CreateSubcommand implements Subcommand {
             sender.sendMessage(messageManager.message("commands.create.usage"));
             return;
         }
+        // Pre-strip --display flags so they don't interfere with positional arg parsing
+        EnumSet<DisplayType> displayOverride = EnumSet.noneOf(DisplayType.class);
+        {
+            java.util.List<String> filtered = new java.util.ArrayList<>();
+            for (int i = 0; i < args.length; i++) {
+                if ("--display".equalsIgnoreCase(args[i]) && i + 1 < args.length) {
+                    String raw = args[++i];
+                    try {
+                        displayOverride.add(DisplayType.valueOf(raw.toUpperCase(Locale.ROOT)));
+                    } catch (IllegalArgumentException ex) {
+                        sender.sendMessage(messageManager.message("commands.create.invalid-display", Map.of("type", raw)));
+                        return;
+                    }
+                } else {
+                    filtered.add(args[i]);
+                }
+            }
+            args = filtered.toArray(new String[0]);
+        }
         String name = args[1];
         String typeToken = args[2];
         CountdownType type;
@@ -56,7 +75,9 @@ public final class CreateSubcommand implements Subcommand {
         }
 
         // build countdown with defaults using the builder so we can set new alignment options
-        EnumSet<DisplayType> displayTypes = EnumSet.copyOf(registry.defaults().displayTypes());
+        EnumSet<DisplayType> displayTypes = displayOverride.isEmpty()
+                ? EnumSet.copyOf(registry.defaults().displayTypes())
+                : displayOverride;
         com.skyblockexp.ezcountdown.api.model.CountdownBuilder builder = com.skyblockexp.ezcountdown.api.model.CountdownBuilder.builder(name)
             .type(type)
             .displayTypes(displayTypes)

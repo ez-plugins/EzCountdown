@@ -11,6 +11,7 @@ defaults:
 
 commands:
   no-permission: "{prefix}<red>You do not have permission to use this command.</red>"
+  error: "{prefix}<red>An error occurred:</red> <white>{reason}</white>"
   usage:
     header: "{prefix}<white>Available commands:</white>"
     create: "<gray>/countdown create <name> <date|duration|manual|recurring></gray>"
@@ -29,6 +30,7 @@ commands:
     invalid-date: "{prefix}<red>Invalid date format. Use yyyy-MM-dd HH:mm.</red>"
     invalid-recurring: "{prefix}<red>Invalid recurring date. Use <month> <day> <HH:mm>.</red>"
     invalid-duration: "{prefix}<red>Invalid duration:</red> <white>{reason}</white>"
+    invalid-display: "{prefix}<red>Unknown display type:</red> <white>{type}</white><red>. Valid types: ACTION_BAR, BOSS_BAR, CHAT, TITLE, SCOREBOARD, DIALOG</red>"
     exists: "{prefix}<red>A countdown named</red> <white>{name}</white> <red>already exists.</red>"
     success: "{prefix}<green>Created countdown</green> <white>{name}</white><green>.</green>"
   start:

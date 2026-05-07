@@ -5,6 +5,7 @@ defaults:
   # - CHAT
   # - TITLE
   # - SCOREBOARD
+  # - DIALOG  (requires Paper 1.21.7+)
   display-types:
     - ACTION_BAR
   update-interval: 1
