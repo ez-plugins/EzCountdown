@@ -1,4 +1,3 @@
-
 ---
 title: Commands
 parent: Server Owners
@@ -29,10 +28,10 @@ Core commands
 
     New flags for `create recurring` (clock-aligned schedules)
 
-    - `--align-to-clock` — enable clock alignment for recurring schedules.
-    - `--align-interval <value>` — alignment interval (e.g. `2h`, `1d`, `30m`).
-    - `--timezone <ZoneId>` — IANA timezone to use (e.g. `UTC`, `Europe/London`).
-    - `--missed-run-policy <SKIP|RUN_SINGLE|RUN_ALL>` — how to handle missed runs when the server was down.
+    - `--align-to-clock` - enable clock alignment for recurring schedules.
+    - `--align-interval <value>` - alignment interval (e.g. `2h`, `1d`, `30m`).
+    - `--timezone <ZoneId>` - IANA timezone to use (e.g. `UTC`, `Europe/London`).
+    - `--missed-run-policy <SKIP|RUN_SINGLE|RUN_ALL>` - how to handle missed runs when the server was down.
 
  - `start` / `stop` - Start or stop a running countdown by name.
  - `delete` - Remove a countdown from `countdowns.yml` (use `reload` to apply).

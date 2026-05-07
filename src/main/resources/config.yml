@@ -45,3 +45,4 @@ display-overrides:
     title: false
     scoreboard: false
     boss_bar: false
+    dialog: false
