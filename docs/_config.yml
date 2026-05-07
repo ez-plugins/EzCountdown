@@ -1,0 +1,48 @@
+title: EzCountdown
+description: >-
+  A feature-rich countdown plugin for Paper/Spigot servers.
+  Supports fixed dates, durations, recurring timers, display types,
+  PlaceholderAPI, Discord webhooks, and a full developer API.
+url: "https://ez-plugins.github.io"
+baseurl: "/EzCountdown"
+
+# ── Appearance ────────────────────────────────────────────────────────────────
+color_scheme: ezcountdown
+heading_anchors: true
+remote_theme: just-the-docs/just-the-docs
+
+# ── Header links ──────────────────────────────────────────────────────────────
+aux_links:
+  "GitHub":
+    - "https://github.com/ez-plugins/EzCountdown"
+  "JitPack":
+    - "https://jitpack.io/#ez-plugins/EzCountdown"
+aux_links_new_tab: true
+
+# ── Navigation ────────────────────────────────────────────────────────────────
+nav_sort: case_insensitive
+nav_external_links:
+  - title: Changelog
+    url: "https://github.com/ez-plugins/EzCountdown/releases"
+    hide_icon: false
+
+# ── Footer ────────────────────────────────────────────────────────────────────
+footer_content: >-
+  Copyright &copy; 2024&ndash;2026 Gyvex.
+  Distributed under the <a href="https://github.com/ez-plugins/EzCountdown/blob/main/LICENSE">MIT License</a>.
+
+# ── Kramdown ──────────────────────────────────────────────────────────────────
+kramdown:
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# ── Plugins ───────────────────────────────────────────────────────────────────
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+
+# ── Build exclusions ──────────────────────────────────────────────────────────
+exclude:
+  - Gemfile
+  - Gemfile.lock

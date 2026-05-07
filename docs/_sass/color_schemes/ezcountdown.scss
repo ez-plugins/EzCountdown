@@ -1,0 +1,42 @@
+// EzCountdown — dark/green color scheme for just-the-docs
+//
+// Palette:
+//   Background   #111111  (body)
+//   Surface      #191919  (sidebar, cards)
+//   Elevated     #1e1e1e  (code blocks, search, table rows)
+//   Border       #2a2a2a
+//   Text         #c8d4cc  (body)  /  #ffffff (headings)
+//   Accent       #4ade80  (green — links, nav highlight, buttons)
+//   Accent dim   #22c55e  (hover state)
+
+$color-scheme: dark;
+
+// ── Surfaces ─────────────────────────────────────────────────────────────────
+$body-background-color: #111111;
+$sidebar-color:         #191919;
+$feedback-color:        darken($sidebar-color, 2%);
+
+// ── Typography ───────────────────────────────────────────────────────────────
+$body-text-color:    #c8d4cc;
+$body-heading-color: #ffffff;
+
+// ── Links & accent ───────────────────────────────────────────────────────────
+$link-color:        #4ade80;
+$btn-primary-color: #4ade80;
+
+// ── Borders ──────────────────────────────────────────────────────────────────
+$border-color: #2a2a2a;
+
+// ── Code ─────────────────────────────────────────────────────────────────────
+$code-background-color: #1e1e1e;
+
+// ── Tables ───────────────────────────────────────────────────────────────────
+$table-background-color: #191919;
+
+// ── Search ───────────────────────────────────────────────────────────────────
+$search-background-color: #1e1e1e;
+$search-foreground-color:  #c8d4cc;
+$search-border-color:      #2a2a2a;
+
+// ── Buttons ──────────────────────────────────────────────────────────────────
+$base-button-color: #222222;

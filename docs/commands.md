@@ -1,4 +1,9 @@
 
+---
+title: Commands
+parent: Server Owners
+nav_order: 1
+---
 
 # Commands (Quick Reference for Server Owners)
 

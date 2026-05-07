@@ -1,3 +1,9 @@
+---
+title: Scoreboard
+parent: Display Types
+grand_parent: Features
+nav_order: 4
+---
 
 # Scoreboard
 

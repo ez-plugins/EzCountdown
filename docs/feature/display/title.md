@@ -1,3 +1,9 @@
+---
+title: Title
+parent: Display Types
+grand_parent: Features
+nav_order: 5
+---
 
 # Title
 

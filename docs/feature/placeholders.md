@@ -1,3 +1,9 @@
+---
+title: Placeholders
+parent: Features
+nav_order: 5
+---
+
 # Placeholders (PlaceholderAPI)
 
 When PlaceholderAPI is installed, EzCountdown registers placeholders for every configured countdown so you can use countdown values in other plugins, scoreboards, or messages.

@@ -1,3 +1,10 @@
+---
+title: Countdown
+parent: Models
+grand_parent: Developer API
+nav_order: 1
+---
+
 # Countdown (model)
 
 Represents a countdown configuration and runtime state.

@@ -1,3 +1,9 @@
+---
+title: Countdown Types
+parent: Features
+nav_order: 1
+---
+
 # Countdown Types
 
 EzCountdown supports four primary countdown modes. Each section below explains when to use a mode, the exact YAML keys the plugin reads, an example you can paste into `countdowns.yml`, and short troubleshooting notes.

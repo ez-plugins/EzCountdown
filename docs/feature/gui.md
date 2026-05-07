@@ -1,3 +1,9 @@
+---
+title: GUI
+parent: Features
+nav_order: 4
+---
+
 # GUI
 
 EzCountdown provides an in-game GUI for managing countdowns, displays, and end commands. The GUI is helpful for server admins who prefer a visual editor over editing YAML by hand.

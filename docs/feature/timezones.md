@@ -1,3 +1,9 @@
+---
+title: Timezones
+parent: Features
+nav_order: 7
+---
+
 # Timezones
 
 This document lists recommended timezone identifiers you can use with the `timezone` setting for clock-aligned recurring countdowns.

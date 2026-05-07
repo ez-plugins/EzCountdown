@@ -1,3 +1,8 @@
+---
+title: Configuration
+parent: Server Owners
+nav_order: 2
+---
 
 # Configuration (Server Owner Notes)
 

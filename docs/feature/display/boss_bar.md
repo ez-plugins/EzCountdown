@@ -1,3 +1,9 @@
+---
+title: Boss Bar
+parent: Display Types
+grand_parent: Features
+nav_order: 2
+---
 
 # Boss Bar
 

@@ -1,3 +1,10 @@
+---
+title: CountdownEndEvent
+parent: Events
+grand_parent: Developer API
+nav_order: 3
+---
+
 # CountdownEndEvent
 
 Fired when a countdown finishes.

@@ -1,3 +1,9 @@
+---
+title: EzCountdownApi
+parent: Developer API
+nav_order: 2
+---
+
 # EzCountdownApi (interface)
 
 Public service interface exposed by the plugin: `com.skyblockexp.ezcountdown.api.EzCountdownApi`

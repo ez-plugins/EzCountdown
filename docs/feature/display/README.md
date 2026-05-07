@@ -1,3 +1,10 @@
+---
+title: Display Types
+parent: Features
+nav_order: 2
+has_children: true
+---
+
 # Display Types Overview
 
 EzCountdown supports multiple display types for showing countdowns to players. Configure displays per-countdown using the `display.types` list (or set defaults in your plugin config). Each display has its trade-offs - use the one that best fits your event and server runtime.
