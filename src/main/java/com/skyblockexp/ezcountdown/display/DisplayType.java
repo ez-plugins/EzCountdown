@@ -5,5 +5,6 @@ public enum DisplayType {
     BOSS_BAR,
     CHAT,
     TITLE,
-    SCOREBOARD
+    SCOREBOARD,
+    DIALOG
 }

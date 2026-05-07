@@ -14,6 +14,8 @@ import com.skyblockexp.ezcountdown.display.scoreboard.ScoreboardValidator;
 import com.skyblockexp.ezcountdown.display.chat.ChatValidator;
 import com.skyblockexp.ezcountdown.display.title.TitleValidator;
 import com.skyblockexp.ezcountdown.display.title.TitleDisplay;
+import com.skyblockexp.ezcountdown.display.dialog.DialogDisplay;
+import com.skyblockexp.ezcountdown.display.dialog.DialogDisplayValidator;
 import com.skyblockexp.ezcountdown.display.MessageBatch;
 import java.util.EnumMap;
 import java.util.Map;
@@ -87,6 +89,16 @@ public final class DisplayManager {
             if (!bossbarValidation.isValid()) Bukkit.getLogger().info("EzCountdown: boss bar force-enabled via config.");
         } else {
             Bukkit.getLogger().warning("EzCountdown: boss bar display disabled: " + bossbarValidation.getMessage());
+        }
+
+        // Dialog (Paper 1.21.7+)
+        Validator.ValidationResult dialogValidation = new DialogDisplayValidator().validate();
+        boolean dialogForce = overrides.getOrDefault(DisplayType.DIALOG, false);
+        if (dialogValidation.isValid() || dialogForce) {
+            handlers.put(DisplayType.DIALOG, new DialogDisplay());
+            if (!dialogValidation.isValid()) Bukkit.getLogger().info("EzCountdown: dialog display force-enabled via config.");
+        } else {
+            Bukkit.getLogger().warning("EzCountdown: dialog display disabled: " + dialogValidation.getMessage());
         }
     }
 
