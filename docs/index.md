@@ -10,19 +10,19 @@ nav_order: 1
 [![Release](https://img.shields.io/github/v/release/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/releases)
 [![License](https://img.shields.io/github/license/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/blob/main/LICENSE)
 
-A feature-rich countdown plugin for Paper/Spigot servers. Create countdowns for events, launches, maintenance windows, and more — all configurable from YAML with no coding required.
+A feature-rich countdown plugin for Paper/Spigot servers. Create countdowns for events, launches, maintenance windows, and more - all configurable from YAML with no coding required.
 
 ## Features
 
-- **Four countdown modes** — fixed date, duration, manual, and recurring (yearly or clock-aligned).
-- **Five display types** — action bar, boss bar, title, chat, and scoreboard.
-- **PlaceholderAPI support** — expose countdown values to scoreboards, holograms, and other plugins.
-- **Discord webhooks** — post start/end notifications to a Discord channel.
-- **In-game GUI** — manage countdowns visually without editing YAML.
-- **Firework shows** — trigger configurable firework displays on start or end.
-- **Teleport actions** — move all online players to a named location when a countdown starts or ends.
-- **Console commands on end** — run any command when a countdown completes.
-- **Developer API** — create, start, stop, and listen to countdown events from other plugins.
+- **Four countdown modes** - fixed date, duration, manual, and recurring (yearly or clock-aligned).
+- **Five display types** - action bar, boss bar, title, chat, and scoreboard.
+- **PlaceholderAPI support** - expose countdown values to scoreboards, holograms, and other plugins.
+- **Discord webhooks** - post start/end notifications to a Discord channel.
+- **In-game GUI** - manage countdowns visually without editing YAML.
+- **Firework shows** - trigger configurable firework displays on start or end.
+- **Teleport actions** - move all online players to a named location when a countdown starts or ends.
+- **Console commands on end** - run any command when a countdown completes.
+- **Developer API** - create, start, stop, and listen to countdown events from other plugins.
 
 ## Quick Start
 

@@ -92,10 +92,10 @@ countdowns:
 EzCountdown now supports clock-aligned recurring schedules which fire on natural clock boundaries (for example: every 2 hours at 00:00, 02:00, 04:00...). These are useful for announcements that must occur on the wall-clock rather than relative to server uptime.
 
 - New YAML keys (per-countdown):
-  - `align_to_clock` — boolean, enable clock-aligned scheduling when `true` (default `false`).
-  - `align_interval` — duration string like `2h`, `1d`, `30m` describing the alignment interval.
-  - `timezone` — IANA timezone used to compute aligned boundaries (falls back to plugin default zone if omitted).
-  - `missed_run_policy` — how to handle missed occurrences while the server was down. Values: `SKIP` (default), `RUN_SINGLE`, `RUN_ALL`.
+  - `align_to_clock` - boolean, enable clock-aligned scheduling when `true` (default `false`).
+  - `align_interval` - duration string like `2h`, `1d`, `30m` describing the alignment interval.
+  - `timezone` - IANA timezone used to compute aligned boundaries (falls back to plugin default zone if omitted).
+  - `missed_run_policy` - how to handle missed occurrences while the server was down. Values: `SKIP` (default), `RUN_SINGLE`, `RUN_ALL`.
 
 When `align_to_clock: true` and `align_interval` is set, the plugin computes the next occurrence relative to the start of the day in the configured timezone and snaps to the next multiple of the interval. DST transitions are handled using `java.time` so daily and hourly alignments follow local time semantics.
 
@@ -116,9 +116,9 @@ countdowns:
 Add these optional keys to have a countdown automatically restart when it ends or to start another countdown when this one finishes.
 
 - YAML keys:
-  - `auto_restart` — boolean, when `true` the countdown will be restarted after it ends (default `false`).
-  - `start_countdown` — string, the key of another countdown to start when this countdown ends (optional).
-  - `restart_delay_seconds` — integer seconds to wait before performing the restart/start action (default `0`).
+  - `auto_restart` - boolean, when `true` the countdown will be restarted after it ends (default `false`).
+  - `start_countdown` - string, the key of another countdown to start when this countdown ends (optional).
+  - `restart_delay_seconds` - integer seconds to wait before performing the restart/start action (default `0`).
 
 - Semantics:
   - If `auto_restart: true` the manager will restart the same countdown when it ends. If `auto_restart` is omitted it defaults to `false`.

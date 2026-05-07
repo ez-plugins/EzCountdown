@@ -11,11 +11,12 @@ EzCountdown supports multiple display types for showing countdowns to players. C
 
 Supported displays
 
--- `ACTION_BAR` - short, transient messages shown above the hotbar. Good for unobtrusive, frequent updates. See [action_bar.md](display/action_bar.md).
--- `BOSS_BAR` - persistent progress bar at the top of the screen. High visibility for important timers. See [boss_bar.md](display/boss_bar.md).
--- `TITLE` - centered large title/subtitle overlay; great for dramatic announcements. See [title.md](display/title.md).
--- `CHAT` - most compatible; sends countdown updates as chat messages. Use as a reliable fallback. See [chat.md](display/chat.md).
--- `SCOREBOARD` - sidebar scoreboard display for a framed, persistent view. See [scoreboard.md](display/scoreboard.md).
+- `ACTION_BAR` - short, transient messages shown above the hotbar. Good for unobtrusive, frequent updates. See [action_bar.md](action_bar).
+- `BOSS_BAR` - persistent progress bar at the top of the screen. High visibility for important timers. See [boss_bar.md](boss_bar).
+- `TITLE` - centered large title/subtitle overlay; great for dramatic announcements. See [title.md](title).
+- `CHAT` - most compatible; sends countdown updates as chat messages. Use as a reliable fallback. See [chat.md](chat).
+- `SCOREBOARD` - sidebar scoreboard display for a framed, persistent view. See [scoreboard.md](scoreboard).
+- `DIALOG` - native Paper Dialog panel shown in the centre of the screen. Requires Paper 1.21.7+. See [dialog.md](dialog).
 
 Best practices
 

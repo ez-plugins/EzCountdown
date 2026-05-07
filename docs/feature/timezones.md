@@ -58,7 +58,7 @@ Windows PowerShell:
 ```
 
 Notes and examples
-- Use the exact identifier (case-sensitive in some contexts) — for example `Europe/London` or `America/New_York`.
+- Use the exact identifier (case-sensitive in some contexts) - for example `Europe/London` or `America/New_York`.
 - Example `countdowns.yml` snippet:
 
 ```yaml
