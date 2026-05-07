@@ -1,3 +1,10 @@
+---
+title: CountdownTickEvent
+parent: Events
+grand_parent: Developer API
+nav_order: 2
+---
+
 # CountdownTickEvent
 
 Fired periodically while a countdown is running to indicate remaining time.

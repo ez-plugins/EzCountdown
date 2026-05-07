@@ -1,4 +1,9 @@
 
+---
+title: Permissions
+parent: Server Owners
+nav_order: 3
+---
 
 # Permissions (Who should have which node)
 

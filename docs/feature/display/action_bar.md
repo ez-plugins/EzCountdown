@@ -1,3 +1,10 @@
+---
+title: Action Bar
+parent: Display Types
+grand_parent: Features
+nav_order: 1
+---
+
 # Action Bar
 
 What it is

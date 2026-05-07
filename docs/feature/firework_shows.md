@@ -1,3 +1,9 @@
+---
+title: Firework Shows
+parent: Features
+nav_order: 3
+---
+
 # Firework Shows
 
 EzCountdown can trigger firework displays when a countdown `start` or `end` phase runs. Firework shows are configurable per-countdown in `countdowns.yml`. Use caution—spawning many rockets may impact server performance.

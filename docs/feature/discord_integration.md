@@ -1,3 +1,9 @@
+---
+title: Discord Integration
+parent: Features
+nav_order: 8
+---
+
 # Discord Integration
 
 EzCountdown can post notifications to Discord using incoming webhooks. The integration is configured via `discord.yml` in the plugin data folder.

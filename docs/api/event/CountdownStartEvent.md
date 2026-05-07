@@ -1,3 +1,10 @@
+---
+title: CountdownStartEvent
+parent: Events
+grand_parent: Developer API
+nav_order: 1
+---
+
 # CountdownStartEvent
 
 Fired when a countdown is started.

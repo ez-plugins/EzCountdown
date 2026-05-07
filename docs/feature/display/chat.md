@@ -1,3 +1,9 @@
+---
+title: Chat
+parent: Display Types
+grand_parent: Features
+nav_order: 3
+---
 
 # Chat
 

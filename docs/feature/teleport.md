@@ -1,3 +1,9 @@
+---
+title: Teleport
+parent: Features
+nav_order: 6
+---
+
 # Teleporting Players
 
 EzCountdown can teleport players to named locations when a countdown starts or ends. Locations are stored in `locations.yml` and are referenced by name from a countdown configuration.

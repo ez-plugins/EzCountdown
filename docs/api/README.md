@@ -1,3 +1,9 @@
+---
+title: Developer API
+nav_order: 4
+has_children: true
+---
+
 # EzCountdown Public API
 
 ## Prerequisites

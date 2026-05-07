@@ -1,3 +1,10 @@
+---
+title: CountdownType
+parent: Models
+grand_parent: Developer API
+nav_order: 2
+---
+
 # CountdownType
 
 Enumeration of countdown behavior types.
