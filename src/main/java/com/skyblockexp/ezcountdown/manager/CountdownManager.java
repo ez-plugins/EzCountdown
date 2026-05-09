@@ -141,6 +141,16 @@ public final class CountdownManager {
         return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
     }
 
+    /**
+     * Returns the number of countdowns executed since the last call to this method, then resets
+     * the counter to zero. Intended for bStats reporting so each polling period reports only new
+     * executions rather than a cumulative total that grows until server restart.
+     */
+    public int drainExecutedCount() {
+        long value = executedCount.sumThenReset();
+        return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
+    }
+
     public Optional<Countdown> getCountdown(String name) {
         return Optional.ofNullable(countdowns.get(normalizeName(name)));
     }
@@ -362,6 +372,9 @@ public final class CountdownManager {
                     // Otherwise stop the countdown and clear displays to avoid repeated end events.
                     countdown.setRunning(false);
                     displayManager.clearCountdown(countdown);
+                    // Clean up per-countdown guard maps to prevent unbounded memory growth.
+                    endingFlags.remove(nameKey);
+                    lastEndAt.remove(nameKey);
                     // Guarantee the ended countdown is passed to displayAll with rem=0 so that
                     // batch display handlers (ScoreboardDisplay batch sidebar, BossBarDisplay) also
                     // clean up, even when the per-countdown update-interval was not due this tick.
