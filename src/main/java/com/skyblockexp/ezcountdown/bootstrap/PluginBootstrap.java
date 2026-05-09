@@ -200,7 +200,7 @@ public final class PluginBootstrap {
             metrics.addCustomChart(new SingleLineChart("countdown_total_count",
                     () -> registry == null || registry.countdowns() == null ? 0 : registry.countdowns().getCountdownCount()));
             metrics.addCustomChart(new SingleLineChart("countdown_executed",
-                    () -> registry == null || registry.countdowns() == null ? 0 : registry.countdowns().getExecutedCount()));
+                    () -> registry == null || registry.countdowns() == null ? 0 : registry.countdowns().drainExecutedCount()));
         } catch (Exception ex) {
             plugin.getLogger().warning("Failed to start bStats metrics: " + ex.getMessage());
         }
