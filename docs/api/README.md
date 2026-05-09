@@ -35,7 +35,7 @@ Follow these steps to add and use the EzCountdown API from your plugin.
 <dependency>
     <groupId>com.skyblockexp</groupId>
     <artifactId>ezcountdown</artifactId>
-    <version>1.0.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 

@@ -55,8 +55,13 @@ public class DurationHandler implements CountdownTypeHandler {
         String durationValue = section.getString("duration", "0s");
         long seconds = parseDurationLegacy(durationValue);
         countdown.setDurationSeconds(seconds);
-        if (countdown.isRunning() && countdown.getTargetInstant() == null) {
-            countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
+        if (countdown.isRunning()) {
+            long savedTarget = section.getLong("target_epoch", -1L);
+            if (savedTarget >= 0) {
+                countdown.setTargetInstant(Instant.ofEpochSecond(savedTarget));
+            } else {
+                countdown.setTargetInstant(Instant.now().plusSeconds(countdown.getDurationSeconds()));
+            }
         }
         return countdown;
     }
@@ -79,6 +84,9 @@ public class DurationHandler implements CountdownTypeHandler {
     @Override
     public void serialize(Countdown countdown, ConfigurationSection section) {
         section.set("duration", countdown.getDurationSeconds() + "s");
+        if (countdown.getTargetInstant() != null) {
+            section.set("target_epoch", countdown.getTargetInstant().getEpochSecond());
+        }
     }
 
     @Override
