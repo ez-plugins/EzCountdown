@@ -35,6 +35,8 @@ public final class CountdownBuilder {
     private org.bukkit.boss.BarColor bossBarColor = org.bukkit.boss.BarColor.BLUE;
     private org.bukkit.boss.BarStyle bossBarStyle = org.bukkit.boss.BarStyle.SOLID;
 
+    private boolean ephemeral = false;
+
     /* optional runtime values that the builder can configure */
     private long durationSeconds = -1L;
     private int recurringMonth = 0;
@@ -179,6 +181,7 @@ public final class CountdownBuilder {
         if (recurringMonth > 0) countdown.setRecurringMonth(recurringMonth);
         if (recurringDay > 0) countdown.setRecurringDay(recurringDay);
         if (recurringTime != null) countdown.setRecurringTime(recurringTime);
+        if (ephemeral) countdown.setEphemeral(true);
 
         return countdown;
     }
@@ -190,6 +193,19 @@ public final class CountdownBuilder {
 
     public CountdownBuilder bossBarStyle(org.bukkit.boss.BarStyle style) {
         this.bossBarStyle = style == null ? org.bukkit.boss.BarStyle.SOLID : style;
+        return this;
+    }
+
+    /**
+     * Mark the countdown as ephemeral — it will never be persisted to storage
+     * and will be automatically removed from memory once it ends.
+     * <p>
+     * This is set automatically when building a countdown from a
+     * {@link Notification} via
+     * {@link com.skyblockexp.ezcountdown.api.EzCountdownApi#sendNotification}.
+     */
+    public CountdownBuilder ephemeral(boolean ephemeral) {
+        this.ephemeral = ephemeral;
         return this;
     }
 }

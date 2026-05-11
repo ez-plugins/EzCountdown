@@ -85,6 +85,8 @@ public final class YamlCountdownStorage implements CountdownStorage {
         FileConfiguration config = new YamlConfiguration();
         ConfigurationSection root = config.createSection("countdowns");
         for (Countdown countdown : countdowns) {
+            // Ephemeral countdowns (created via sendNotification) are never persisted.
+            if (countdown.isEphemeral()) continue;
             ConfigurationSection section = root.createSection(countdown.getName());
             section.set("type", countdown.getType().name());
             section.set("running", countdown.isRunning());

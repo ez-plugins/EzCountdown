@@ -383,9 +383,15 @@ public final class CountdownManager {
                         messages.put(countdown, buildMessage(countdown, 0L));
                     }
                     remainingMap.put(countdown, 0L);
-                    // Persist the stopped state so a reload/restart does not re-fire the end event.
-                    try { save(); } catch (Exception ignored) {}
-                } finally {
+                    // Ephemeral countdowns (created via sendNotification) are removed from memory
+                    // on end and are never saved to storage.
+                    if (countdown.isEphemeral()) {
+                        countdowns.remove(nameKey);
+                        // No save() needed — ephemeral countdowns are never persisted.
+                    } else {
+                        // Persist the stopped state so a reload/restart does not re-fire the end event.
+                        try { save(); } catch (Exception ignored) {}
+                    }                } finally {
                     flag.set(false);
                 }
             }

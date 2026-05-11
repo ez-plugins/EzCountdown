@@ -28,6 +28,9 @@ Methods
 - `boolean deleteCountdown(String name)`
   - Delete a configured countdown by name. Returns `true` when deleted.
 
+- `Optional<String> sendNotification(Notification notification)`
+  - Fire a one-shot, ephemeral timed display notification without creating a persistent countdown. The notification runs for its configured duration then disappears automatically — it is never written to `countdowns.yml`. Returns an `Optional` containing the generated internal name on success, or an empty `Optional` on collision.
+
 Usage example (service lookup):
 
 ```java
@@ -43,3 +46,4 @@ Notes
 
 - Changes made via the API are persisted using the plugin's `countdowns.yml` storage.
 - Methods return boolean flags to indicate success; check plugin logs or events for failure reasons.
+- Countdowns created by `sendNotification` are ephemeral: they run in memory only and are deleted automatically when they end. They are never stored in `countdowns.yml` and do not appear in `/countdown list`.

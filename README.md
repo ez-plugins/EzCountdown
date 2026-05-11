@@ -9,6 +9,7 @@ EzCountdown provides configurable countdown timers for events, launches, and mai
 - PlaceholderAPI support for `%ezcountdown_<name>_days%`, `_hours`, `_minutes`, `_seconds`, and `_formatted`.
 - Customizable messages (messages.yml), permissions, and update intervals.
 - Run console commands when countdowns finish.
+- **Developer API**: send ephemeral one-shot notifications from your plugin without touching YAML (see [API overview](docs/api/README.md)).
 
 ## Commands
 See [docs/commands.md](docs/commands.md) for the full command list and usage.
@@ -75,6 +76,7 @@ Comprehensive documentation is available in the `docs/` folder. Quick links:
 	- [EzCountdown API](docs/api/EzCountdownApi.md)
 	- [Model: Countdown](docs/api/model/Countdown.md)
 	- [Model: CountdownType](docs/api/model/CountdownType.md)
+	- [Model: Notification](docs/api/model/Notification.md)
 	- [Events: CountdownStartEvent](docs/api/event/CountdownStartEvent.md)
 	- [Events: CountdownTickEvent](docs/api/event/CountdownTickEvent.md)
 	- [Events: CountdownEndEvent](docs/api/event/CountdownEndEvent.md)

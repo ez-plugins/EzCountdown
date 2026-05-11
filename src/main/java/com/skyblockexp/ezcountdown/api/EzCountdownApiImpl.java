@@ -1,7 +1,9 @@
 package com.skyblockexp.ezcountdown.api;
 
 import com.skyblockexp.ezcountdown.api.model.Countdown;
+import com.skyblockexp.ezcountdown.api.model.CountdownBuilder;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
+import com.skyblockexp.ezcountdown.api.model.Notification;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import com.skyblockexp.ezcountdown.bootstrap.Registry;
 
@@ -88,5 +90,29 @@ public final class EzCountdownApiImpl implements EzCountdownApi {
     @Override
     public boolean deleteCountdown(String name) {
         return registry.countdowns().deleteCountdown(name);
+    }
+
+    @Override
+    public Optional<String> sendNotification(Notification notification) {
+        Objects.requireNonNull(notification, "notification");
+        String name = "notif-" + UUID.randomUUID().toString().substring(0, 8);
+        com.skyblockexp.ezcountdown.manager.CountdownDefaults defs = registry.defaults();
+
+        Countdown countdown = CountdownBuilder.builder(name)
+                .type(CountdownType.DURATION)
+                .displayTypes(notification.getDisplayTypes())
+                .updateIntervalSeconds(defs.updateIntervalSeconds())
+                .formatMessage(notification.getFormatMessage())
+                .startMessage(notification.getStartMessage())
+                .endMessage(notification.getEndMessage())
+                .durationSeconds(notification.getDurationSeconds())
+                .ephemeral(true)
+                .build();
+
+        countdown.setRunning(true);
+        countdown.setTargetInstant(java.time.Instant.now().plusSeconds(notification.getDurationSeconds()));
+
+        boolean created = registry.countdowns().createCountdown(countdown);
+        return created ? Optional.of(name) : Optional.empty();
     }
 }
