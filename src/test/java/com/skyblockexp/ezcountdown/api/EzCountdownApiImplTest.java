@@ -2,19 +2,21 @@ package com.skyblockexp.ezcountdown.api;
 
 import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
+import com.skyblockexp.ezcountdown.api.model.Notification;
 import com.skyblockexp.ezcountdown.bootstrap.Registry;
+import com.skyblockexp.ezcountdown.display.DisplayType;
 import com.skyblockexp.ezcountdown.manager.CountdownDefaults;
 import com.skyblockexp.ezcountdown.manager.CountdownManager;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.time.ZoneId;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class EzCountdownApiImplTest {
@@ -105,5 +107,100 @@ public class EzCountdownApiImplTest {
         boolean createdRec = api.createCountdown(CountdownType.RECURRING, 0L, null);
         assertTrue(createdRec);
         verify(manager, atLeast(2)).createCountdown(any());
+    }
+
+    // ------------------------------------------------------------------
+    // sendNotification tests
+    // ------------------------------------------------------------------
+
+    private Registry mockRegistryWithDefaults() {
+        Registry registry = mock(Registry.class);
+        CountdownManager manager = mock(CountdownManager.class);
+        CountdownDefaults defaults = mock(CountdownDefaults.class);
+        when(registry.countdowns()).thenReturn(manager);
+        when(registry.defaults()).thenReturn(defaults);
+        when(defaults.updateIntervalSeconds()).thenReturn(1);
+        when(defaults.zoneId()).thenReturn(ZoneId.systemDefault());
+        when(manager.createCountdown(any())).thenReturn(true);
+        return registry;
+    }
+
+    @Test
+    public void sendNotification_returnsNameOnSuccess() {
+        Registry registry = mockRegistryWithDefaults();
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        Optional<String> result = api.sendNotification(Notification.ofSeconds(30));
+
+        assertTrue(result.isPresent(), "should return a name");
+        assertTrue(result.get().startsWith("notif-"), "name should be prefixed 'notif-'");
+    }
+
+    @Test
+    public void sendNotification_createsEphemeralCountdown() {
+        Registry registry = mockRegistryWithDefaults();
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        api.sendNotification(Notification.ofSeconds(10));
+
+        // capture the Countdown passed to manager
+        var captor = org.mockito.ArgumentCaptor.forClass(Countdown.class);
+        verify(registry.countdowns()).createCountdown(captor.capture());
+        Countdown created = captor.getValue();
+
+        assertTrue(created.isEphemeral(), "countdown must be ephemeral");
+        assertTrue(created.isRunning(), "countdown must be started immediately");
+        assertNotNull(created.getTargetInstant(), "targetInstant must be set");
+        assertEquals(10L, created.getDurationSeconds());
+        assertEquals(CountdownType.DURATION, created.getType());
+    }
+
+    @Test
+    public void sendNotification_usesNotificationDisplayTypes() {
+        Registry registry = mockRegistryWithDefaults();
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        Notification notification = Notification.builder()
+                .duration(15)
+                .display(DisplayType.BOSS_BAR)
+                .build();
+
+        api.sendNotification(notification);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Countdown.class);
+        verify(registry.countdowns()).createCountdown(captor.capture());
+        assertTrue(captor.getValue().getDisplayTypes().contains(DisplayType.BOSS_BAR));
+    }
+
+    @Test
+    public void sendNotification_usesNotificationMessages() {
+        Registry registry = mockRegistryWithDefaults();
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        Notification notification = Notification.builder()
+                .duration(20)
+                .message("&eTime: {formatted}")
+                .startMessage("&aGo!")
+                .endMessage("&cDone!")
+                .build();
+
+        api.sendNotification(notification);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Countdown.class);
+        verify(registry.countdowns()).createCountdown(captor.capture());
+        Countdown created = captor.getValue();
+        assertEquals("&eTime: {formatted}", created.getFormatMessage());
+        assertEquals("&aGo!", created.getStartMessage());
+        assertEquals("&cDone!", created.getEndMessage());
+    }
+
+    @Test
+    public void sendNotification_returnsEmptyOnCollision() {
+        Registry registry = mockRegistryWithDefaults();
+        when(registry.countdowns().createCountdown(any())).thenReturn(false);
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        Optional<String> result = api.sendNotification(Notification.ofSeconds(5));
+        assertFalse(result.isPresent());
     }
 }

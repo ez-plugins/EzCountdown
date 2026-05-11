@@ -111,6 +111,44 @@ Optional<Countdown> maybe = api.getCountdown("launch");
 Collection<Countdown> all = api.listCountdowns();
 ```
 
+### Send a notification
+
+`sendNotification` fires a one-shot ephemeral display that runs for the specified duration and then vanishes — no YAML entry is created and no `/countdown list` entry appears.
+
+The simplest usage:
+
+```java
+import com.skyblockexp.ezcountdown.api.model.Notification;
+
+// Show an action bar countdown for 30 seconds (plugin defaults for display).
+api.sendNotification(Notification.ofSeconds(30));
+```
+
+Use the builder for full control:
+
+```java
+import com.skyblockexp.ezcountdown.api.model.Notification;
+import com.skyblockexp.ezcountdown.display.DisplayType;
+import java.time.Duration;
+import java.util.EnumSet;
+
+Notification notif = Notification.builder()
+    .duration(Duration.ofMinutes(5))
+    .displays(EnumSet.of(DisplayType.ACTION_BAR, DisplayType.BOSS_BAR))
+    .message("{formatted}")               // optional: format message key
+    .startMessage("Event starts soon!")   // optional: broadcast on start
+    .endMessage("Event started!")         // optional: broadcast on end
+    .build();
+
+Optional<String> handle = api.sendNotification(notif);
+```
+
+`sendNotification` returns the generated internal name wrapped in `Optional.of(...)` on success, or `Optional.empty()` on the rare name collision. You can use the name to stop the notification early:
+
+```java
+handle.ifPresent(name -> api.stopCountdown(name));
+```
+
 ## Javadoc & API reference
 
 See the generated API docs for full type and method details: `docs/api/EzCountdownApi.md` and the `model/` and `event/` pages in this folder. If you want, I can add a GitHub Pages workflow to publish hosted Javadoc automatically on release.
@@ -120,4 +158,5 @@ See the generated API docs for full type and method details: `docs/api/EzCountdo
 - API reference: [docs/api/EzCountdownApi.md](docs/api/EzCountdownApi.md)
 - Events: [docs/api/event](docs/api/event)
 - Models: [docs/api/model](docs/api/model)
+- Notification model: [docs/api/model/Notification.md](docs/api/model/Notification.md)
 

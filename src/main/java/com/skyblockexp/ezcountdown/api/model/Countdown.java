@@ -75,6 +75,12 @@ public final class Countdown {
     private int recurringDay;
     private LocalTime recurringTime;
     private boolean running;
+    /**
+     * When {@code true} this countdown was created programmatically via
+     * {@link com.skyblockexp.ezcountdown.api.EzCountdownApi#sendNotification} and should
+     * never be persisted to storage and should be removed from memory once it ends.
+     */
+    private boolean ephemeral = false;
 
     /**
      * Create a new Countdown instance.
@@ -260,6 +266,15 @@ public final class Countdown {
 
     /** Set whether the countdown is running. */
     public void setRunning(boolean running) { this.running = running; }
+
+    /**
+     * @return {@code true} if this countdown was created as an ephemeral notification
+     *         (never persisted to storage and auto-removed from memory on end)
+     */
+    public boolean isEphemeral() { return ephemeral; }
+
+    /** Package-private — set by {@link CountdownBuilder#ephemeral(boolean)}. */
+    void setEphemeral(boolean ephemeral) { this.ephemeral = ephemeral; }
 
     /** @return configured duration in seconds for duration/manual types */
     public long getDurationSeconds() { return durationSeconds; }
