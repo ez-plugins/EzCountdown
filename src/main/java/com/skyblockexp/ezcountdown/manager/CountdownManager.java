@@ -52,6 +52,7 @@ public final class CountdownManager {
     private final java.util.concurrent.ConcurrentHashMap<String, Instant> lastEndAt = new java.util.concurrent.ConcurrentHashMap<>();
 
     private BukkitTask task;
+    private volatile TimeFormat.FormatConfig timeFormatConfig = TimeFormat.FormatConfig.DEFAULT;
 
     public CountdownManager(Registry registry,
                             DiscordWebhookConfig discordWebhookConfig,
@@ -66,6 +67,14 @@ public final class CountdownManager {
         this.messageManager = Objects.requireNonNull(messageManager, "messageManager");
         this.locationManager = Objects.requireNonNull(locationManager, "locationManager");
         // discordWebhookConfig provided by bootstrap
+    }
+
+    public void setTimeFormatConfig(TimeFormat.FormatConfig config) {
+        this.timeFormatConfig = Objects.requireNonNull(config, "config");
+    }
+
+    public TimeFormat.FormatConfig getTimeFormatConfig() {
+        return timeFormatConfig;
     }
 
     public void load() {
@@ -412,7 +421,7 @@ public final class CountdownManager {
 
     private String buildMessage(Countdown countdown, long remaining) {
         TimeParts parts = TimeFormat.toParts(remaining);
-        String formatted = TimeFormat.format(parts);
+        String formatted = TimeFormat.format(parts, timeFormatConfig);
         String message = countdown.getFormatMessage();
         message = message.replace("{name}", countdown.getName())
                 .replace("{days}", String.valueOf(parts.days()))
@@ -568,7 +577,7 @@ public final class CountdownManager {
             remaining = Math.max(0L, countdown.getTargetInstant().getEpochSecond() - java.time.Instant.now().getEpochSecond());
         }
         TimeParts parts = TimeFormat.toParts(remaining);
-        out = out.replace("{time_left}", TimeFormat.format(parts));
+        out = out.replace("{time_left}", TimeFormat.format(parts, timeFormatConfig));
         out = out.replace("{days}", String.valueOf(parts.days()));
         out = out.replace("{hours}", String.valueOf(parts.hours()));
         out = out.replace("{minutes}", String.valueOf(parts.minutes()));

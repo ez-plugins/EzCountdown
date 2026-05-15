@@ -29,7 +29,7 @@ public class GuiActionRegistry {
 
     public GuiActionRegistry(CountdownManager manager, MessageManager messageManager, ChatInputListener chatInputListener, Registry registry, EditorMenu editorMenu, DisplayEditor displayEditor, CommandsEditor commandsEditor) {
         this.openEditorAction = new OpenEditorAction(editorMenu);
-        this.previewAction = new PreviewCountdownAction(messageManager);
+        this.previewAction = new PreviewCountdownAction(messageManager, manager);
         this.deleteAction = new DeleteCountdownAction(manager, messageManager, registry);
         this.toggleRunningAction = new ToggleRunningAction(manager, messageManager);
         this.openDisplayEditorAction = new OpenDisplayEditorAction(displayEditor);

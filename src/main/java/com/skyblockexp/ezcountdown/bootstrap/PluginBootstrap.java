@@ -85,6 +85,7 @@ public final class PluginBootstrap {
         CountdownManager countdownManager = new CountdownManager(registry, discordWebhookConfig, storage, displayManager, messageManager, locationManager);
         // register into registry
         registry.setCountdownManager(countdownManager);
+        countdownManager.setTimeFormatConfig(configService.loadTimeFormatConfig());
         countdownManager.load();
         int loadedCount = countdownManager.getCountdownCount();
         long runningCount = countdownManager.getCountdowns().stream().filter(c -> c.isRunning()).count();
@@ -146,6 +147,12 @@ public final class PluginBootstrap {
                     displayManager.reload(configService);
                 } catch (Exception ex) {
                     plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload display manager", ex);
+                }
+
+                try {
+                    registry.countdowns().setTimeFormatConfig(configService.loadTimeFormatConfig());
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload time format config", ex);
                 }
 
                 try {

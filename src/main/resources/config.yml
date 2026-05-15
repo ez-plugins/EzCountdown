@@ -36,6 +36,13 @@ display:
     bossbar-ticks: 1
     # How often the scoreboard sidebar is refreshed, in ticks. Minimum is 1.
     scoreboard-ticks: 1
+  time-format:
+    # Template used for the {formatted} / %ezcountdown_<name>_formatted% placeholder.
+    # Supported tokens: {days}, {hours}, {minutes}, {seconds}
+    pattern: "{days}d {hours}h {minutes}m {seconds}s"
+    # When true, leading units whose value is 0 are hidden.
+    # Example: 0d 2h 5m 3s becomes  2h 5m 3s
+    hide-leading-zeros: true
 
 display-overrides:
   # Set to true to force-enable a display type even if runtime checks fail.

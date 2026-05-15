@@ -7,6 +7,7 @@ import com.skyblockexp.ezcountdown.command.CountdownPermissions;
 import com.skyblockexp.ezcountdown.command.LocationPermissions;
 import com.skyblockexp.ezcountdown.config.DiscordWebhookConfig;
 import com.skyblockexp.ezcountdown.display.DisplayType;
+import com.skyblockexp.ezcountdown.util.TimeFormat;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
@@ -102,6 +103,14 @@ public final class ConfigService {
     public int loadScoreboardRefreshTicks() {
         int v = plugin.getConfig().getInt("display.refresh.scoreboard-ticks", 1);
         return Math.max(1, v);
+    }
+
+    public TimeFormat.FormatConfig loadTimeFormatConfig() {
+        FileConfiguration config = plugin.getConfig();
+        String pattern = config.getString("display.time-format.pattern", TimeFormat.DEFAULT_PATTERN);
+        if (pattern == null || pattern.isBlank()) pattern = TimeFormat.DEFAULT_PATTERN;
+        boolean hideLeadingZeros = config.getBoolean("display.time-format.hide-leading-zeros", false);
+        return new TimeFormat.FormatConfig(pattern, hideLeadingZeros);
     }
 
     private void ensureResource(String name) {
