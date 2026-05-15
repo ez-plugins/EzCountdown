@@ -47,6 +47,26 @@ countdowns:
       end: arena
 ```
 
+**Time Format**
+
+The `{formatted}` placeholder (and `%ezcountdown_<name>_formatted%`) is driven by two settings under `display.time-format` in `config.yml`:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `display.time-format.pattern` | string | `"{days}d {hours}h {minutes}m {seconds}s"` | Token layout. Supported tokens: `{days}`, `{hours}`, `{minutes}`, `{seconds}`. |
+| `display.time-format.hide-leading-zeros` | boolean | `true` | When `true`, leading space-delimited segments whose unit value is `0` are omitted. At least the last segment is always shown. |
+
+Examples with `hide-leading-zeros: true`:
+
+| Remaining | Output |
+|-----------|--------|
+| 2d 5h 3m 7s | `2d 5h 3m 7s` |
+| 0d 2h 5m 3s | `2h 5m 3s` |
+| 0d 0h 0m 45s | `45s` |
+| 0d 0h 0m 0s | `0s` |
+
+These settings are reloaded with `/countdown reload`.
+
 **Boss Bar Customization**
 
 - `display.bossbar.color`: (optional) A `BarColor` name used for the countdown's boss bar. Valid values include `BLUE`, `RED`, `GREEN`, `YELLOW`, `PINK`, `PURPLE`, `WHITE` (matching Bukkit's `BarColor` enum). Default: `BLUE`.
