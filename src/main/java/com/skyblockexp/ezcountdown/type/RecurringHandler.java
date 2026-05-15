@@ -4,6 +4,8 @@ import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import com.skyblockexp.ezcountdown.manager.CountdownDefaults;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.time.Instant;
@@ -55,7 +57,10 @@ public class RecurringHandler implements CountdownTypeHandler {
             missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP;
         }
 
-        Countdown countdown = new Countdown(name, getType(), displayTypes, updateInterval, visibility, format, start, end, endCommands, zone, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy);
+        BarColor bossColor = parseBossBarColor(section.getString("display.bossbar.color", "BLUE"));
+        BarStyle bossStyle = parseBossBarStyle(section.getString("display.bossbar.style", "SOLID"));
+
+        Countdown countdown = new Countdown(name, getType(), displayTypes, updateInterval, visibility, format, start, end, endCommands, zone, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy, bossColor, bossStyle);
         countdown.setRunning(section.getBoolean("running", true));
         countdown.setRecurringMonth(section.getInt("recurring.month", 1));
         countdown.setRecurringDay(section.getInt("recurring.day", 1));
@@ -63,6 +68,14 @@ public class RecurringHandler implements CountdownTypeHandler {
         countdown.setRecurringTime(LocalTime.parse(timeValue));
         countdown.setTargetInstant(countdown.resolveNextRecurringTarget(Instant.now()));
         return countdown;
+    }
+
+    private static BarColor parseBossBarColor(String raw) {
+        try { return BarColor.valueOf(raw.toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ex) { return BarColor.BLUE; }
+    }
+
+    private static BarStyle parseBossBarStyle(String raw) {
+        try { return BarStyle.valueOf(raw.toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ex) { return BarStyle.SOLID; }
     }
 
     @Override

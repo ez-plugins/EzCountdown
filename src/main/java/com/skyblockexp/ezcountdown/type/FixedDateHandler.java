@@ -4,6 +4,8 @@ import com.skyblockexp.ezcountdown.api.model.Countdown;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import com.skyblockexp.ezcountdown.manager.CountdownDefaults;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.time.Instant;
@@ -54,7 +56,10 @@ public class FixedDateHandler implements CountdownTypeHandler {
         com.skyblockexp.ezcountdown.api.model.MissedRunPolicy missedPolicy;
         try { missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.valueOf(missedRunRaw.toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ex) { missedPolicy = com.skyblockexp.ezcountdown.api.model.MissedRunPolicy.SKIP; }
 
-        Countdown countdown = new Countdown(name, getType(), displayTypes, updateInterval, visibility, format, start, end, endCommands, zone, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy);
+        BarColor bossColor = parseBossBarColor(section.getString("display.bossbar.color", "BLUE"));
+        BarStyle bossStyle = parseBossBarStyle(section.getString("display.bossbar.style", "SOLID"));
+
+        Countdown countdown = new Countdown(name, getType(), displayTypes, updateInterval, visibility, format, start, end, endCommands, zone, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy, bossColor, bossStyle);
         countdown.setRunning(section.getBoolean("running", defaults.startOnCreate()));
         String target = section.getString("target");
         if (target == null) throw new IllegalArgumentException("Missing target date for fixed date countdown.");
@@ -62,6 +67,14 @@ public class FixedDateHandler implements CountdownTypeHandler {
         LocalDateTime dt = LocalDateTime.parse(target, DATE_TIME_FORMAT);
         countdown.setTargetInstant(dt.atZone(zoneId).toInstant());
         return countdown;
+    }
+
+    private static BarColor parseBossBarColor(String raw) {
+        try { return BarColor.valueOf(raw.toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ex) { return BarColor.BLUE; }
+    }
+
+    private static BarStyle parseBossBarStyle(String raw) {
+        try { return BarStyle.valueOf(raw.toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ex) { return BarStyle.SOLID; }
     }
 
     @Override
