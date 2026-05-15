@@ -14,7 +14,7 @@ Available placeholders (replace `<name>` with your countdown's name):
 - `%ezcountdown_<name>_hours%`
 - `%ezcountdown_<name>_minutes%`
 - `%ezcountdown_<name>_seconds%`
- - `%ezcountdown_<name>_formatted%` - combined, human-friendly format (e.g. "1d 2h 3m 4s").
+- `%ezcountdown_<name>_formatted%` - combined, human-friendly format driven by `display.time-format` in `config.yml`. With the default `hide-leading-zeros: true`, leading zero units are omitted (e.g. `5m 3s` instead of `0d 0h 5m 3s`).
 
 Usage examples
 

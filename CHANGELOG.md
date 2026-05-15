@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-05-16
+
+### Added
+
+- **Configurable time format** — new `display.time-format` section in `config.yml`.
+  - `pattern` (default `"{days}d {hours}h {minutes}m {seconds}s"`) — customize the token layout used for the `{formatted}` placeholder and `%ezcountdown_<name>_formatted%` PAPI expansion.
+  - `hide-leading-zeros` (default `true`) — when enabled, leading space-delimited segments whose unit value is zero are suppressed. For example, `0d 0h 5m 3s` is displayed as `5m 3s`.
+  - Applies to countdown display messages, discord webhook `{time_left}`, PlaceholderAPI, and the GUI preview action.
+  - Hot-reloads with `/countdown reload`.
+
 ## [1.4.1] - 2026-05-16
 
 ### Fixed

@@ -63,7 +63,7 @@ public final class EzCountdownPlaceholderExpansion extends PlaceholderExpansion 
             case "hours" -> String.valueOf(parts.hours());
             case "minutes" -> String.valueOf(parts.minutes());
             case "seconds" -> String.valueOf(parts.seconds());
-            case "formatted" -> TimeFormat.format(parts);
+            case "formatted" -> TimeFormat.format(parts, manager.getTimeFormatConfig());
             default -> "";
         };
     }
