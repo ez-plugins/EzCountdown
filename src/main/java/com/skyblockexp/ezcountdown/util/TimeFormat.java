@@ -36,6 +36,7 @@ public final class TimeFormat {
      * least the last segment is always kept.
      */
     public static String format(TimeParts parts, FormatConfig config) {
+        if (config == null) config = FormatConfig.DEFAULT;
         String pattern = (config.pattern() == null || config.pattern().isBlank())
                 ? DEFAULT_PATTERN : config.pattern();
         if (!config.hideLeadingZeros()) {
