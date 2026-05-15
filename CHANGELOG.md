@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-05-16
+
+### Fixed
+
+- **Bossbar color/style ignored** - `display.bossbar.color` and `display.bossbar.style` in `countdowns.yml` had no effect; the boss bar always rendered in the default blue/solid style. All four countdown-type handlers (`DurationHandler`, `FixedDateHandler`, `RecurringHandler`, `ManualHandler`) now read these fields from config and pass them to the `Countdown` constructor.
+
 ## [1.4.0] - 2026-05-11
 
 ### Added
