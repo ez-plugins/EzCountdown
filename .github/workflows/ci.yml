@@ -65,3 +65,239 @@ jobs:
 
       - name: Run feature tests
         run: mvn -B -Dpaper.version=${{ matrix.paper-version }} -Dmockbukkit.artifactId=${{ matrix.mockbukkit-artifactId }} -Dmockbukkit.version=${{ matrix.mockbukkit-version }} -Pfeature-tests -Dtest=*FeatureTest test
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Smoke tests — Paper & Folia (downloaded from api.papermc.io)
+  # Matrix: platform × mc-prefix × java
+  # ─────────────────────────────────────────────────────────────────────────
+  smoke-papermc:
+    name: "Smoke · ${{ matrix.platform }} / MC ${{ matrix.mc-prefix }} / Java ${{ matrix.java }}"
+    runs-on: ubuntu-latest
+    needs: [unit-tests, feature-tests]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [paper, folia]
+        mc-prefix: ["1.21", "26.1"]
+        java: [21, 25]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Build plugin JAR
+        run: mvn -B -ntp -DskipTests package
+
+      - name: Resolve latest ${{ matrix.platform }} build for MC ${{ matrix.mc-prefix }}.x
+        id: server
+        run: |
+          PLATFORM="${{ matrix.platform }}"
+          PREFIX="${{ matrix.mc-prefix }}"
+          VERSIONS_JSON=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}")
+          MC_VERSION=$(echo "$VERSIONS_JSON" | python3 -c "import sys,json; prefix='${PREFIX}'; vs=json.load(sys.stdin)['versions']; matches=[v for v in vs if v==prefix or v.startswith(prefix+'.')]; print(matches[-1] if matches else '')")
+          if [[ -z "$MC_VERSION" ]]; then
+            echo "::notice::No ${PLATFORM} builds found matching MC ${PREFIX}.x — skipping."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          BUILD=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}/versions/${MC_VERSION}/builds" | \
+            python3 -c "import sys,json; builds=json.load(sys.stdin)['builds']; print(builds[-1]['build'])")
+          JAR_NAME=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}/versions/${MC_VERSION}/builds/${BUILD}" | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); print(d['downloads']['application']['name'])")
+          echo "mc_version=${MC_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "build=${BUILD}"           >> "$GITHUB_OUTPUT"
+          echo "jar_name=${JAR_NAME}"     >> "$GITHUB_OUTPUT"
+          echo "available=true"          >> "$GITHUB_OUTPUT"
+          echo "Resolved: ${PLATFORM} ${MC_VERSION} build ${BUILD} (${JAR_NAME})"
+
+      - name: Download ${{ matrix.platform }} server JAR
+        if: steps.server.outputs.available == 'true'
+        run: |
+          mkdir -p smoke-server/plugins
+          curl -fsSL \
+            "https://api.papermc.io/v2/projects/${{ matrix.platform }}/versions/${{ steps.server.outputs.mc_version }}/builds/${{ steps.server.outputs.build }}/downloads/${{ steps.server.outputs.jar_name }}" \
+            -o smoke-server/server.jar
+
+      - name: Copy plugin JAR
+        if: steps.server.outputs.available == 'true'
+        run: cp target/EzCountdown-*.jar smoke-server/plugins/EzCountdown.jar
+
+      - name: Configure server
+        if: steps.server.outputs.available == 'true'
+        run: |
+          echo "eula=true" > smoke-server/eula.txt
+          printf '%s\n' \
+            "online-mode=false" \
+            "level-type=flat" \
+            "generate-structures=false" \
+            "max-players=0" \
+            > smoke-server/server.properties
+
+      - name: Run server and wait for ready
+        if: steps.server.outputs.available == 'true'
+        run: |
+          cd smoke-server
+          java -Xms512m -Xmx1g -jar server.jar --nogui > server.log 2>&1 &
+          SERVER_PID=$!
+          ELAPSED=0
+          while [ $ELAPSED -lt 120 ]; do
+            sleep 2; ELAPSED=$((ELAPSED + 2))
+            if grep -q "Done (" server.log 2>/dev/null; then
+              echo "Server ready after ${ELAPSED}s"; break
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "Server process exited after ${ELAPSED}s"; break
+            fi
+          done
+          kill $SERVER_PID 2>/dev/null || true
+          wait $SERVER_PID 2>/dev/null || true
+
+      - name: Assert no EzCountdown errors
+        if: steps.server.outputs.available == 'true'
+        run: |
+          LOG=smoke-server/server.log
+          if grep -qiE "SEVERE.*EzCountdown|Could not load.*EzCountdown|Error initialising.*EzCountdown" "$LOG"; then
+            echo "::error::EzCountdown logged errors on ${{ matrix.platform }} MC ${{ matrix.mc-prefix }} (Java ${{ matrix.java }}):"
+            grep -iE "SEVERE.*EzCountdown|Could not load.*EzCountdown|Error initialising.*EzCountdown" "$LOG"
+            exit 1
+          fi
+          if grep -qiE "Enabling EzCountdown|EzCountdown.*enabled" "$LOG"; then
+            echo "Smoke test passed — EzCountdown loaded on ${{ matrix.platform }} MC ${{ steps.server.outputs.mc_version }} (Java ${{ matrix.java }})."
+          else
+            echo "::warning::Plugin load confirmation not found — server may not have finished loading within the timeout."
+          fi
+
+      - name: Upload server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-log-${{ matrix.platform }}-mc${{ matrix.mc-prefix }}-java${{ matrix.java }}
+          path: smoke-server/server.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Smoke tests — Spigot (compiled via BuildTools, result cached by MC+Java)
+  # Matrix: mc-prefix × java
+  # ─────────────────────────────────────────────────────────────────────────
+  smoke-spigot:
+    name: "Smoke · spigot / MC ${{ matrix.mc-prefix }} / Java ${{ matrix.java }}"
+    runs-on: ubuntu-latest
+    needs: [unit-tests, feature-tests]
+    strategy:
+      fail-fast: false
+      matrix:
+        mc-prefix: ["1.21", "26.1"]
+        java: [21, 25]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Configure Git for BuildTools
+        run: |
+          git config --global user.email "ci@github.com"
+          git config --global user.name  "CI"
+
+      - name: Build plugin JAR
+        run: mvn -B -ntp -DskipTests package
+
+      - name: Restore cached Spigot JAR (MC ${{ matrix.mc-prefix }}, Java ${{ matrix.java }})
+        id: spigot-cache
+        uses: actions/cache@v4
+        with:
+          path: spigot-build/spigot-${{ matrix.mc-prefix }}.jar
+          key: spigot-jar-mc${{ matrix.mc-prefix }}-java${{ matrix.java }}-v1
+
+      - name: Build Spigot via BuildTools
+        if: steps.spigot-cache.outputs.cache-hit != 'true'
+        id: buildtools
+        run: |
+          mkdir -p spigot-build/work
+          cd spigot-build/work
+          curl -fsSL \
+            "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar" \
+            -o BuildTools.jar
+          java -jar BuildTools.jar --rev "${{ matrix.mc-prefix }}" 2>&1 | tee buildtools.log || {
+            echo "::warning::BuildTools failed for MC ${{ matrix.mc-prefix }} on Java ${{ matrix.java }} — version may not be supported yet."
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+          SPIGOT_JAR=$(ls spigot-${{ matrix.mc-prefix }}*.jar 2>/dev/null | head -1)
+          if [[ -z "$SPIGOT_JAR" ]]; then
+            SPIGOT_JAR=$(ls spigot*.jar 2>/dev/null | grep -v craftbukkit | head -1)
+          fi
+          if [[ -n "$SPIGOT_JAR" ]]; then
+            cp "$SPIGOT_JAR" "../spigot-${{ matrix.mc-prefix }}.jar"
+            echo "::notice::Cached ${SPIGOT_JAR} as spigot-${{ matrix.mc-prefix }}.jar"
+          else
+            echo "::error::BuildTools completed but no Spigot JAR found."
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Spigot smoke test
+        run: |
+          SPIGOT_JAR="spigot-build/spigot-${{ matrix.mc-prefix }}.jar"
+          if [[ ! -f "$SPIGOT_JAR" ]]; then
+            echo "::notice::Spigot JAR not available for MC ${{ matrix.mc-prefix }} — smoke test skipped."
+            exit 0
+          fi
+          mkdir -p smoke-server/plugins
+          cp "$SPIGOT_JAR" smoke-server/server.jar
+          cp target/EzCountdown-*.jar smoke-server/plugins/EzCountdown.jar
+          echo "eula=true" > smoke-server/eula.txt
+          printf '%s\n' \
+            "online-mode=false" \
+            "level-type=flat" \
+            "generate-structures=false" \
+            "max-players=0" \
+            > smoke-server/server.properties
+          cd smoke-server
+          java -Xms512m -Xmx1g -jar server.jar --nogui > server.log 2>&1 &
+          SERVER_PID=$!
+          ELAPSED=0
+          while [ $ELAPSED -lt 120 ]; do
+            sleep 2; ELAPSED=$((ELAPSED + 2))
+            if grep -q "Done (" server.log 2>/dev/null; then
+              echo "Server ready after ${ELAPSED}s"; break
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "Server process exited after ${ELAPSED}s"; break
+            fi
+          done
+          kill $SERVER_PID 2>/dev/null || true
+          wait $SERVER_PID 2>/dev/null || true
+          LOG=server.log
+          if grep -qiE "SEVERE.*EzCountdown|Could not load.*EzCountdown|Error initialising.*EzCountdown" "$LOG"; then
+            echo "::error::EzCountdown logged errors on Spigot MC ${{ matrix.mc-prefix }} (Java ${{ matrix.java }}):"
+            grep -iE "SEVERE.*EzCountdown|Could not load.*EzCountdown|Error initialising.*EzCountdown" "$LOG"
+            exit 1
+          fi
+          if grep -qiE "Enabling EzCountdown|EzCountdown.*enabled" "$LOG"; then
+            echo "Smoke test passed — EzCountdown loaded on Spigot MC ${{ matrix.mc-prefix }} (Java ${{ matrix.java }})."
+          else
+            echo "::warning::Plugin load confirmation not found — server may not have finished loading within the timeout."
+          fi
+
+      - name: Upload Spigot server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-log-spigot-mc${{ matrix.mc-prefix }}-java${{ matrix.java }}
+          path: smoke-server/server.log
+          if-no-files-found: ignore
+          retention-days: 7
