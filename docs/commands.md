@@ -4,74 +4,133 @@ parent: Server Owners
 nav_order: 1
 ---
 
-# Commands (Quick Reference for Server Owners)
+# Commands
 
-This page lists the most important commands staff will use to manage countdowns. Keep these in a staff guide or paste them into your control panel.
+All commands use the `/countdown` base (aliases: `/ezcountdown`, `/ezcd`).
 
-Core commands
+## Command reference
+
+### `/countdown create`
+
+Create a new countdown. The command syntax depends on the type:
+
+| Type | Syntax | Example |
+|---|---|---|
+| Fixed date | `/countdown create <name> <YYYY-MM-DD> <HH:mm>` | `/countdown create new_year 2026-01-01 00:00` |
+| Duration | `/countdown create <name> duration <time>` | `/countdown create maintenance duration 2h` |
+| Manual | `/countdown create <name> manual <time>` | `/countdown create launch manual 30m` |
+| Recurring (yearly) | `/countdown create <name> recurring <month> <day> <HH:mm>` | `/countdown create xmas recurring 12 25 00:00` |
+
+Duration values accept `h` (hours), `m` (minutes), `s` (seconds), and combinations like `1h30m`.
+
+**Clock-aligned recurring flags** (append to `create recurring`):
+
+| Flag | Description | Example value |
+|---|---|---|
+| `--align-to-clock` | Enable clock-aligned repeats | _(no value)_ |
+| `--align-interval <value>` | Alignment interval | `2h`, `1d`, `30m` |
+| `--timezone <ZoneId>` | IANA timezone | `UTC`, `Europe/London` |
+| `--missed-run-policy <policy>` | Handle missed runs | `SKIP`, `RUN_SINGLE`, `RUN_ALL` |
+
+Example  -  announce every 2 hours, UTC:
 
 ```
-/countdown create <name> <date|duration|manual|recurring>
+/countdown create announce recurring 0 0 00:00 --align-to-clock --align-interval 2h --timezone UTC --missed-run-policy SKIP
+```
+
+---
+
+### `/countdown start` / `/countdown stop`
+
+```
 /countdown start <name>
 /countdown stop <name>
+```
+
+Start or stop a countdown by name. `duration` countdowns start automatically when created; use `manual` if you want to control the start time.
+
+---
+
+### `/countdown delete`
+
+```
 /countdown delete <name>
+```
+
+Remove a countdown permanently from `countdowns.yml`. This cannot be undone; use `/countdown stop` if you only want to pause it.
+
+---
+
+### `/countdown list`
+
+```
 /countdown list
+```
+
+Show all configured countdowns and whether they are currently running.
+
+---
+
+### `/countdown info`
+
+```
 /countdown info <name>
+```
+
+Show full details for a countdown: type, target/duration, display types, enabled commands, and current state.
+
+---
+
+### `/countdown reload`
+
+```
 /countdown reload
 ```
 
- - `create` - Create a countdown. Types:
-  - `date` - Fixed target: `YYYY-MM-DD HH:mm` (example: `2026-01-01 00:00`).
-  - `duration` - Run for a duration (examples: `2h`, `30m`, `1h30m`). Starts immediately unless defaults say otherwise.
-  - `manual` - Duration-based but stays stopped until `start`.
-  - `recurring` - Yearly event: provide `month day time` (e.g. `12 31 23:59`).
+Reload `config.yml`, `messages.yml`, and `countdowns.yml` without restarting the server. Running countdowns resume from where they left off.
 
-    New flags for `create recurring` (clock-aligned schedules)
+---
 
-    - `--align-to-clock` - enable clock alignment for recurring schedules.
-    - `--align-interval <value>` - alignment interval (e.g. `2h`, `1d`, `30m`).
-    - `--timezone <ZoneId>` - IANA timezone to use (e.g. `UTC`, `Europe/London`).
-    - `--missed-run-policy <SKIP|RUN_SINGLE|RUN_ALL>` - how to handle missed runs when the server was down.
+### `/countdown gui`
 
- - `start` / `stop` - Start or stop a running countdown by name.
- - `delete` - Remove a countdown from `countdowns.yml` (use `reload` to apply).
- - `list` - Show all configured countdowns and whether they are running.
- - `info` - Show details for a specific countdown (type, target, displays, commands).
- - `reload` - Reloads `config.yml`, `messages.yml`, and `countdowns.yml` without restarting the server.
+```
+/countdown gui
+/countdown gui <name>
+```
 
-Location management
+Open the in-game visual editor. With no argument, shows a list of all countdowns. Pass a name to edit that countdown directly. Requires `ezcountdown.admin`.
+
+---
+
+### Location management
 
 ```
 /ezcd location add <name>
 /ezcd location delete <name>
 ```
 
- - `location add` saves the executor's current position to `locations.yml` under the given name.
- - `location delete` removes a named location.
- - Permissions: `ezcountdown.location.add` and `ezcountdown.location.delete`.
+Save or remove a named teleport location. Use `location add` while standing at the target location; the plugin records your position, world, and facing direction. Named locations are referenced in `countdowns.yml` under `teleport.start` and `teleport.end`.
 
-Examples
+Requires `ezcountdown.location.add` / `ezcountdown.location.delete`.
 
-```
-/countdown create new_year 2026-01-01 00:00
-/countdown create maintenance duration 2h
-/countdown create festival recurring 12 31 23:59
-/countdown create announce recurring 0 0 00:00 --align-to-clock --align-interval 2h --timezone UTC --missed-run-policy SKIP
-/ezcd location add spawn
-```
+---
 
-Practical tips for server owners
+## Permissions summary
 
-- After creating a countdown you will often want to edit `countdowns.yml` to configure displays, custom messages, end commands, and teleport behaviour.
-- Use `reload` after editing YAML files to apply changes immediately.
-- Keep a short list of commonly used countdown names (for holidays or events) so staff can quickly create them.
- - Test `commands_on_end` in a non-production environment first - commands run as console.
+| Node | Default | What it allows |
+|---|---|---|
+| `ezcountdown.use` | `true` (all players) | `/countdown list` and `/countdown info` |
+| `ezcountdown.admin` | `op` | Create, start, stop, delete, reload, GUI |
+| `ezcountdown.location.add` | `op` | Save named teleport locations |
+| `ezcountdown.location.delete` | `op` | Remove named teleport locations |
 
-Permissions summary
+See [Permissions](permissions) for recommended group assignments.
 
- - `ezcountdown.admin` - Full management (create, start, stop, delete, reload).
- - `ezcountdown.use` - View/list countdowns and run `info`.
- - `ezcountdown.location.add` / `ezcountdown.location.delete` - Manage named teleport locations.
+---
 
-If you'd like, I can add a one-line `staff-help.txt` snippet you can paste into your control panel or staff Discord.
+## Tips
+
+- After creating a countdown, edit `plugins/EzCountdown/countdowns.yml` to configure display types, custom messages, end commands, and teleport behaviour  -  then run `/countdown reload`.
+- Test `commands_on_end` on a staging server first; they run as console with full permissions.
+- Use `manual` type for countdown events you want to arm in advance and trigger at the right moment.
 

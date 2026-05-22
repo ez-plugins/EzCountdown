@@ -1,5 +1,6 @@
 package com.skyblockexp.ezcountdown.api.model;
 
+import com.skyblockexp.ezcountdown.api.exception.InvalidConfigurationException;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 
 import java.time.Duration;
@@ -158,11 +159,11 @@ public final class NotificationBuilder {
      * Build the {@link Notification}.
      *
      * @return the configured notification
-     * @throws IllegalStateException if no duration was set
+     * @throws InvalidConfigurationException if no positive duration was set
      */
     public Notification build() {
         if (durationSeconds <= 0) {
-            throw new IllegalStateException(
+            throw new InvalidConfigurationException(
                     "A positive duration must be set before calling build(). "
                     + "Use duration(long) or duration(Duration).");
         }

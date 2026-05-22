@@ -1,6 +1,7 @@
 package com.skyblockexp.ezcountdown.firework;
 
 import com.skyblockexp.ezcountdown.api.model.Countdown;
+import com.skyblockexp.ezcountdown.compat.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -11,7 +12,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Firework;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.util.Locale;
@@ -27,25 +27,22 @@ public class FireworkShowManager {
      * @param rows Number of concentric rows
      * @param intervalTicks Delay between rows (in ticks)
      */
-    public void launchCircleFireworkShow(Plugin plugin, World world, Location center, String colorName, int power, int count, int rows, int intervalTicks) {
-        if (plugin == null || world == null || center == null || colorName == null || count <= 0 || rows <= 0) return;
+    public void launchCircleFireworkShow(SchedulerAdapter scheduler, World world, Location center, String colorName, int power, int count, int rows, int intervalTicks) {
+        if (scheduler == null || world == null || center == null || colorName == null || count <= 0 || rows <= 0) return;
         final Color color = parseColor(colorName);
         final double baseRadius = 6.0;
         for (int row = 0; row < rows; row++) {
             final int currentRow = row;
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    double radius = baseRadius + currentRow * 2.5;
-                    for (int i = 0; i < count; i++) {
-                        double angle = 2 * Math.PI * i / count;
-                        double x = center.getX() + radius * Math.cos(angle);
-                        double z = center.getZ() + radius * Math.sin(angle);
-                        Location loc = new Location(world, x, center.getY() + 1, z);
-                        spawnFirework(loc, color != null ? color : Color.WHITE, power);
-                    }
+            scheduler.runTaskLater(() -> {
+                double radius = baseRadius + currentRow * 2.5;
+                for (int i = 0; i < count; i++) {
+                    double angle = 2 * Math.PI * i / count;
+                    double x = center.getX() + radius * Math.cos(angle);
+                    double z = center.getZ() + radius * Math.sin(angle);
+                    Location loc = new Location(world, x, center.getY() + 1, z);
+                    spawnFirework(loc, color != null ? color : Color.WHITE, power);
                 }
-            }.runTaskLater(plugin, row * intervalTicks);
+            }, row * intervalTicks);
         }
     }
 
@@ -78,8 +75,8 @@ public class FireworkShowManager {
         public int interval = 10;
     }
 
-    public void launchConfiguredShow(Plugin plugin, Countdown countdown, String phase) {
-        if (plugin == null || countdown == null || phase == null) return;
+    public void launchConfiguredShow(Plugin plugin, SchedulerAdapter scheduler, Countdown countdown, String phase) {
+        if (plugin == null || scheduler == null || countdown == null || phase == null) return;
         // attempt to load advanced config first
         AdvancedFireworkConfig adv = loadAdvancedConfig(plugin, countdown.getName(), phase);
         if (adv != null && adv.location != null) {
@@ -88,12 +85,12 @@ public class FireworkShowManager {
             // If there are effects defined, schedule them
             if (adv.effects != null && !adv.effects.isEmpty()) {
                 for (EffectDescriptor d : adv.effects) {
-                    PatternScheduler.scheduleEffect(plugin, loc.getWorld(), loc, d);
+                    PatternScheduler.scheduleEffect(scheduler, loc.getWorld(), loc, d);
                 }
                 return;
             }
             // otherwise, fallback to phase-level circle show
-            launchCircleFireworkShow(plugin, loc.getWorld(), loc, "WHITE", 1, adv.count, adv.rows, adv.interval);
+            launchCircleFireworkShow(scheduler, loc.getWorld(), loc, "WHITE", 1, adv.count, adv.rows, adv.interval);
             return;
         }
 
@@ -102,7 +99,7 @@ public class FireworkShowManager {
         if (cfg == null || cfg.location == null) return;
         Location loc = loadLocation(plugin, cfg.location);
         if (loc == null || loc.getWorld() == null) return;
-        launchCircleFireworkShow(plugin, loc.getWorld(), loc, cfg.color, cfg.power, cfg.count, cfg.rows, cfg.interval);
+        launchCircleFireworkShow(scheduler, loc.getWorld(), loc, cfg.color, cfg.power, cfg.count, cfg.rows, cfg.interval);
     }
 
     private AdvancedFireworkConfig loadAdvancedConfig(Plugin plugin, String countdownName, String phase) {

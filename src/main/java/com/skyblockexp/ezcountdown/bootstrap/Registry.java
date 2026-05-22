@@ -14,6 +14,7 @@ import org.bukkit.plugin.PluginManager;
 import com.skyblockexp.ezcountdown.api.EzCountdownApi;
 import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
 import com.skyblockexp.ezcountdown.api.model.CountdownType;
+import com.skyblockexp.ezcountdown.compat.scheduler.SchedulerAdapter;
 import com.skyblockexp.ezcountdown.integration.placeholder.EzCountdownPlaceholderExpansion;
 import java.util.Map;
 import java.util.EnumMap;
@@ -31,10 +32,11 @@ public final class Registry {
     private GuiManager guiManager;
     private EzCountdownPlaceholderExpansion placeholderExpansion;
     private EzCountdownApi api;
+    private final SchedulerAdapter scheduler;
     private final Map<CountdownType, CountdownTypeHandler> handlers = new EnumMap<>(CountdownType.class);
     private volatile boolean debug = false;
 
-    public Registry(EzCountdownPlugin plugin, MessageManager messageManager, CountdownDefaults defaults, CountdownPermissions permissions, DisplayManager displayManager, CountdownStorage storage, LocationManager locationManager, LocationPermissions locationPermissions, CountdownManager countdownManager, GuiManager guiManager) {
+    public Registry(EzCountdownPlugin plugin, MessageManager messageManager, CountdownDefaults defaults, CountdownPermissions permissions, DisplayManager displayManager, CountdownStorage storage, LocationManager locationManager, LocationPermissions locationPermissions, CountdownManager countdownManager, GuiManager guiManager, SchedulerAdapter scheduler) {
         this.plugin = plugin;
         this.messageManager = messageManager;
         this.defaults = defaults;
@@ -45,6 +47,7 @@ public final class Registry {
         this.locationPermissions = locationPermissions;
         this.countdownManager = countdownManager;
         this.guiManager = guiManager;
+        this.scheduler = scheduler;
     }
 
     public void setDefaults(CountdownDefaults defaults) {
@@ -96,6 +99,8 @@ public final class Registry {
     public void setDebug(boolean debug) { this.debug = debug; }
 
     public GuiManager gui() { return guiManager; }
+
+    public SchedulerAdapter scheduler() { return scheduler; }
 
     public PluginManager pluginManager() { return plugin.getServer().getPluginManager(); }
 

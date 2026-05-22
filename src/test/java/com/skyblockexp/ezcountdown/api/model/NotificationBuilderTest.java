@@ -1,5 +1,6 @@
 package com.skyblockexp.ezcountdown.api.model;
 
+import com.skyblockexp.ezcountdown.api.exception.InvalidConfigurationException;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +59,7 @@ public class NotificationBuilderTest {
 
     @Test
     public void builder_throwsWithoutDuration() {
-        assertThrows(IllegalStateException.class, () -> Notification.builder().build());
+        assertThrows(InvalidConfigurationException.class, () -> Notification.builder().build());
     }
 
     @Test

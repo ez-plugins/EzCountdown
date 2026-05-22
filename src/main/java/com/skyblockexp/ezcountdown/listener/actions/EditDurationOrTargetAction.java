@@ -71,7 +71,7 @@ public class EditDurationOrTargetAction implements GuiAction {
                 }
                 manager.save();
                 player.sendMessage(messageManager.message("gui.edit.saved", java.util.Map.of("name", cdName)));
-                org.bukkit.Bukkit.getScheduler().runTask(registry.plugin(), () -> registry.gui().editorMenu().openEditor(player, cd));
+                registry.scheduler().runTask(() -> registry.gui().editorMenu().openEditor(player, cd));
             } catch (IllegalArgumentException ex) {
                 player.sendMessage(messageManager.message("gui.edit.invalid-duration", java.util.Map.of("reason", ex.getMessage())));
             } catch (Exception ex) {

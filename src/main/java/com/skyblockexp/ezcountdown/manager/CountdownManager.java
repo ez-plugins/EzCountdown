@@ -22,11 +22,11 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Level;
 import com.skyblockexp.ezcountdown.config.DiscordWebhookConfig;
 import com.skyblockexp.ezcountdown.integration.discord.DiscordWebhookSender;
+import com.skyblockexp.ezcountdown.compat.scheduler.TaskHandle;
 import org.bukkit.Bukkit;
 import com.skyblockexp.ezcountdown.bootstrap.Registry;
-import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
-import org.bukkit.scheduler.BukkitTask;
 import com.skyblockexp.ezcountdown.manager.LocationManager;
+import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
 import org.bukkit.entity.Player;
 import com.skyblockexp.ezcountdown.firework.FireworkShowManager;
 import java.io.File;
@@ -51,7 +51,7 @@ public final class CountdownManager {
     // Last time an end was executed for a countdown (debounce window)
     private final java.util.concurrent.ConcurrentHashMap<String, Instant> lastEndAt = new java.util.concurrent.ConcurrentHashMap<>();
 
-    private BukkitTask task;
+    private TaskHandle task;
     private volatile TimeFormat.FormatConfig timeFormatConfig = TimeFormat.FormatConfig.DEFAULT;
 
     public CountdownManager(Registry registry,
@@ -310,7 +310,7 @@ public final class CountdownManager {
         stopTask();
         // Schedule at every game tick (1 tick = 50 ms) so bossbar and scoreboard can refresh
         // smoothly. Text-based displays are still throttled per-countdown by updateIntervalSeconds.
-        task = Bukkit.getScheduler().runTaskTimer(registry.plugin(), this::tick, 1L, 1L);
+        task = registry.scheduler().runTaskTimer(this::tick, 1L, 1L);
     }
 
     private void stopTask() {
@@ -467,7 +467,7 @@ public final class CountdownManager {
             }
         }
         // Firework show if configured
-        fireworkShowManager.launchConfiguredShow(registry.plugin(), countdown, "start");
+        fireworkShowManager.launchConfiguredShow(registry.plugin(), registry.scheduler(), countdown, "start");
         // Discord webhook integration: send on countdown_start
         sendDiscordWebhooks("countdown_start", countdown, null);
         try {
@@ -500,7 +500,7 @@ public final class CountdownManager {
             }
         }
         // Firework show if configured
-        fireworkShowManager.launchConfiguredShow(registry.plugin(), countdown, "end");
+        fireworkShowManager.launchConfiguredShow(registry.plugin(), registry.scheduler(), countdown, "end");
         executeEndCommands(countdown);
         executedCount.increment();
         // Discord webhook integration: send on countdown_end
@@ -516,10 +516,10 @@ public final class CountdownManager {
             long delayTicks = Math.max(0, delaySeconds) * 20L;
             if (countdown.isAutoRestart()) {
                 // Restart the same countdown after delay
-                Bukkit.getScheduler().runTaskLater(registry.plugin(), () -> startCountdown(countdown.getName()), delayTicks);
+                registry.scheduler().runTaskLater(() -> startCountdown(countdown.getName()), delayTicks);
             } else if (countdown.getStartCountdown() != null && !countdown.getStartCountdown().isBlank()) {
                 String other = countdown.getStartCountdown();
-                Bukkit.getScheduler().runTaskLater(registry.plugin(), () -> startCountdown(other), delayTicks);
+                registry.scheduler().runTaskLater(() -> startCountdown(other), delayTicks);
             }
         } catch (Exception ex) {
             registry.plugin().getLogger().log(Level.WARNING, "Error while scheduling auto-restart/start_countdown", ex);
