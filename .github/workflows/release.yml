@@ -24,7 +24,7 @@ jobs:
       #  1. CHECKOUT
       # ──────────────────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           # For push:tags: github.ref is the tag ref (e.g. refs/tags/v1.4.0).
           # For workflow_dispatch: github.ref is the branch (e.g. refs/heads/main).
@@ -68,7 +68,7 @@ jobs:
       #  4. BUILD & VERSION
       # ──────────────────────────────────────────────────────────────────────
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
