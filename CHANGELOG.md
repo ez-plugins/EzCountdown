@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-05-22
+
+### Fixed
+
+- **JitPack build compatibility** - corrected `jitpack.yml` Java selector to `openjdk21` and pinned JitPack install to `./mvnw -B -ntp -DskipTests install` so builds consistently use Java 21 when compiling against `paper-api 1.21.11`.
+- **GitHub Actions version drift** - updated workflow actions to current major versions across CI/release publishing (`actions/checkout@v6`, `actions/setup-java@v5`, `actions/cache@v5`, `actions/upload-artifact@v7`).
+- **Paper/Folia smoke test resolution for 26.x** - CI smoke jobs now resolve builds from `fill.papermc.io/v3` and correctly include MC `26.1` with Java 25 where required.
+
+### Changed
+
+- **Modrinth release step** - replaced the legacy `Kir-Antipov/mc-publish` action invocation in release workflow with a direct Modrinth v2 API upload path for clearer failure diagnostics and up-to-date version resolution.
+
 ## [2.0.0] - 2026-05-30
 
 ### Added
