@@ -245,9 +245,9 @@ jobs:
             "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar" \
             -o BuildTools.jar
           java -jar BuildTools.jar --rev "${{ matrix.mc-prefix }}" 2>&1 | tee buildtools.log || {
-            echo "::error::BuildTools failed for MC ${{ matrix.mc-prefix }} on Java ${{ matrix.java }} — version may not be supported yet."
+            echo "::warning::BuildTools failed for MC ${{ matrix.mc-prefix }} on Java ${{ matrix.java }} — version may not be supported yet. Spigot smoke test will be skipped."
             echo "failed=true" >> "$GITHUB_OUTPUT"
-            exit 1
+            exit 0
           }
           SPIGOT_JAR=$(ls spigot-${{ matrix.mc-prefix }}*.jar 2>/dev/null | head -1)
           if [[ -z "$SPIGOT_JAR" ]]; then
@@ -257,7 +257,7 @@ jobs:
             cp "$SPIGOT_JAR" "../spigot-${{ matrix.mc-prefix }}.jar"
             echo "::notice::Cached ${SPIGOT_JAR} as spigot-${{ matrix.mc-prefix }}.jar"
           else
-            echo "::error::BuildTools completed but no Spigot JAR found."
+            echo "::warning::BuildTools completed but no Spigot JAR found — smoke test will be skipped."
             echo "failed=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -265,8 +265,8 @@ jobs:
         run: |
           SPIGOT_JAR="spigot-build/spigot-${{ matrix.mc-prefix }}.jar"
           if [[ ! -f "$SPIGOT_JAR" ]]; then
-            echo "::error::Spigot JAR not available for MC ${{ matrix.mc-prefix }} — BuildTools step failed or was skipped."
-            exit 1
+            echo "::warning::Spigot JAR not available for MC ${{ matrix.mc-prefix }} — BuildTools could not build this version. Smoke test skipped."
+            exit 0
           fi
           mkdir -p smoke-server/plugins
           cp "$SPIGOT_JAR" smoke-server/server.jar
