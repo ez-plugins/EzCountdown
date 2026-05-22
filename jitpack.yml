@@ -1,2 +1,5 @@
 jdk:
-  - openjdk-21
+  - openjdk21
+
+install:
+  - ./mvnw -B -ntp -DskipTests install
