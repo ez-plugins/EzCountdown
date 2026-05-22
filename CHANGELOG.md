@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.4.2] - 2026-05-16
+## [1.4.3] - 2026-05-16
+
+### Fixed
+
+- **DURATION countdown resets to full duration on `/countdown reload`** — `resumeRunningCountdowns()` previously called `handler.onStart()`, which always sets `targetInstant` to `now + fullDuration`, discarding the `target_epoch` saved in storage. It now calls `handler.ensureTarget()` instead, which is a no-op when a target is already present. The same guard was added to the legacy fallback path for handler-less countdown types. End-commands that fired once before a reload will no longer fire again unexpectedly due to the countdown silently restarting.
+
+
 
 ### Added
 

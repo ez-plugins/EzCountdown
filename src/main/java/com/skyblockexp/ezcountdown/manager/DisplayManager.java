@@ -30,6 +30,7 @@ public final class DisplayManager {
     private int bossbarRefreshTicks = 1;
     private int scoreboardRefreshTicks = 1;
     private long tickCount = 0;
+    private volatile boolean debug = false;
 
     public DisplayManager(com.skyblockexp.ezcountdown.config.ConfigService configService) {
         this.bossbarRefreshTicks = configService.loadBossbarRefreshTicks();
@@ -113,6 +114,8 @@ public final class DisplayManager {
         scoreboardRefreshTicks = configService.loadScoreboardRefreshTicks();
         configureHandlers(configService);
     }
+
+    public void setDebug(boolean debug) { this.debug = debug; }
 
     public void display(Countdown countdown, String message, long remainingSeconds) {
         // Do not show displays for countdowns that reached zero
@@ -208,7 +211,9 @@ public final class DisplayManager {
     }
 
     public void broadcastMessage(String message) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
+        java.util.Collection<? extends Player> online = Bukkit.getOnlinePlayers();
+        if (debug) Bukkit.getLogger().info("[EzCountdown debug] broadcastMessage to " + online.size() + " player(s): " + message);
+        for (Player player : online) {
             player.sendMessage(message);
         }
     }

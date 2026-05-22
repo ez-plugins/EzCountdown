@@ -171,9 +171,11 @@ public final class CountdownManager {
     public boolean createCountdown(Countdown countdown) {
         String key = normalizeName(countdown.getName());
         if (countdowns.containsKey(key)) {
+            if (registry.debug()) registry.plugin().getLogger().info("[debug] createCountdown: '" + countdown.getName() + "' already exists — skipped");
             return false;
         }
         countdowns.put(key, countdown);
+        if (registry.debug()) registry.plugin().getLogger().info("[debug] createCountdown: '" + countdown.getName() + "' type=" + countdown.getType() + " running=" + countdown.isRunning() + " target=" + countdown.getTargetInstant());
         if (countdown.isRunning()) {
             CountdownTypeHandler handler = registry.getHandler(countdown.getType());
             if (handler != null) {
@@ -191,9 +193,11 @@ public final class CountdownManager {
     public boolean deleteCountdown(String name) {
         Countdown removed = countdowns.remove(normalizeName(name));
         if (removed != null) {
+            if (registry.debug()) registry.plugin().getLogger().info("[debug] deleteCountdown: '" + name + "'");
             displayManager.clearCountdown(removed);
             return true;
         }
+        if (registry.debug()) registry.plugin().getLogger().info("[debug] deleteCountdown: '" + name + "' not found");
         return false;
     }
 
@@ -211,11 +215,14 @@ public final class CountdownManager {
     public boolean startCountdown(String name) {
         Countdown countdown = countdowns.get(normalizeName(name));
         if (countdown == null) {
+            if (registry.debug()) registry.plugin().getLogger().info("[debug] startCountdown: '" + name + "' not found");
             return false;
         }
         if (countdown.isRunning()) {
+            if (registry.debug()) registry.plugin().getLogger().info("[debug] startCountdown: '" + name + "' already running");
             return true;
         }
+        if (registry.debug()) registry.plugin().getLogger().info("[debug] startCountdown: '" + name + "'");
         // persist change only if state actually changes
         countdown.setRunning(true);
         CountdownTypeHandler handler = registry.getHandler(countdown.getType());
@@ -236,11 +243,14 @@ public final class CountdownManager {
     public boolean stopCountdown(String name) {
         Countdown countdown = countdowns.get(normalizeName(name));
         if (countdown == null) {
+            if (registry.debug()) registry.plugin().getLogger().info("[debug] stopCountdown: '" + name + "' not found");
             return false;
         }
         if (!countdown.isRunning()) {
+            if (registry.debug()) registry.plugin().getLogger().info("[debug] stopCountdown: '" + name + "' already stopped");
             return true;
         }
+        if (registry.debug()) registry.plugin().getLogger().info("[debug] stopCountdown: '" + name + "'");
         countdown.setRunning(false);
         CountdownTypeHandler handler = registry.getHandler(countdown.getType());
         if (handler != null) {
@@ -269,18 +279,26 @@ public final class CountdownManager {
         Instant now = Instant.now();
         for (Countdown countdown : countdowns.values()) {
             if (!countdown.isRunning()) continue;
+            if (registry.debug()) registry.plugin().getLogger().info("[debug] resumeRunningCountdowns: '" + countdown.getName() + "' target=" + countdown.getTargetInstant());
             CountdownTypeHandler handler = registry.getHandler(countdown.getType());
             if (handler != null) {
                 try {
-                    handler.onStart(countdown, now);
+                    // Use ensureTarget instead of onStart so that a target already restored
+                    // from storage (target_epoch) is preserved rather than being reset to the
+                    // full duration.  ensureTarget is a no-op when targetInstant is non-null.
+                    handler.ensureTarget(countdown, now);
                 } catch (Exception ex) {
                     registry.plugin().getLogger().log(java.util.logging.Level.WARNING, "Error while resuming countdown handler", ex);
                 }
             } else {
-                if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
-                    countdown.setTargetInstant(now.plusSeconds(countdown.getDurationSeconds()));
-                } else if (countdown.getType() == CountdownType.RECURRING) {
-                    countdown.setTargetInstant(countdown.resolveNextRecurringTarget(now));
+                // Legacy fallback for types without a registered handler: only set the target
+                // if it is absent so that persisted remaining time is not discarded.
+                if (countdown.getTargetInstant() == null) {
+                    if (countdown.getType() == CountdownType.DURATION || countdown.getType() == CountdownType.MANUAL) {
+                        countdown.setTargetInstant(now.plusSeconds(countdown.getDurationSeconds()));
+                    } else if (countdown.getType() == CountdownType.RECURRING) {
+                        countdown.setTargetInstant(countdown.resolveNextRecurringTarget(now));
+                    }
                 }
             }
             // force an immediate update on next tick
@@ -361,8 +379,10 @@ public final class CountdownManager {
                     Instant lastEnd = lastEndAt.getOrDefault(nameKey, Instant.EPOCH);
                     if (lastEnd.isAfter(now.minusSeconds(1))) {
                         // recent end already executed
+                        if (registry.debug()) registry.plugin().getLogger().info("[debug] tick: debounce suppressed end for '" + countdown.getName() + "' (last end: " + lastEnd + ")");
                         continue;
                     }
+                    if (registry.debug()) registry.plugin().getLogger().info("[debug] tick: expiry detected for '" + countdown.getName() + "', acquiring end lock");
                     // mark last end now to prevent very close duplicates
                     lastEndAt.put(nameKey, now);
 
@@ -433,6 +453,7 @@ public final class CountdownManager {
     }
 
     private void fireStart(Countdown countdown) {
+        if (registry.debug()) registry.plugin().getLogger().info("[debug] fireStart: '" + countdown.getName() + "'");
         String message = countdown.getStartMessage();
         if (message != null && !message.isBlank()) {
             displayManager.broadcastMessage(messageManager.formatWithPrefix(message,
@@ -465,6 +486,7 @@ public final class CountdownManager {
     }
 
     private void fireEnd(Countdown countdown) {
+        if (registry.debug()) registry.plugin().getLogger().info("[debug] fireEnd: '" + countdown.getName() + "'");
         String message = countdown.getEndMessage();
         if (message != null && !message.isBlank()) {
             displayManager.broadcastMessage(messageManager.formatWithPrefix(message,

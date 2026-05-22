@@ -82,6 +82,9 @@ public final class PluginBootstrap {
             yamlStorage.setHandlerRegistry(registry.handlersMap());
         }
 
+        registry.setDebug(configService.loadDebug());
+        displayManager.setDebug(registry.debug());
+
         CountdownManager countdownManager = new CountdownManager(registry, discordWebhookConfig, storage, displayManager, messageManager, locationManager);
         // register into registry
         registry.setCountdownManager(countdownManager);
@@ -140,6 +143,13 @@ public final class PluginBootstrap {
                     }
                 } catch (Exception ex) {
                     plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload defaults or permissions", ex);
+                }
+
+                try {
+                    registry.setDebug(configService.loadDebug());
+                    displayManager.setDebug(registry.debug());
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload debug flag", ex);
                 }
 
                 try {

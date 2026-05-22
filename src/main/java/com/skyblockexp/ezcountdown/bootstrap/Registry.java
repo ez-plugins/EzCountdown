@@ -32,6 +32,7 @@ public final class Registry {
     private EzCountdownPlaceholderExpansion placeholderExpansion;
     private EzCountdownApi api;
     private final Map<CountdownType, CountdownTypeHandler> handlers = new EnumMap<>(CountdownType.class);
+    private volatile boolean debug = false;
 
     public Registry(EzCountdownPlugin plugin, MessageManager messageManager, CountdownDefaults defaults, CountdownPermissions permissions, DisplayManager displayManager, CountdownStorage storage, LocationManager locationManager, LocationPermissions locationPermissions, CountdownManager countdownManager, GuiManager guiManager) {
         this.plugin = plugin;
@@ -91,6 +92,8 @@ public final class Registry {
     public LocationManager locations() { return locationManager; }
     public LocationPermissions locationPermissions() { return locationPermissions; }
     public CountdownManager countdowns() { return countdownManager; }
+    public boolean debug() { return debug; }
+    public void setDebug(boolean debug) { this.debug = debug; }
 
     public GuiManager gui() { return guiManager; }
 

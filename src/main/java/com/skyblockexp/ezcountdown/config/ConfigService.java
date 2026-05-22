@@ -113,6 +113,10 @@ public final class ConfigService {
         return new TimeFormat.FormatConfig(pattern, hideLeadingZeros);
     }
 
+    public boolean loadDebug() {
+        return plugin.getConfig().getBoolean("debug", false);
+    }
+
     private void ensureResource(String name) {
         File file = new File(plugin.getDataFolder(), name);
         if (!file.exists()) plugin.saveResource(name, false);
