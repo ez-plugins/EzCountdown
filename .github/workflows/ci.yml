@@ -74,12 +74,18 @@ jobs:
     name: "Smoke · ${{ matrix.platform }} / MC ${{ matrix.mc-prefix }} / Java ${{ matrix.java }}"
     runs-on: ubuntu-latest
     needs: [unit-tests, feature-tests]
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         platform: [paper, folia]
-        mc-prefix: ["1.21"]
+        mc-prefix: ["1.21", "26.1"]
         java: [21, 25]
+        include:
+          - mc-prefix: "1.21"
+            experimental: false
+          - mc-prefix: "26.1"
+            experimental: true
 
     steps:
       - name: Checkout
@@ -103,9 +109,9 @@ jobs:
           VERSIONS_JSON=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}")
           MC_VERSION=$(echo "$VERSIONS_JSON" | python3 -c "import sys,json; prefix='${PREFIX}'; vs=json.load(sys.stdin)['versions']; matches=[v for v in vs if v==prefix or v.startswith(prefix+'.')]; print(matches[-1] if matches else '')")
           if [[ -z "$MC_VERSION" ]]; then
-            echo "::notice::No ${PLATFORM} builds found matching MC ${PREFIX}.x — skipping."
+            echo "::error::No ${PLATFORM} builds found matching MC ${PREFIX}.x — add builds to the API or mark this matrix entry experimental."
             echo "available=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            exit 1
           fi
           BUILD=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}/versions/${MC_VERSION}/builds" | \
             python3 -c "import sys,json; builds=json.load(sys.stdin)['builds']; print(builds[-1]['build'])")
@@ -191,11 +197,17 @@ jobs:
     name: "Smoke · spigot / MC ${{ matrix.mc-prefix }} / Java ${{ matrix.java }}"
     runs-on: ubuntu-latest
     needs: [unit-tests, feature-tests]
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        mc-prefix: ["1.21"]
+        mc-prefix: ["1.21", "26.1"]
         java: [21, 25]
+        include:
+          - mc-prefix: "1.21"
+            experimental: false
+          - mc-prefix: "26.1"
+            experimental: true
 
     steps:
       - name: Checkout
@@ -233,9 +245,9 @@ jobs:
             "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar" \
             -o BuildTools.jar
           java -jar BuildTools.jar --rev "${{ matrix.mc-prefix }}" 2>&1 | tee buildtools.log || {
-            echo "::warning::BuildTools failed for MC ${{ matrix.mc-prefix }} on Java ${{ matrix.java }} — version may not be supported yet."
+            echo "::error::BuildTools failed for MC ${{ matrix.mc-prefix }} on Java ${{ matrix.java }} — version may not be supported yet."
             echo "failed=true" >> "$GITHUB_OUTPUT"
-            exit 0
+            exit 1
           }
           SPIGOT_JAR=$(ls spigot-${{ matrix.mc-prefix }}*.jar 2>/dev/null | head -1)
           if [[ -z "$SPIGOT_JAR" ]]; then
@@ -253,8 +265,8 @@ jobs:
         run: |
           SPIGOT_JAR="spigot-build/spigot-${{ matrix.mc-prefix }}.jar"
           if [[ ! -f "$SPIGOT_JAR" ]]; then
-            echo "::notice::Spigot JAR not available for MC ${{ matrix.mc-prefix }} — smoke test skipped."
-            exit 0
+            echo "::error::Spigot JAR not available for MC ${{ matrix.mc-prefix }} — BuildTools step failed or was skipped."
+            exit 1
           fi
           mkdir -p smoke-server/plugins
           cp "$SPIGOT_JAR" smoke-server/server.jar
