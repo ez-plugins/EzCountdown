@@ -126,24 +126,54 @@ jobs:
       #  7. MODRINTH RELEASE
       # ──────────────────────────────────────────────────────────────────────
       - name: Release to Modrinth (stable)
-        uses: Kir-Antipov/mc-publish@v3.3
-        with:
-          modrinth-id: rCku0I4l
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          modrinth-featured: true
-          name: "EzCountdown ${{ steps.meta.outputs.version }}"
-          version: "${{ steps.meta.outputs.version }}"
-          version-type: release
-          files: "target/EzCountdown-${{ steps.meta.outputs.version }}.jar"
-          game-versions: ">=1.13"
-          game-versions-filter: release
-          loaders: |
-            bukkit
-            spigot
-            paper
-            purpur
-            folia
-          changelog-file: release-notes.md
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          JAR="target/EzCountdown-${VERSION}.jar"
+          JAR_NAME="$(basename "$JAR")"
+
+          # Resolve all MC release versions >= 1.13 from Modrinth
+          GAME_VERSIONS=$(python3 -c "import json,urllib.request; r=urllib.request.urlopen('https://api.modrinth.com/v2/tag/game_version'); vs=json.loads(r.read()); K=lambda v:[int(x) for x in v.split('.') if x.isdigit()]; print(json.dumps(sorted([v['version'] for v in vs if v['version_type']=='release' and K(v['version'])>=[1,13]],key=K)))")
+
+          # Build version metadata JSON
+          jq -n \
+            --arg    name           "EzCountdown ${VERSION}" \
+            --arg    ver            "${VERSION}" \
+            --rawfile changelog     release-notes.md \
+            --arg    jar_name       "${JAR_NAME}" \
+            --argjson game_versions "${GAME_VERSIONS}" \
+            '{
+              name:           $name,
+              version_number: $ver,
+              changelog:      $changelog,
+              dependencies:   [],
+              game_versions:  $game_versions,
+              version_type:   "release",
+              loaders:        ["bukkit","spigot","paper","purpur","folia"],
+              featured:       true,
+              project_id:     "rCku0I4l",
+              primary_file:   $jar_name,
+              file_parts:     [$jar_name]
+            }' > /tmp/version_data.json
+
+          # Upload to Modrinth v2 API
+          HTTP_CODE=$(curl -s \
+            -o /tmp/modrinth_resp.json \
+            -w "%{http_code}" \
+            -X POST "https://api.modrinth.com/v2/version" \
+            -H "Authorization: ${MODRINTH_TOKEN}" \
+            -F "data=@/tmp/version_data.json;type=application/json" \
+            -F "${JAR_NAME}=@${JAR};type=application/java-archive")
+
+          if [[ "$HTTP_CODE" -lt 200 || "$HTTP_CODE" -ge 300 ]]; then
+            echo "::error::Modrinth publish failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/modrinth_resp.json
+            exit 1
+          fi
+
+          echo "Published to Modrinth (HTTP ${HTTP_CODE})."
+          python3 -c "import json; d=json.load(open('/tmp/modrinth_resp.json')); print(f'  ID: {d.get(\"id\",\"?\")}  |  {d.get(\"name\",\"?\")}  |  {len(d.get(\"game_versions\",[]))} game version(s)')"
 
       # ──────────────────────────────────────────────────────────────────────
       #  8. DISCORD NOTIFICATION
