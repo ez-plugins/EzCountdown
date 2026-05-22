@@ -105,30 +105,14 @@ jobs:
           PLATFORM="${{ matrix.platform }}"
           PREFIX="${{ matrix.mc-prefix }}"
           VERSIONS_JSON=$(curl -fsSL "https://fill.papermc.io/v3/projects/${PLATFORM}")
-          MC_VERSION=$(PREFIX="${PREFIX}" python3 -c "
-import sys, os, json
-data = json.loads(sys.stdin.read())
-prefix = os.environ['PREFIX']
-versions = data.get('versions', {})
-family = prefix if prefix in versions else next(
-    (f for f in versions if f.startswith(prefix + '.')), None)
-print(versions[family][0] if family and versions.get(family) else '')
-" <<< "$VERSIONS_JSON")
+          MC_VERSION=$(PREFIX="${PREFIX}" python3 -c "import sys,os,json;d=json.loads(sys.stdin.read());p=os.environ['PREFIX'];vs=d.get('versions',{});fam=p if p in vs else next((f for f in vs if f.startswith(p+'.')),None);print(vs[fam][0] if fam and vs.get(fam) else '')" <<< "$VERSIONS_JSON")
           if [[ -z "$MC_VERSION" ]]; then
             echo "::error::No ${PLATFORM} builds found matching MC ${PREFIX}.x."
             echo "available=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
           BUILDS_JSON=$(curl -fsSL "https://fill.papermc.io/v3/projects/${PLATFORM}/versions/${MC_VERSION}/builds")
-          BUILD_INFO=$(python3 -c "
-import sys, json
-builds = json.loads(sys.stdin.read())
-stable = [b for b in builds if b.get('channel') == 'STABLE']
-chosen = stable[0] if stable else (builds[0] if builds else None)
-if chosen:
-    print(chosen['id'])
-    print(chosen['downloads']['server:default']['url'])
-" <<< "$BUILDS_JSON")
+          BUILD_INFO=$(python3 -c "import sys,json;bs=json.loads(sys.stdin.read());st=[b for b in bs if b.get('channel')=='STABLE'];c=st[0] if st else (bs[0] if bs else None);[print(c['id']),print(c['downloads']['server:default']['url'])] if c else None" <<< "$BUILDS_JSON")
           BUILD=$(echo "$BUILD_INFO" | sed -n '1p')
           DOWNLOAD_URL=$(echo "$BUILD_INFO" | sed -n '2p')
           JAR_NAME=$(basename "$DOWNLOAD_URL")
