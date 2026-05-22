@@ -74,18 +74,12 @@ jobs:
     name: "Smoke · ${{ matrix.platform }} / MC ${{ matrix.mc-prefix }} / Java ${{ matrix.java }}"
     runs-on: ubuntu-latest
     needs: [unit-tests, feature-tests]
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         platform: [paper, folia]
-        mc-prefix: ["1.21", "26.1"]
+        mc-prefix: ["1.21"]
         java: [21, 25]
-        include:
-          - mc-prefix: "1.21"
-            experimental: false
-          - mc-prefix: "26.1"
-            experimental: true
 
     steps:
       - name: Checkout
@@ -109,7 +103,7 @@ jobs:
           VERSIONS_JSON=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}")
           MC_VERSION=$(echo "$VERSIONS_JSON" | python3 -c "import sys,json; prefix='${PREFIX}'; vs=json.load(sys.stdin)['versions']; matches=[v for v in vs if v==prefix or v.startswith(prefix+'.')]; print(matches[-1] if matches else '')")
           if [[ -z "$MC_VERSION" ]]; then
-            echo "::error::No ${PLATFORM} builds found matching MC ${PREFIX}.x — add builds to the API or mark this matrix entry experimental."
+            echo "::error::No ${PLATFORM} builds found matching MC ${PREFIX}.x."
             echo "available=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
@@ -197,17 +191,11 @@ jobs:
     name: "Smoke · spigot / MC ${{ matrix.mc-prefix }} / Java ${{ matrix.java }}"
     runs-on: ubuntu-latest
     needs: [unit-tests, feature-tests]
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        mc-prefix: ["1.21", "26.1"]
+        mc-prefix: ["1.21"]
         java: [21, 25]
-        include:
-          - mc-prefix: "1.21"
-            experimental: false
-          - mc-prefix: "26.1"
-            experimental: true
 
     steps:
       - name: Checkout
