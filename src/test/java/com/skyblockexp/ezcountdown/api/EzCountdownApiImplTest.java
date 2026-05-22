@@ -203,4 +203,59 @@ public class EzCountdownApiImplTest {
         Optional<String> result = api.sendNotification(Notification.ofSeconds(5));
         assertFalse(result.isPresent());
     }
+
+    // ------------------------------------------------------------------
+    // Per-player sendNotification tests
+    // ------------------------------------------------------------------
+
+    @Test
+    public void sendNotification_withPlayers_setsTargetPlayers() {
+        Registry registry = mockRegistryWithDefaults();
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        java.util.UUID uid = java.util.UUID.randomUUID();
+        Player player = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(uid);
+
+        api.sendNotification(Notification.ofSeconds(10), List.of(player));
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Countdown.class);
+        verify(registry.countdowns()).createCountdown(captor.capture());
+        Countdown created = captor.getValue();
+
+        assertNotNull(created.getTargetPlayers(), "targetPlayers should be set");
+        assertTrue(created.getTargetPlayers().contains(uid), "player UUID should be in targetPlayers");
+    }
+
+    @Test
+    public void sendNotification_withNullPlayers_noTargetPlayers() {
+        Registry registry = mockRegistryWithDefaults();
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        api.sendNotification(Notification.ofSeconds(10), null);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Countdown.class);
+        verify(registry.countdowns()).createCountdown(captor.capture());
+        Countdown created = captor.getValue();
+
+        assertNull(created.getTargetPlayers(), "null players should leave targetPlayers unset");
+    }
+
+    @Test
+    public void sendNotification_notificationWithPlayers_setsTargetPlayers() {
+        Registry registry = mockRegistryWithDefaults();
+        EzCountdownApi api = new EzCountdownApiImpl(registry);
+
+        java.util.UUID uid = java.util.UUID.randomUUID();
+        Player player = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(uid);
+
+        // Players embedded in notification via builder
+        Notification notification = Notification.builder()
+                .duration(5)
+                .players(List.of(player))
+                .build();
+        assertNotNull(notification.getTargetPlayers());
+        assertTrue(notification.getTargetPlayers().contains(uid));
+    }
 }

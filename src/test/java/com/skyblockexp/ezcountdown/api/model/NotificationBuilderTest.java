@@ -147,4 +147,32 @@ public class NotificationBuilderTest {
         // original should be unaffected
         assertFalse(n.getDisplayTypes().contains(DisplayType.CHAT));
     }
+
+    // ------------------------------------------------------------------
+    // Per-player targeting
+    // ------------------------------------------------------------------
+
+    @Test
+    public void builder_players_storesUUIDs() {
+        org.bukkit.entity.Player p = org.mockito.Mockito.mock(org.bukkit.entity.Player.class);
+        java.util.UUID uid = java.util.UUID.randomUUID();
+        org.mockito.Mockito.when(p.getUniqueId()).thenReturn(uid);
+
+        Notification n = Notification.builder().duration(10).players(java.util.List.of(p)).build();
+
+        assertNotNull(n.getTargetPlayers());
+        assertTrue(n.getTargetPlayers().contains(uid));
+    }
+
+    @Test
+    public void builder_nullPlayers_noTargetPlayers() {
+        Notification n = Notification.builder().duration(10).players(null).build();
+        assertNull(n.getTargetPlayers());
+    }
+
+    @Test
+    public void ofSeconds_noTargetPlayers() {
+        Notification n = Notification.ofSeconds(10);
+        assertNull(n.getTargetPlayers());
+    }
 }

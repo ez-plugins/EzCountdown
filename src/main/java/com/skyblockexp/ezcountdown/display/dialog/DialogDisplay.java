@@ -61,10 +61,9 @@ public class DialogDisplay implements DisplayHandler {
         }
 
         String cdName = countdown.getName();
-        String perm = countdown.getVisibilityPermission();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (perm != null && !perm.isBlank() && !player.hasPermission(perm)) {
+            if (!countdown.isVisibleTo(player)) {
                 // Player lost permission — close any open dialog from this countdown
                 UUID uid = player.getUniqueId();
                 LastShown prev = lastShown.get(uid);

@@ -65,4 +65,36 @@ public interface EzCountdownApi {
      *         {@link Optional#empty()} on a (very unlikely) name collision
      */
     Optional<String> sendNotification(Notification notification);
+
+    /**
+     * Send an ephemeral countdown notification to a specific subset of players.
+     * <p>
+     * Behaves identically to {@link #sendNotification(Notification)} but
+     * restricts display output to the given players for the lifetime of the
+     * notification.  When {@code players} is {@code null} or empty the
+     * notification falls back to targeting all online players.
+     *
+     * <h3>Example</h3>
+     * <pre>{@code
+     * // Show a 10-second action-bar only to a single player
+     * api.sendNotification(Notification.ofSeconds(10), List.of(player));
+     *
+     * // Builder approach — same result
+     * api.sendNotification(
+     *     Notification.builder()
+     *         .duration(10)
+     *         .players(List.of(player))
+     *         .build()
+     * );
+     * }</pre>
+     *
+     * @param notification the notification descriptor
+     * @param players      players to receive the notification;
+     *                     {@code null} or empty sends to all online players
+     * @return the generated countdown name wrapped in Optional, or empty on collision
+     */
+    default Optional<String> sendNotification(Notification notification, Collection<Player> players) {
+        throw new UnsupportedOperationException(
+                "Per-player sendNotification is not supported by this EzCountdownApi implementation.");
+    }
 }

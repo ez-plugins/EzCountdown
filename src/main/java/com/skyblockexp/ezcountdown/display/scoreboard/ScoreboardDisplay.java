@@ -43,8 +43,7 @@ public class ScoreboardDisplay implements StackableDisplay {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            String perm = countdown.getVisibilityPermission();
-            if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+            if (countdown.isVisibleTo(player)) {
                 try {
                     Scoreboard scoreboard = player.getScoreboard();
                     if (scoreboard == manager.getMainScoreboard()) {
@@ -116,8 +115,7 @@ public class ScoreboardDisplay implements StackableDisplay {
                     long rem = remaining.getOrDefault(c, 0L);
                     if (rem <= 0L) continue; // skip timers at zero
                     if (!c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD)) continue;
-                    String perm = c.getVisibilityPermission();
-                    if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+                    if (c.isVisibleTo(player)) {
                         String msg = messages.get(c);
                         if (msg != null) visible.add(msg);
                     }
@@ -168,8 +166,7 @@ public class ScoreboardDisplay implements StackableDisplay {
                     long rem = remaining.getOrDefault(c, 0L);
                     if (rem <= 0L) continue; // skip countdown whose timer has reached zero
                     if (!c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD)) continue;
-                    String perm = c.getVisibilityPermission();
-                    if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+                    if (c.isVisibleTo(player)) {
                         String msg = messages.get(c);
                         if (msg != null) player.sendMessage(msg);
                     }

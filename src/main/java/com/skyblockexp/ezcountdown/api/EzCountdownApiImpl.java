@@ -94,11 +94,16 @@ public final class EzCountdownApiImpl implements EzCountdownApi {
 
     @Override
     public Optional<String> sendNotification(Notification notification) {
+        return sendNotification(notification, null);
+    }
+
+    @Override
+    public Optional<String> sendNotification(Notification notification, Collection<Player> players) {
         Objects.requireNonNull(notification, "notification");
         String name = "notif-" + UUID.randomUUID().toString().substring(0, 8);
         com.skyblockexp.ezcountdown.manager.CountdownDefaults defs = registry.defaults();
 
-        Countdown countdown = CountdownBuilder.builder(name)
+        CountdownBuilder builder = CountdownBuilder.builder(name)
                 .type(CountdownType.DURATION)
                 .displayTypes(notification.getDisplayTypes())
                 .updateIntervalSeconds(defs.updateIntervalSeconds())
@@ -106,9 +111,25 @@ public final class EzCountdownApiImpl implements EzCountdownApi {
                 .startMessage(notification.getStartMessage())
                 .endMessage(notification.getEndMessage())
                 .durationSeconds(notification.getDurationSeconds())
-                .ephemeral(true)
-                .build();
+                .ephemeral(true);
 
+        // Resolve player set: explicit arg takes priority; then fall back to
+        // players embedded in the notification descriptor itself.
+        Collection<Player> effectivePlayers = (players != null && !players.isEmpty())
+                ? players
+                : null;
+        if (effectivePlayers == null && notification.getTargetPlayers() != null
+                && !notification.getTargetPlayers().isEmpty()) {
+            // Convert stored UUIDs back into online players (best-effort)
+            effectivePlayers = org.bukkit.Bukkit.getOnlinePlayers().stream()
+                    .filter(p -> notification.getTargetPlayers().contains(p.getUniqueId()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        if (effectivePlayers != null && !effectivePlayers.isEmpty()) {
+            builder.targetPlayers(effectivePlayers);
+        }
+
+        Countdown countdown = builder.build();
         countdown.setRunning(true);
         countdown.setTargetInstant(java.time.Instant.now().plusSeconds(notification.getDurationSeconds()));
 

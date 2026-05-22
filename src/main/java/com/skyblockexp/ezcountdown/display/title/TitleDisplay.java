@@ -12,8 +12,7 @@ public class TitleDisplay implements DisplayHandler {
     public void display(Countdown countdown, String message, long remainingSeconds) {
         if (remainingSeconds <= 0L) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            String perm = countdown.getVisibilityPermission();
-            if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+            if (countdown.isVisibleTo(player)) {
                 try {
                     player.sendTitle(message, "", 10, 40, 10);
                 } catch (NoSuchMethodError | NoClassDefFoundError err) {
@@ -32,8 +31,7 @@ public class TitleDisplay implements DisplayHandler {
     public void displayBatched(Countdown countdown, String message, long remainingSeconds, MessageBatch batch) {
         if (remainingSeconds <= 0L) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            String perm = countdown.getVisibilityPermission();
-            if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+            if (countdown.isVisibleTo(player)) {
                 try {
                     player.sendTitle(message, "", 10, 40, 10);
                 } catch (NoSuchMethodError | NoClassDefFoundError err) {
@@ -51,8 +49,7 @@ public class TitleDisplay implements DisplayHandler {
     @Override
     public void clear(Countdown countdown) {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            String perm = countdown.getVisibilityPermission();
-            if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+            if (countdown.isVisibleTo(player)) {
                 try {
                     player.resetTitle();
                 } catch (NoSuchMethodError | NoClassDefFoundError ignored) {
