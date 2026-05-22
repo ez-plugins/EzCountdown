@@ -21,7 +21,7 @@ public class EzCountdownPlugin extends JavaPlugin {
 
         int mcMinor = ServerVersionUtil.minorVersion();
         int javaMinor = parseJavaMajor();
-        getLogger().info("Server: MC 1." + mcMinor + " | Java " + javaMinor);
+        getLogger().info("Server: MC " + ServerVersionUtil.versionDisplay() + " | Java " + javaMinor);
 
         if (mcMinor < 18) {
             getLogger().severe("EzCountdown requires Paper/Spigot 1.18 or newer. Disabling.");

@@ -4,55 +4,99 @@ import org.bukkit.Bukkit;
 
 /**
  * Lightweight utility for querying the running Minecraft minor version at
- * runtime. Used to enable or suppress features that are not available on all
- * supported server versions (1.18+).
+ * runtime.
  *
- * <p>The version is parsed once on class-load and cached for the lifetime of
- * the server process.
+ * <p>Two Bukkit version string formats are supported:
+ * <ul>
+ *   <li><b>Legacy</b>: {@code 1.21.1-R0.1-SNAPSHOT} — through MC 1.x.
+ *       {@link #minorVersion()} returns {@code 21}.
+ *   <li><b>New-format</b>: {@code 26.1-R0.1-SNAPSHOT} — when the leading
+ *       {@code 1.} prefix is dropped. {@link #minorVersion()} returns
+ *       {@code 26} so all {@link #atLeast} comparisons remain valid.
+ * </ul>
  */
 public final class ServerVersionUtil {
 
-    /** Parsed Minecraft minor version (e.g. 18 for 1.18.2, 21 for 1.21.4). */
-    private static final int MINOR = parseMinor();
+    private static final int MINOR;
+    private static final String DISPLAY;
+
+    static {
+        String[] parsed = parseFrom(safeBukkitVersion());
+        MINOR   = Integer.parseInt(parsed[0]);
+        DISPLAY = parsed[1];
+    }
 
     private ServerVersionUtil() {}
 
-    /**
-     * Returns the Minecraft minor version number.
-     *
-     * @return minor version (e.g. 18, 19, 20, 21)
-     */
+    /** Returns the effective Minecraft minor version (e.g. 21 or 26). */
     public static int minorVersion() {
         return MINOR;
     }
 
     /**
+     * Returns a human-readable MC version string for log messages,
+     * e.g. {@code "1.21"} or {@code "26.1"}.
+     */
+    public static String versionDisplay() {
+        return DISPLAY;
+    }
+
+    /**
      * Returns {@code true} if the server is running Minecraft 1.{@code minor}
      * or newer.
-     *
-     * @param minor the minimum minor version to require
-     * @return {@code true} if the server version is sufficient
      */
     public static boolean atLeast(int minor) {
         return MINOR >= minor;
     }
 
+    // -------------------------------------------------------------------------
+    // Package-private for unit testing
+    // -------------------------------------------------------------------------
+
     /**
-     * Parses the Minecraft minor version from {@link Bukkit#getBukkitVersion()}.
-     * The string has the format {@code "1.21.1-R0.1-SNAPSHOT"}.
-     * Falls back to {@code 21} if parsing fails.
+     * Parses a Bukkit version string and returns [effectiveMinor, displayString].
+     * Examples:
+     *   "1.21.1-R0.1-SNAPSHOT"  -> ["21", "1.21"]
+     *   "26.1-R0.1-SNAPSHOT"    -> ["26", "26.1"]
+     *   "27-R0.1-SNAPSHOT"      -> ["27", "27"]
      */
-    private static int parseMinor() {
+    static String[] parseFrom(String bukkit) {
         try {
-            String version = Bukkit.getBukkitVersion();
-            String[] parts = version.split("\\.");
-            if (parts.length >= 2) {
-                String raw = parts[1].replaceAll("[^0-9].*", "");
-                return Integer.parseInt(raw);
+            String clean = bukkit.split("-")[0]; // strip -R0.1-SNAPSHOT
+            String[] parts = clean.split("\\.");
+            if (parts.length >= 2 && "1".equals(parts[0])) {
+                // Legacy: 1.21.1 -> minor=21, display="1.21"
+                String minorStr = digits(parts[1]);
+                Integer.parseInt(minorStr); // validate; throws on empty
+                return new String[]{minorStr, "1." + minorStr};
+            } else if (parts.length >= 2) {
+                // New-format: 26.1 -> effective-minor=26, display="26.1"
+                String majorStr = digits(parts[0]);
+                Integer.parseInt(majorStr); // validate
+                String subStr   = digits(parts[1]);
+                return new String[]{majorStr, majorStr + "." + subStr};
+            } else if (parts.length == 1) {
+                // Bare major: 27 -> effective-minor=27, display="27"
+                String majorStr = digits(parts[0]);
+                Integer.parseInt(majorStr); // validate
+                return new String[]{majorStr, majorStr};
             }
         } catch (Throwable ignored) {
-            // Unexpected format; use a safe default
+            // Unexpected format; fall through to default
         }
-        return 21;
+        return new String[]{"21", "1.21"};
+    }
+
+    /** Strips everything from the first non-digit character onward. */
+    private static String digits(String s) {
+        return s.replaceAll("[^0-9].*", "");
+    }
+
+    private static String safeBukkitVersion() {
+        try {
+            return Bukkit.getBukkitVersion();
+        } catch (Throwable t) {
+            return "1.21-R0.1-SNAPSHOT";
+        }
     }
 }

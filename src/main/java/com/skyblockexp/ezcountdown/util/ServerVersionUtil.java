@@ -21,4 +21,10 @@ public final class ServerVersionUtil {
     public static boolean atLeast(int minor) {
         return com.skyblockexp.ezcountdown.compat.version.ServerVersionUtil.atLeast(minor);
     }
+
+    /** @deprecated Use the {@code compat.version} equivalent. */
+    @Deprecated
+    public static String versionDisplay() {
+        return com.skyblockexp.ezcountdown.compat.version.ServerVersionUtil.versionDisplay();
+    }
 }
