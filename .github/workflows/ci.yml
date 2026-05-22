@@ -78,8 +78,12 @@ jobs:
       fail-fast: false
       matrix:
         platform: [paper, folia]
-        mc-prefix: ["1.21"]
+        mc-prefix: ["1.21", "26.1"]
         java: [21, 25]
+        exclude:
+          # MC 26.1 requires Java 25+
+          - mc-prefix: "26.1"
+            java: 21
 
     steps:
       - name: Checkout
@@ -100,20 +104,43 @@ jobs:
         run: |
           PLATFORM="${{ matrix.platform }}"
           PREFIX="${{ matrix.mc-prefix }}"
-          VERSIONS_JSON=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}")
-          MC_VERSION=$(echo "$VERSIONS_JSON" | python3 -c "import sys,json; prefix='${PREFIX}'; vs=json.load(sys.stdin)['versions']; matches=[v for v in vs if v==prefix or v.startswith(prefix+'.')]; print(matches[-1] if matches else '')")
+          VERSIONS_JSON=$(curl -fsSL "https://fill.papermc.io/v3/projects/${PLATFORM}")
+          MC_VERSION=$(PREFIX="${PREFIX}" python3 -c "
+import sys, os, json
+data = json.loads(sys.stdin.read())
+prefix = os.environ['PREFIX']
+versions = data.get('versions', {})
+family = prefix if prefix in versions else next(
+    (f for f in versions if f.startswith(prefix + '.')), None)
+print(versions[family][0] if family and versions.get(family) else '')
+" <<< "$VERSIONS_JSON")
           if [[ -z "$MC_VERSION" ]]; then
             echo "::error::No ${PLATFORM} builds found matching MC ${PREFIX}.x."
             echo "available=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          BUILD=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}/versions/${MC_VERSION}/builds" | \
-            python3 -c "import sys,json; builds=json.load(sys.stdin)['builds']; print(builds[-1]['build'])")
-          JAR_NAME=$(curl -fsSL "https://api.papermc.io/v2/projects/${PLATFORM}/versions/${MC_VERSION}/builds/${BUILD}" | \
-            python3 -c "import sys,json; d=json.load(sys.stdin); print(d['downloads']['application']['name'])")
+          BUILDS_JSON=$(curl -fsSL "https://fill.papermc.io/v3/projects/${PLATFORM}/versions/${MC_VERSION}/builds")
+          BUILD_INFO=$(python3 -c "
+import sys, json
+builds = json.loads(sys.stdin.read())
+stable = [b for b in builds if b.get('channel') == 'STABLE']
+chosen = stable[0] if stable else (builds[0] if builds else None)
+if chosen:
+    print(chosen['id'])
+    print(chosen['downloads']['server:default']['url'])
+" <<< "$BUILDS_JSON")
+          BUILD=$(echo "$BUILD_INFO" | sed -n '1p')
+          DOWNLOAD_URL=$(echo "$BUILD_INFO" | sed -n '2p')
+          JAR_NAME=$(basename "$DOWNLOAD_URL")
+          if [[ -z "$BUILD" || -z "$DOWNLOAD_URL" ]]; then
+            echo "::error::No builds found for ${PLATFORM} ${MC_VERSION}."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
           echo "mc_version=${MC_VERSION}" >> "$GITHUB_OUTPUT"
           echo "build=${BUILD}"           >> "$GITHUB_OUTPUT"
           echo "jar_name=${JAR_NAME}"     >> "$GITHUB_OUTPUT"
+          echo "download_url=${DOWNLOAD_URL}" >> "$GITHUB_OUTPUT"
           echo "available=true"          >> "$GITHUB_OUTPUT"
           echo "Resolved: ${PLATFORM} ${MC_VERSION} build ${BUILD} (${JAR_NAME})"
 
@@ -121,9 +148,7 @@ jobs:
         if: steps.server.outputs.available == 'true'
         run: |
           mkdir -p smoke-server/plugins
-          curl -fsSL \
-            "https://api.papermc.io/v2/projects/${{ matrix.platform }}/versions/${{ steps.server.outputs.mc_version }}/builds/${{ steps.server.outputs.build }}/downloads/${{ steps.server.outputs.jar_name }}" \
-            -o smoke-server/server.jar
+          curl -fsSL "${{ steps.server.outputs.download_url }}" -o smoke-server/server.jar
 
       - name: Copy plugin JAR
         if: steps.server.outputs.available == 'true'
