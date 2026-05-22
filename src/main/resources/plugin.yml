@@ -4,7 +4,8 @@ main: com.skyblockexp.ezcountdown.EzCountdownPlugin
 description: Professional countdown timers for events, launches, and maintenance windows.
 softdepend: [PlaceholderAPI]
 author: Shadow48402
-api-version: 1.13
+api-version: 1.18
+folia-supported: true
 commands:
   countdown:
     description: Manage EzCountdown timers.

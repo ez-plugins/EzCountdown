@@ -7,8 +7,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import org.bukkit.entity.Player;
 import com.skyblockexp.ezcountdown.util.DurationParser;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -81,6 +86,13 @@ public final class Countdown {
      * never be persisted to storage and should be removed from memory once it ends.
      */
     private boolean ephemeral = false;
+
+    /**
+     * When non-null and non-empty, only the players whose UUIDs are in this set
+     * will see this countdown's display output. {@code null} (the default) means
+     * the countdown is visible to all players (subject to {@link #visibilityPermission}).
+     */
+    private Set<UUID> targetPlayers = null;
 
     /**
      * Create a new Countdown instance.
@@ -275,6 +287,47 @@ public final class Countdown {
 
     /** Package-private — set by {@link CountdownBuilder#ephemeral(boolean)}. */
     void setEphemeral(boolean ephemeral) { this.ephemeral = ephemeral; }
+
+    /**
+     * Returns an unmodifiable snapshot of the player UUIDs this countdown is
+     * restricted to, or {@code null} if the countdown is visible to all players
+     * (subject to {@link #getVisibilityPermission()}).
+     */
+    public Set<UUID> getTargetPlayers() {
+        return targetPlayers == null ? null : java.util.Collections.unmodifiableSet(targetPlayers);
+    }
+
+    /**
+     * Restrict this countdown's display output to the given players.
+     * Pass {@code null} or an empty collection to remove the restriction and
+     * make the countdown visible to all players again.
+     *
+     * @param players target player UUIDs; {@code null} clears the restriction
+     */
+    public void setTargetPlayers(Collection<UUID> players) {
+        this.targetPlayers = (players == null || players.isEmpty()) ? null : new HashSet<>(players);
+    }
+
+    /**
+     * Returns {@code true} if {@code player} should receive display updates
+     * from this countdown.
+     *
+     * <p>A player is visible when both conditions are satisfied:
+     * <ol>
+     *   <li>The player is in the {@linkplain #getTargetPlayers() target set}
+     *       (or no target set is configured).</li>
+     *   <li>The player has the {@linkplain #getVisibilityPermission() visibility
+     *       permission} (or no permission is configured).</li>
+     * </ol>
+     */
+    public boolean isVisibleTo(Player player) {
+        if (targetPlayers != null && !targetPlayers.isEmpty()
+                && !targetPlayers.contains(player.getUniqueId())) {
+            return false;
+        }
+        String perm = visibilityPermission;
+        return perm == null || perm.isBlank() || player.hasPermission(perm);
+    }
 
     /** @return configured duration in seconds for duration/manual types */
     public long getDurationSeconds() { return durationSeconds; }

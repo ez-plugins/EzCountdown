@@ -3,8 +3,14 @@ package com.skyblockexp.ezcountdown.api.model;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 
 import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import org.bukkit.entity.Player;
 
 /**
  * A lightweight, immutable descriptor for an ephemeral countdown notification.
@@ -50,12 +56,15 @@ public final class Notification {
     private final String formatMessage;
     private final String startMessage;
     private final String endMessage;
+    /** Non-null → only these players see the notification. Null → all players. */
+    private final Set<UUID> targetPlayers;
 
     Notification(long durationSeconds,
                  EnumSet<DisplayType> displayTypes,
                  String formatMessage,
                  String startMessage,
-                 String endMessage) {
+                 String endMessage,
+                 Set<UUID> targetPlayers) {
         if (durationSeconds <= 0) throw new IllegalArgumentException("durationSeconds must be > 0, got " + durationSeconds);
         this.durationSeconds = durationSeconds;
         this.displayTypes = displayTypes == null || displayTypes.isEmpty()
@@ -66,6 +75,17 @@ public final class Notification {
                 : formatMessage;
         this.startMessage = startMessage;
         this.endMessage = endMessage;
+        this.targetPlayers = (targetPlayers == null || targetPlayers.isEmpty()) ? null
+                : Collections.unmodifiableSet(new HashSet<>(targetPlayers));
+    }
+
+    /** Package-private backwards-compat constructor (no target players → global). */
+    Notification(long durationSeconds,
+                 EnumSet<DisplayType> displayTypes,
+                 String formatMessage,
+                 String startMessage,
+                 String endMessage) {
+        this(durationSeconds, displayTypes, formatMessage, startMessage, endMessage, null);
     }
 
     // -----------------------------------------------------------------------
@@ -131,12 +151,22 @@ public final class Notification {
         return endMessage;
     }
 
+    /**
+     * Returns an unmodifiable set of player UUIDs that should receive this
+     * notification, or {@code null} if the notification targets all online
+     * players (the default).
+     */
+    public Set<UUID> getTargetPlayers() {
+        return targetPlayers;
+    }
+
     @Override
     public String toString() {
         return "Notification{durationSeconds=" + durationSeconds
                 + ", displayTypes=" + displayTypes
                 + ", formatMessage='" + formatMessage + "'"
                 + ", startMessage=" + startMessage
-                + ", endMessage=" + endMessage + '}';
+                + ", endMessage=" + endMessage
+                + ", targetPlayers=" + targetPlayers + '}';
     }
 }

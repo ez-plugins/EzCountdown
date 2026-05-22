@@ -89,8 +89,7 @@ final class LegacyDisplayManager {
     }
 
     private boolean canSee(Player player, Countdown countdown) {
-        String permission = countdown.getVisibilityPermission();
-        return permission == null || permission.isBlank() || player.hasPermission(permission);
+        return countdown.isVisibleTo(player);
     }
 
     private void updateBossBar(Countdown countdown, String message, long remainingSeconds) {

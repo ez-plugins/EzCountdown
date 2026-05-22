@@ -10,19 +10,20 @@ nav_order: 1
 [![Release](https://img.shields.io/github/v/release/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/releases)
 [![License](https://img.shields.io/github/license/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/blob/main/LICENSE)
 
-A feature-rich countdown plugin for Paper/Spigot servers. Create countdowns for events, launches, maintenance windows, and more - all configurable from YAML with no coding required.
+A feature-rich countdown plugin for Paper/Spigot servers. Create countdowns for events, launches, maintenance windows, and more  -  all configurable from YAML with no coding required.
 
 ## Features
 
-- **Four countdown modes** - fixed date, duration, manual, and recurring (yearly or clock-aligned).
-- **Five display types** - action bar, boss bar, title, chat, and scoreboard.
-- **PlaceholderAPI support** - expose countdown values to scoreboards, holograms, and other plugins.
-- **Discord webhooks** - post start/end notifications to a Discord channel.
-- **In-game GUI** - manage countdowns visually without editing YAML.
-- **Firework shows** - trigger configurable firework displays on start or end.
-- **Teleport actions** - move all online players to a named location when a countdown starts or ends.
-- **Console commands on end** - run any command when a countdown completes.
-- **Developer API** - create, start, stop, and listen to countdown events from other plugins.
+- **Four countdown modes**  -  fixed date, duration, manual, and recurring (yearly or clock-aligned).
+- **Six display types**  -  action bar, boss bar, title, chat, scoreboard, and dialog (Paper 1.21.7+).
+- **Per-player visibility**  -  restrict any countdown or notification to specific permission nodes or a target-player set.
+- **PlaceholderAPI support**  -  expose countdown values to scoreboards, holograms, and other plugins.
+- **Discord webhooks**  -  post start/end notifications to a Discord channel.
+- **In-game GUI**  -  manage countdowns visually without editing YAML.
+- **Firework shows**  -  trigger configurable firework displays on start or end.
+- **Teleport actions**  -  move all online players to a named location when a countdown starts or ends.
+- **Console commands on end**  -  run any command when a countdown completes.
+- **Developer API**  -  create, start, stop, listen to countdown events, and send per-player notifications from other plugins.
 
 ## Quick Start
 
@@ -41,16 +42,24 @@ A feature-rich countdown plugin for Paper/Spigot servers. Create countdowns for 
    /countdown reload
    ```
 
+## Compatibility
+
+| Requirement | Minimum version |
+|---|---|
+| Minecraft / server software | Paper or Spigot **1.18** (or any fork) |
+| Java | **17** |
+| Dialog display | Paper **1.21.7** (gracefully skipped on older builds) |
+| PlaceholderAPI | Any compatible build (soft dependency) |
+
+> **Server owners**: download the release jar from [GitHub Releases](https://github.com/ez-plugins/EzCountdown/releases). Java 17 and Paper/Spigot 1.18 or newer are all you need.
+>
+> **Plugin developers**: add EzCountdown as a `provided` dependency and compile your plugin against Java 17 or newer.
+
 ## Documentation
 
 | Section | Description |
 |---|---|
-| [Server Owners](server-owners) | Getting started: install, commands, permissions, configuration |
+| [Tutorials](tutorials/) | Step-by-step guides: create your first countdown, set up recurring announcements |
+| [Server Owners](server-owners) | Install, commands, permissions, configuration reference |
 | [Features](feature/) | Countdown types, displays, Discord, fireworks, teleports, and more |
 | [Developer API](api/) | Java API, events, and models for plugin developers |
-
-## Installation
-
-Download the latest release from [GitHub Releases](https://github.com/ez-plugins/EzCountdown/releases) and place the jar in your server's `plugins/` folder. Requires **Paper 1.20+** and **Java 21+**.
-
-For dependency access in your own plugin, see the [Developer API](api/) page.

@@ -6,9 +6,15 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.bukkit.entity.Player;
 
 /**
  * Builder for {@link Countdown} to simplify construction from consumer code.
@@ -36,6 +42,7 @@ public final class CountdownBuilder {
     private org.bukkit.boss.BarStyle bossBarStyle = org.bukkit.boss.BarStyle.SOLID;
 
     private boolean ephemeral = false;
+    private Set<UUID> targetPlayers = null;
 
     /* optional runtime values that the builder can configure */
     private long durationSeconds = -1L;
@@ -182,6 +189,7 @@ public final class CountdownBuilder {
         if (recurringDay > 0) countdown.setRecurringDay(recurringDay);
         if (recurringTime != null) countdown.setRecurringTime(recurringTime);
         if (ephemeral) countdown.setEphemeral(true);
+        if (targetPlayers != null) countdown.setTargetPlayers(targetPlayers);
 
         return countdown;
     }
@@ -193,6 +201,20 @@ public final class CountdownBuilder {
 
     public CountdownBuilder bossBarStyle(org.bukkit.boss.BarStyle style) {
         this.bossBarStyle = style == null ? org.bukkit.boss.BarStyle.SOLID : style;
+        return this;
+    }
+
+    /**
+     * Restrict display of this countdown to the given players only.
+     * Pass {@code null} or an empty collection to target all online players.
+     *
+     * @param players players to show the countdown to
+     * @return this builder
+     */
+    public CountdownBuilder targetPlayers(Collection<? extends Player> players) {
+        this.targetPlayers = (players == null || players.isEmpty()) ? null
+                : players.stream().map(Player::getUniqueId)
+                         .collect(Collectors.toCollection(HashSet::new));
         return this;
     }
 

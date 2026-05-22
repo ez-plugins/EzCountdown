@@ -58,6 +58,7 @@ public class MissedRunPolicyRunAllEdgeCasesTest {
         java.lang.reflect.Field serverField = org.bukkit.Bukkit.class.getDeclaredField("server");
         serverField.setAccessible(true);
         serverField.set(null, bukkitServer);
+        when(registry.scheduler()).thenReturn(new com.skyblockexp.ezcountdown.compat.scheduler.BukkitSchedulerAdapter(plugin));
     }
 
     @Test

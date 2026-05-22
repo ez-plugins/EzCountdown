@@ -53,3 +53,9 @@ display-overrides:
     scoreboard: false
     boss_bar: false
     dialog: false
+
+# Enable verbose debug logging for diagnosing countdown lifecycle events.
+# When true, the server console will log each countdown create, start, stop, delete,
+# tick expiry, debounce suppression, start/end broadcast, and message dispatch.
+# Leave false in production; reload is not required — the flag is applied on next /countdown reload.
+debug: false

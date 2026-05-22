@@ -5,7 +5,7 @@
 
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>ezcountdown</artifactId>
-    <version>1.4.2</version>
+    <version>2.0.0</version>
     <name>EzCountdown Plugin</name>
     <description>Configurable countdowns for server launches, events, and maintenance windows.</description>
     <packaging>jar</packaging>
@@ -83,11 +83,10 @@
     </dependencies>
     
     <properties>
-        <!-- Default to Java 21 to match source language features (records, etc.). -->
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <!-- Minimum bytecode target is Java 17 (records/pattern-instanceof used; Paper 1.18 requires Java 17). -->
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
 
-        <!-- Target Java 21 to match Paper API (class file version 65) -->
         <!-- Allow CI to override the Paper API version with -Dpaper.version -->
         <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
         <!-- MockBukkit coordinates are configurable so CI can select the right artifact per Paper matrix entry -->
@@ -176,6 +175,7 @@
                 <version>3.0.0-M7</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
                     <excludes>
                         <exclude>**/*FeatureTest.java</exclude>
                     </excludes>
@@ -255,15 +255,16 @@
                 <maven.compiler.target>17</maven.compiler.target>
             </properties>
         </profile>
-        <!-- If the build runs on JDK 21 or newer, enable Java 21 compilation. -->
+        <!-- JDK 21 can compile the code; we still target Java 17 bytecode so the JAR
+             runs on Paper 1.18-1.20.4 (Java 17) as well as Paper 1.20.5+ (Java 21). -->
         <profile>
             <id>jdk21</id>
             <activation>
                 <jdk>[21,)</jdk>
             </activation>
             <properties>
-                <maven.compiler.source>21</maven.compiler.source>
-                <maven.compiler.target>21</maven.compiler.target>
+                <maven.compiler.source>17</maven.compiler.source>
+                <maven.compiler.target>17</maven.compiler.target>
             </properties>
         </profile>
         <profile>

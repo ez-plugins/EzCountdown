@@ -1,6 +1,7 @@
 package com.skyblockexp.ezcountdown.display.scoreboard;
 
 import com.skyblockexp.ezcountdown.api.model.Countdown;
+import com.skyblockexp.ezcountdown.compat.scoreboard.ScoreboardCompat;
 import com.skyblockexp.ezcountdown.display.DisplayHandler;
 import com.skyblockexp.ezcountdown.display.StackableDisplay;
 import java.util.Collection;
@@ -10,7 +11,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Locale;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -43,8 +43,7 @@ public class ScoreboardDisplay implements StackableDisplay {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            String perm = countdown.getVisibilityPermission();
-            if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+            if (countdown.isVisibleTo(player)) {
                 try {
                     Scoreboard scoreboard = player.getScoreboard();
                     if (scoreboard == manager.getMainScoreboard()) {
@@ -54,12 +53,13 @@ public class ScoreboardDisplay implements StackableDisplay {
                     String objectiveName = buildObjectiveName(countdown.getName());
                     Objective objective = scoreboard.getObjective(objectiveName);
                     if (objective == null) {
-                        objective = scoreboard.registerNewObjective(objectiveName, "dummy", ChatColor.AQUA + "Countdown");
+                        objective = ScoreboardCompat.registerObjective(scoreboard, objectiveName, "Countdown");
+                    } else {
+                        objective = ScoreboardCompat.resetObjective(scoreboard, objective, "Countdown");
                     }
                     objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-                    scoreboard.getEntries().forEach(scoreboard::resetScores);
                     objective.getScore(message).setScore(1);
-                } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException e) {
+                } catch (NoClassDefFoundError | NoSuchMethodError | UnsupportedOperationException | IllegalArgumentException e) {
                     // Scoreboard operations failed; fall back to chat for compatibility
                     player.sendMessage(message);
                 }
@@ -116,8 +116,7 @@ public class ScoreboardDisplay implements StackableDisplay {
                     long rem = remaining.getOrDefault(c, 0L);
                     if (rem <= 0L) continue; // skip timers at zero
                     if (!c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD)) continue;
-                    String perm = c.getVisibilityPermission();
-                    if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+                    if (c.isVisibleTo(player)) {
                         String msg = messages.get(c);
                         if (msg != null) visible.add(msg);
                     }
@@ -148,28 +147,28 @@ public class ScoreboardDisplay implements StackableDisplay {
 
                 Objective objective = scoreboard.getObjective(objectiveName);
                 if (objective == null) {
-                    objective = scoreboard.registerNewObjective(objectiveName, "dummy", ChatColor.AQUA + "Countdowns");
+                    objective = ScoreboardCompat.registerObjective(scoreboard, objectiveName, "Countdowns");
+                } else {
+                    objective = ScoreboardCompat.resetObjective(scoreboard, objective, "Countdowns");
                 }
                 objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-                scoreboard.getEntries().forEach(scoreboard::resetScores);
 
                 // Add entries (higher score displays higher on sidebar)
                 int score = visible.size();
                 for (String msg : visible) {
                     try {
                         objective.getScore(msg).setScore(score--);
-                    } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException e) {
+                    } catch (NoClassDefFoundError | NoSuchMethodError | UnsupportedOperationException | IllegalArgumentException e) {
                         player.sendMessage(msg);
                     }
                 }
-            } catch (NoClassDefFoundError | UnsupportedOperationException | IllegalArgumentException e) {
+            } catch (NoClassDefFoundError | NoSuchMethodError | UnsupportedOperationException | IllegalArgumentException e) {
                 // fallback to chat if scoreboard ops fail — mirror the same guards used in the happy path
                 for (com.skyblockexp.ezcountdown.api.model.Countdown c : countdowns) {
                     long rem = remaining.getOrDefault(c, 0L);
                     if (rem <= 0L) continue; // skip countdown whose timer has reached zero
                     if (!c.getDisplayTypes().contains(com.skyblockexp.ezcountdown.display.DisplayType.SCOREBOARD)) continue;
-                    String perm = c.getVisibilityPermission();
-                    if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+                    if (c.isVisibleTo(player)) {
                         String msg = messages.get(c);
                         if (msg != null) player.sendMessage(msg);
                     }

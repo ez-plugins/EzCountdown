@@ -1,6 +1,6 @@
 ---
 title: Developer API
-nav_order: 4
+nav_order: 5
 has_children: true
 ---
 
@@ -8,8 +8,8 @@ has_children: true
 
 ## Prerequisites
 
-- Java 21 (matches Paper API classfile version used by the plugin).
-- Access to the GitHub Packages repository
+- Java 17 or newer.
+- Access to the GitHub Packages repository.
 
 ## Quick start
 
@@ -17,7 +17,7 @@ Follow these steps to add and use the EzCountdown API from your plugin.
 
 ### Installation
 
-1) Add the GitHub Packages repository to your `pom.xml` (replace owner/repo if different):
+1) Add the GitHub Packages repository to your `pom.xml`:
 
 ```xml
 <repositories>
@@ -29,30 +29,34 @@ Follow these steps to add and use the EzCountdown API from your plugin.
 </repositories>
 ```
 
-2) Add the dependency (use the published version tag):
+2) Add the dependency:
 
 ```xml
 <dependency>
-    <groupId>com.skyblockexp</groupId>
+    <groupId>com.github.ez-plugins</groupId>
     <artifactId>ezcountdown</artifactId>
-    <version>1.3.1</version>
+    <version>2.0.0</version>
+    <scope>provided</scope>
 </dependency>
 ```
+
+> Use `<scope>provided</scope>`  -  the plugin jar is already on the server; you do not want to shade it into your own jar.
 
 ## Service lookup
 
 ### Getting the API
 
-Use Bukkit's `ServicesManager` to obtain a reference to the `EzCountdownApi` service. The example below shows the common pattern used in other plugins:
+Use Bukkit's `ServicesManager` to obtain a reference to the `EzCountdownApi` service:
 
 ```java
 import com.skyblockexp.ezcountdown.api.EzCountdownApi;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-RegisteredServiceProvider<EzCountdownApi> rsp = Bukkit.getServicesManager().getRegistration(EzCountdownApi.class);
+RegisteredServiceProvider<EzCountdownApi> rsp =
+        Bukkit.getServicesManager().getRegistration(EzCountdownApi.class);
 if (rsp == null) {
-    // EzCountdown not available
+    // EzCountdown is not installed or not loaded yet
     return;
 }
 EzCountdownApi api = rsp.getProvider();
@@ -62,21 +66,12 @@ EzCountdownApi api = rsp.getProvider();
 
 ### Start/Stop
 
-Start an existing countdown by id:
-
 ```java
 api.startCountdown("example-countdown");
-```
-
-Stop a running countdown:
-
-```java
 api.stopCountdown("example-countdown");
 ```
 
 ### Create
-
-Create a countdown using `CountdownBuilder`:
 
 ```java
 import com.skyblockexp.ezcountdown.api.model.Countdown;
@@ -104,27 +99,23 @@ api.startCountdown("launch");
 
 ### Inspect
 
-Inspect or list countdowns:
-
 ```java
 Optional<Countdown> maybe = api.getCountdown("launch");
 Collection<Countdown> all = api.listCountdowns();
 ```
 
-### Send a notification
+### Send a notification (global)
 
-`sendNotification` fires a one-shot ephemeral display that runs for the specified duration and then vanishes — no YAML entry is created and no `/countdown list` entry appears.
-
-The simplest usage:
+`sendNotification` fires a one-shot ephemeral display that runs for the specified duration and then vanishes  -  no YAML entry is created and no `/countdown list` entry appears.
 
 ```java
 import com.skyblockexp.ezcountdown.api.model.Notification;
 
-// Show an action bar countdown for 30 seconds (plugin defaults for display).
+// Show an action bar countdown for 30 seconds using plugin defaults.
 api.sendNotification(Notification.ofSeconds(30));
 ```
 
-Use the builder for full control:
+Full builder example:
 
 ```java
 import com.skyblockexp.ezcountdown.api.model.Notification;
@@ -135,28 +126,69 @@ import java.util.EnumSet;
 Notification notif = Notification.builder()
     .duration(Duration.ofMinutes(5))
     .displays(EnumSet.of(DisplayType.ACTION_BAR, DisplayType.BOSS_BAR))
-    .message("{formatted}")               // optional: format message key
-    .startMessage("Event starts soon!")   // optional: broadcast on start
-    .endMessage("Event started!")         // optional: broadcast on end
+    .message("{formatted}")
+    .startMessage("Event starts soon!")
+    .endMessage("Event started!")
     .build();
 
 Optional<String> handle = api.sendNotification(notif);
-```
 
-`sendNotification` returns the generated internal name wrapped in `Optional.of(...)` on success, or `Optional.empty()` on the rare name collision. You can use the name to stop the notification early:
-
-```java
+// Stop early if needed:
 handle.ifPresent(name -> api.stopCountdown(name));
 ```
 
-## Javadoc & API reference
+### Send a notification to specific players
 
-See the generated API docs for full type and method details: `docs/api/EzCountdownApi.md` and the `model/` and `event/` pages in this folder. If you want, I can add a GitHub Pages workflow to publish hosted Javadoc automatically on release.
+Two ways to send a notification to a subset of online players:
+
+**Option A  -  via the builder:**
+
+```java
+import com.skyblockexp.ezcountdown.api.model.Notification;
+import java.util.List;
+
+List<Player> vipPlayers = /* your player collection */;
+
+Notification notif = Notification.builder()
+    .duration(60)
+    .message("VIP event in {formatted}")
+    .players(vipPlayers)   // restrict to these players
+    .build();
+
+api.sendNotification(notif);
+```
+
+**Option B  -  inline (without a pre-built Notification):**
+
+```java
+api.sendNotification(Notification.ofSeconds(60), vipPlayers);
+```
+
+### Exceptions
+
+EzCountdown throws typed exceptions from the `com.skyblockexp.ezcountdown.api.exception` package:
+
+| Exception | When thrown |
+|---|---|
+| `EzCountdownException` | Base class  -  catch this to handle any EzCountdown error |
+| `CountdownNotFoundException` | A countdown name does not exist |
+| `DuplicateCountdownException` | Creating a countdown with an already-used name |
+| `InvalidConfigurationException` | `NotificationBuilder.build()` called without a valid duration |
+
+```java
+import com.skyblockexp.ezcountdown.api.exception.EzCountdownException;
+import com.skyblockexp.ezcountdown.api.exception.CountdownNotFoundException;
+
+try {
+    Notification notif = Notification.builder().build(); // missing duration!
+} catch (InvalidConfigurationException e) {
+    getLogger().warning("Bad notification config: " + e.getMessage());
+}
+```
 
 ## Further reading
 
-- API reference: [docs/api/EzCountdownApi.md](docs/api/EzCountdownApi.md)
-- Events: [docs/api/event](docs/api/event)
-- Models: [docs/api/model](docs/api/model)
-- Notification model: [docs/api/model/Notification.md](docs/api/model/Notification.md)
+- [EzCountdownApi interface](EzCountdownApi)  -  full method list
+- [Events](event/)  -  `CountdownStartEvent`, `CountdownTickEvent`, `CountdownEndEvent`
+- [Models](model/)  -  `Countdown`, `Notification`, `CountdownType`
 

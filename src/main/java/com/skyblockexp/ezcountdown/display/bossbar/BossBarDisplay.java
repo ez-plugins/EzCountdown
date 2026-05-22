@@ -32,9 +32,8 @@ public class BossBarDisplay implements StackableDisplay {
             bossBar.setTitle(message);
             bossBar.setProgress(calculateProgress(countdown, remainingSeconds));
             for (Player player : Bukkit.getOnlinePlayers()) {
-                String perm = countdown.getVisibilityPermission();
                 try {
-                    if (perm == null || perm.isBlank() || player.hasPermission(perm)) {
+                    if (countdown.isVisibleTo(player)) {
                         bossBar.addPlayer(player);
                     } else {
                         bossBar.removePlayer(player);

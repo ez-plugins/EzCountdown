@@ -32,6 +32,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bstats.bukkit.Metrics;
+import com.skyblockexp.ezcountdown.compat.scheduler.SchedulerAdapter;
+import com.skyblockexp.ezcountdown.compat.scheduler.SchedulerAdapterFactory;
 import org.bstats.charts.SingleLineChart;
 
 import java.io.File;
@@ -68,8 +70,12 @@ public final class PluginBootstrap {
         // Load Discord config
         DiscordWebhookConfig discordWebhookConfig = configService.loadDiscordConfig();
 
+        // Scheduler abstraction — Folia uses GlobalRegionScheduler, Paper/Spigot uses BukkitScheduler
+        SchedulerAdapter scheduler = SchedulerAdapterFactory.create(plugin);
+        plugin.getLogger().info("Scheduler: " + scheduler.getClass().getSimpleName());
+
         // Create a registry placeholder so CountdownManager can reference plugin and other services
-        Registry registry = new Registry(plugin, messageManager, defaults, permissions, displayManager, storage, locationManager, locationPermissions, null, null);
+        Registry registry = new Registry(plugin, messageManager, defaults, permissions, displayManager, storage, locationManager, locationPermissions, null, null, scheduler);
 
         // Register default countdown type handlers
         registry.registerHandler(new FixedDateHandler());
@@ -82,6 +88,9 @@ public final class PluginBootstrap {
             yamlStorage.setHandlerRegistry(registry.handlersMap());
         }
 
+        registry.setDebug(configService.loadDebug());
+        displayManager.setDebug(registry.debug());
+
         CountdownManager countdownManager = new CountdownManager(registry, discordWebhookConfig, storage, displayManager, messageManager, locationManager);
         // register into registry
         registry.setCountdownManager(countdownManager);
@@ -92,7 +101,7 @@ public final class PluginBootstrap {
         plugin.getLogger().info("Loaded " + loadedCount + " countdown(s) (" + runningCount + " running).");
 
         // GUI and input handlers
-        ChatInputListener chatInput = new ChatInputListener(plugin);
+        ChatInputListener chatInput = new ChatInputListener(plugin, scheduler);
         // register chat input listener
         Bukkit.getPluginManager().registerEvents(chatInput, plugin);
 
@@ -140,6 +149,13 @@ public final class PluginBootstrap {
                     }
                 } catch (Exception ex) {
                     plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload defaults or permissions", ex);
+                }
+
+                try {
+                    registry.setDebug(configService.loadDebug());
+                    displayManager.setDebug(registry.debug());
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to reload debug flag", ex);
                 }
 
                 try {

@@ -25,7 +25,7 @@ public final class SpigotUpdateChecker {
     }
 
     public void checkForUpdates(UpdateNotify notify) {
-        registry.plugin().getServer().getScheduler().runTaskAsynchronously(registry.plugin(), () -> {
+        registry.scheduler().runTaskAsync(() -> {
             try {
                 String latestVersion = fetchLatestVersion();
                 if (latestVersion == null || latestVersion.isBlank()) {

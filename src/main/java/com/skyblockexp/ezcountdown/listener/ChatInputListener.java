@@ -1,5 +1,6 @@
 package com.skyblockexp.ezcountdown.listener;
 
+import com.skyblockexp.ezcountdown.compat.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,9 +17,11 @@ public final class ChatInputListener implements Listener {
     private final Map<UUID, Consumer<String>> pending = new ConcurrentHashMap<>();
 
     private final Plugin plugin;
+    private final SchedulerAdapter scheduler;
 
-    public ChatInputListener(Plugin plugin) {
+    public ChatInputListener(Plugin plugin, SchedulerAdapter scheduler) {
         this.plugin = plugin;
+        this.scheduler = scheduler;
     }
 
     public void request(Player player, Consumer<String> callback) {
@@ -49,7 +52,7 @@ public final class ChatInputListener implements Listener {
         if (!event.isAsynchronous()) {
             try { cb.accept(msg); } catch (Throwable t) { t.printStackTrace(); }
         } else {
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            scheduler.runTask(() -> {
                 try { cb.accept(msg); } catch (Throwable t) { t.printStackTrace(); }
             });
         }

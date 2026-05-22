@@ -1,11 +1,18 @@
 package com.skyblockexp.ezcountdown.api.model;
 
+import com.skyblockexp.ezcountdown.api.exception.InvalidConfigurationException;
 import com.skyblockexp.ezcountdown.display.DisplayType;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.bukkit.entity.Player;
 
 /**
  * Fluent builder for {@link Notification}.
@@ -26,6 +33,7 @@ public final class NotificationBuilder {
     private String formatMessage = Notification.DEFAULT_FORMAT_MESSAGE;
     private String startMessage = null;
     private String endMessage = null;
+    private Set<UUID> targetPlayers = null;
 
     // package-private — created via Notification.builder()
     NotificationBuilder() {}
@@ -129,6 +137,20 @@ public final class NotificationBuilder {
         return this;
     }
 
+    /**
+     * Restrict this notification to the given players only.
+     * Pass {@code null} or an empty collection to target all online players.
+     *
+     * @param players players to receive the notification
+     * @return this builder
+     */
+    public NotificationBuilder players(Collection<? extends Player> players) {
+        this.targetPlayers = (players == null || players.isEmpty()) ? null
+                : players.stream().map(Player::getUniqueId)
+                         .collect(Collectors.toCollection(HashSet::new));
+        return this;
+    }
+
     // -----------------------------------------------------------------------
     // Build
     // -----------------------------------------------------------------------
@@ -137,14 +159,14 @@ public final class NotificationBuilder {
      * Build the {@link Notification}.
      *
      * @return the configured notification
-     * @throws IllegalStateException if no duration was set
+     * @throws InvalidConfigurationException if no positive duration was set
      */
     public Notification build() {
         if (durationSeconds <= 0) {
-            throw new IllegalStateException(
+            throw new InvalidConfigurationException(
                     "A positive duration must be set before calling build(). "
                     + "Use duration(long) or duration(Duration).");
         }
-        return new Notification(durationSeconds, displayTypes, formatMessage, startMessage, endMessage);
+        return new Notification(durationSeconds, displayTypes, formatMessage, startMessage, endMessage, targetPlayers);
     }
 }

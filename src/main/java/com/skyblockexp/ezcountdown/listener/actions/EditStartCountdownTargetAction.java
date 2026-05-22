@@ -63,7 +63,7 @@ public class EditStartCountdownTargetAction implements GuiAction {
             }
             com.skyblockexp.ezcountdown.api.model.Countdown newCd = new com.skyblockexp.ezcountdown.api.model.Countdown(cd.getName(), cd.getType(), cd.getDisplayTypes(), cd.getUpdateIntervalSeconds(), cd.getVisibilityPermission(), cd.getFormatMessage(), cd.getStartMessage(), cd.getEndMessage(), cd.getEndCommands(), cd.getZoneId(), cd.isAutoRestart(), target, cd.getRestartDelaySeconds());
             CountdownCloner.copyRuntimeFields(cd, newCd);
-            if (manager.updateCountdown(cdName, newCd)) { manager.save(); player.sendMessage(messageManager.message("gui.edit.saved", java.util.Map.of("name", cdName))); org.bukkit.Bukkit.getScheduler().runTask(registry.plugin(), () -> registry.gui().editorMenu().openEditor(player, newCd)); }
+            if (manager.updateCountdown(cdName, newCd)) { manager.save(); player.sendMessage(messageManager.message("gui.edit.saved", java.util.Map.of("name", cdName))); registry.scheduler().runTask(() -> registry.gui().editorMenu().openEditor(player, newCd)); }
         }
     }
 }

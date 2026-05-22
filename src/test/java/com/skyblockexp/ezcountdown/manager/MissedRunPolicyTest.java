@@ -63,6 +63,7 @@ public class MissedRunPolicyTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        when(registry.scheduler()).thenReturn(new com.skyblockexp.ezcountdown.compat.scheduler.BukkitSchedulerAdapter(plugin));
     }
 
     @Test
