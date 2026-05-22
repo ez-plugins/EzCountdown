@@ -1,56 +1,28 @@
 package com.skyblockexp.ezcountdown.compat.title;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
-
-import java.time.Duration;
 
 /**
  * Cross-version helpers for sending and clearing player titles.
  *
  * <ul>
- *   <li>{@link #sendTitle} — prefers the Adventure {@code showTitle(Title)} API available on
- *       Paper 1.18+ ({@link Player} implements {@code Audience}); falls back to the legacy
- *       {@code Player.sendTitle(String, String, int, int, int)} for Spigot.
- *   <li>{@link #clearTitle} — prefers Adventure {@code clearTitle()}; falls back to legacy
- *       {@code resetTitle()}.
+ *   <li>{@link #sendTitle} — uses the Bukkit {@code sendTitle(String, String, int, int, int)} API,
+ *       which is present on Paper 1.8+ and all Spigot versions. The method is marked deprecated
+ *       in newer Paper builds but is not removed and works correctly across all supported servers.
+ *   <li>{@link #clearTitle} — prefers the Adventure {@code clearTitle()} (Paper 1.18+) which
+ *       instantly removes the title; falls back to {@code resetTitle()} on Spigot.
  * </ul>
  *
- * <p>Both methods catch {@link NoSuchMethodError} and {@link NoClassDefFoundError} so the plugin
- * degrades gracefully on server software that does not bundle Adventure.
+ * <p>Note: the Adventure {@code Player.showTitle(Title)} API cannot be used here because
+ * MockBukkit does not bridge it to the tracked title queue and real-server implementations
+ * vary. {@code sendTitle} is universally reliable.</p>
  */
 public final class TitleCompat {
 
-    /** {@code true} when the Adventure {@code Title} class and {@code Player#showTitle} are present. */
-    private static final boolean HAS_SHOW_TITLE = detectShowTitle();
-    /** {@code true} when the Adventure {@code Player#clearTitle} method is present. */
+    /** {@code true} when Adventure {@code Player#clearTitle()} is available (Paper 1.18+). */
     private static final boolean HAS_CLEAR_TITLE = detectClearTitle();
 
     private TitleCompat() {}
-
-    private static boolean detectShowTitle() {
-        try {
-            // showTitle(TitleLike) is present on Paper 1.18+ (Adventure Audience)
-            Player.class.getMethod("showTitle", net.kyori.adventure.title.TitlePart.class, Object.class);
-            return false; // wrong signature; use the simpler check below
-        } catch (NoSuchMethodException ignored) {
-        } catch (NoClassDefFoundError ignored) {
-            return false;
-        } catch (Throwable ignored) {
-            return false;
-        }
-        try {
-            Player.class.getMethod("showTitle", Title.class);
-            return true;
-        } catch (NoSuchMethodException ignored) {
-            return false;
-        } catch (NoClassDefFoundError ignored) {
-            return false;
-        } catch (Throwable ignored) {
-            return false;
-        }
-    }
 
     private static boolean detectClearTitle() {
         try {
@@ -60,38 +32,24 @@ public final class TitleCompat {
             return false;
         } catch (NoClassDefFoundError ignored) {
             return false;
-        } catch (Throwable ignored) {
-            return false;
         }
     }
 
     /**
-     * Sends a title to {@code player} using the best available API.
+     * Sends a title to {@code player}.
      *
-     * <p>On Paper 1.18+ the Adventure {@code showTitle(Title)} API is used; this avoids the
-     * deprecation warning from the legacy string-based {@code Player.sendTitle}. On Spigot or
-     * older Paper the string overload is used as a fallback.
+     * <p>Uses {@code Player.sendTitle(String, String, int, int, int)} which is available
+     * on all supported server variants (Paper and Spigot 1.18+). Falls back to the
+     * action-bar / chat if the method is unexpectedly absent.
      *
      * @param player   the player to send the title to
-     * @param title    main title text (legacy-formatted string)
+     * @param title    main title text
      * @param fadeIn   fade-in ticks
      * @param stay     stay ticks
      * @param fadeOut  fade-out ticks
      */
     @SuppressWarnings("deprecation")
     public static void sendTitle(Player player, String title, int fadeIn, int stay, int fadeOut) {
-        if (HAS_SHOW_TITLE) {
-            try {
-                Title.Times times = Title.Times.times(
-                        Duration.ofMillis(fadeIn * 50L),
-                        Duration.ofMillis(stay * 50L),
-                        Duration.ofMillis(fadeOut * 50L));
-                player.showTitle(Title.title(Component.text(title), Component.empty(), times));
-                return;
-            } catch (NoSuchMethodError | NoClassDefFoundError ignored) {
-                // fall through to legacy
-            }
-        }
         try {
             player.sendTitle(title, "", fadeIn, stay, fadeOut);
         } catch (NoSuchMethodError | NoClassDefFoundError ex) {
@@ -107,7 +65,7 @@ public final class TitleCompat {
     /**
      * Clears any title currently shown to {@code player}.
      *
-     * <p>Prefers the Adventure {@code clearTitle()} API on Paper 1.18+; falls back to
+     * <p>Prefers the Adventure {@code clearTitle()} on Paper 1.18+; falls back to
      * {@code resetTitle()} for Spigot.
      */
     @SuppressWarnings("deprecation")
@@ -127,3 +85,4 @@ public final class TitleCompat {
         }
     }
 }
+
