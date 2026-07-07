@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-07-07
+
+### Added
+
+- **Placeholder formatted output regression tests** - added unit coverage in `EzCountdownPlaceholderExpansionUnitTest` to verify `%ezcountdown_<name>_formatted%` honors `display.time-format.hide-leading-zeros` for both enabled and disabled configurations.
+
 ## [2.0.1] - 2026-05-22
 
 ### Fixed
