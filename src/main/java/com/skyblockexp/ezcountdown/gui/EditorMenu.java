@@ -38,7 +38,7 @@ public final class EditorMenu {
 
     public void openEditor(Player player, Countdown countdown) {
         String title = PREFIX + countdown.getName();
-        Inventory inv = Bukkit.createInventory(null, 9, title);
+        Inventory inv = Bukkit.createInventory(null, 18, title);
         ItemStack run = new ItemStack(countdown.isRunning() ? MaterialCompat.resolve("LIME_CONCRETE", "LIME_WOOL", "WOOL") : MaterialCompat.resolve("RED_CONCRETE", "RED_WOOL", "WOOL"));
         ItemMeta rm = run.getItemMeta();
         rm.setDisplayName((countdown.isRunning() ? ChatColor.GREEN : ChatColor.RED) + "Toggle Running");
@@ -106,6 +106,30 @@ public final class EditorMenu {
         em.setLore(List.of(resolvedEnd == null ? "" : resolvedEnd));
         end.setItemMeta(em);
         inv.setItem(8, end);
+
+        ItemStack startSound = new ItemStack(Material.NOTE_BLOCK);
+        ItemMeta ssm = startSound.getItemMeta();
+        ssm.setDisplayName(ChatColor.AQUA + "Edit Start Sound");
+        String startSoundName = countdown.getStartSound() == null ? "(none)" : countdown.getStartSound();
+        ssm.setLore(List.of(
+            ChatColor.GRAY + "Current: " + startSoundName,
+            ChatColor.DARK_GRAY + "Type a Bukkit Sound enum name",
+            ChatColor.DARK_GRAY + "Type 'none' to disable"
+        ));
+        startSound.setItemMeta(ssm);
+        inv.setItem(9, startSound);
+
+        ItemStack endSound = new ItemStack(MaterialCompat.resolve("JUKEBOX", "NOTE_BLOCK"));
+        ItemMeta esm = endSound.getItemMeta();
+        esm.setDisplayName(ChatColor.RED + "Edit End Sound");
+        String endSoundName = countdown.getEndSound() == null ? "(none)" : countdown.getEndSound();
+        esm.setLore(List.of(
+            ChatColor.GRAY + "Current: " + endSoundName,
+            ChatColor.DARK_GRAY + "Type a Bukkit Sound enum name",
+            ChatColor.DARK_GRAY + "Type 'none' to disable"
+        ));
+        endSound.setItemMeta(esm);
+        inv.setItem(10, endSound);
 
         player.openInventory(inv);
     }

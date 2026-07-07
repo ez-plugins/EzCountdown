@@ -63,6 +63,52 @@ Set per-countdown inside `countdowns.yml` under `display.bossbar`:
 
 ---
 
+## Start/end sounds
+
+Set optional per-countdown sounds in `countdowns.yml`:
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `sounds.start` | string | not set | Bukkit `Sound` enum name played when the countdown starts |
+| `sounds.end` | string | not set | Bukkit `Sound` enum name played when the countdown ends |
+
+Notes:
+
+- Sound names must match Bukkit `Sound` enum values (for example `ENTITY_PLAYER_LEVELUP`).
+- If a sound key is missing or blank, no sound is played for that phase.
+- If an invalid sound is configured, EzCountdown logs a warning and continues other start/end actions.
+- The GUI sound editor now prints the full list of sounds available on your running server version.
+
+Common choices:
+
+- `ENTITY_PLAYER_LEVELUP` - positive "start" cue.
+- `BLOCK_NOTE_BLOCK_PLING` - short neutral confirmation.
+- `ENTITY_EXPERIENCE_ORB_PICKUP` - subtle reward-like ping.
+- `UI_BUTTON_CLICK` - lightweight interface-style sound.
+- `BLOCK_BELL_USE` - event bell/chime.
+- `ENTITY_FIREWORK_ROCKET_BLAST` - celebratory end sound.
+- `BLOCK_RESPAWN_ANCHOR_CHARGE` - energetic build-up tone.
+- `ENTITY_ENDER_DRAGON_GROWL` - dramatic finale.
+
+Full references:
+
+- Spigot `Sound` enum: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+- Paper `Sound` enum: https://jd.papermc.io/paper/1.21/org/bukkit/Sound.html
+
+Example:
+
+```yaml
+countdowns:
+  arena_event:
+    type: DURATION
+    duration: "15m"
+    sounds:
+      start: "ENTITY_PLAYER_LEVELUP"
+      end: "BLOCK_NOTE_BLOCK_PLING"
+```
+
+---
+
 ## Clock-aligned recurring options
 
 Set these per-countdown in `countdowns.yml`:
@@ -118,6 +164,9 @@ countdowns:
       format: "New Year in {formatted}"
       start: "Countdown started!"
       end: "Happy New Year!"
+    sounds:
+      start: "ENTITY_PLAYER_LEVELUP"
+      end: "BLOCK_NOTE_BLOCK_PLING"
     commands_on_end:
       - "broadcast &6Happy New Year!"
     teleport:

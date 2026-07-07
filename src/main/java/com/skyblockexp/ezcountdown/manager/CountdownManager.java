@@ -24,6 +24,7 @@ import com.skyblockexp.ezcountdown.config.DiscordWebhookConfig;
 import com.skyblockexp.ezcountdown.integration.discord.DiscordWebhookSender;
 import com.skyblockexp.ezcountdown.compat.scheduler.TaskHandle;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import com.skyblockexp.ezcountdown.bootstrap.Registry;
 import com.skyblockexp.ezcountdown.manager.LocationManager;
 import com.skyblockexp.ezcountdown.type.CountdownTypeHandler;
@@ -459,6 +460,7 @@ public final class CountdownManager {
             displayManager.broadcastMessage(messageManager.formatWithPrefix(message,
                     Map.of("name", countdown.getName())));
         }
+        playConfiguredSound(countdown.getStartSound(), countdown.getName(), "start");
         // Teleport players if configured
         String teleportLocation = getTeleportLocation(countdown, "start");
         if (teleportLocation != null) {
@@ -492,6 +494,7 @@ public final class CountdownManager {
             displayManager.broadcastMessage(messageManager.formatWithPrefix(message,
                     Map.of("name", countdown.getName())));
         }
+        playConfiguredSound(countdown.getEndSound(), countdown.getName(), "end");
         // Teleport players if configured
         String teleportLocation = getTeleportLocation(countdown, "end");
         if (teleportLocation != null) {
@@ -630,6 +633,26 @@ public final class CountdownManager {
                     registry.plugin().getLogger().log(Level.WARNING,
                             "Error executing end command for countdown " + countdown.getName() + ": " + command, ex);
                 }
+        }
+    }
+
+    private void playConfiguredSound(String configuredSound, String countdownName, String phase) {
+        if (configuredSound == null || configuredSound.isBlank()) {
+            return;
+        }
+        final Sound sound;
+        try {
+            sound = Sound.valueOf(configuredSound.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            registry.plugin().getLogger().warning("Invalid " + phase + " sound '" + configuredSound + "' for countdown '" + countdownName + "'.");
+            return;
+        }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            try {
+                player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+            } catch (Exception ignored) {
+                // Best effort; continue delivering to other players.
+            }
         }
     }
 

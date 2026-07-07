@@ -40,6 +40,8 @@ public class ManualHandler implements CountdownTypeHandler {
         String format = section.getString("messages.format", defaults.formatMessage());
         String start = section.getString("messages.start", defaults.startMessage());
         String end = section.getString("messages.end", defaults.endMessage());
+        String startSound = section.getString("sounds.start", null);
+        String endSound = section.getString("sounds.end", null);
         List<String> endCommands = section.getStringList("commands.end").stream().filter(c -> c != null && !c.isBlank()).collect(Collectors.toList());
         String zoneKey = section.isSet("timezone") ? section.getString("timezone") : section.getString("zone", defaults.zoneId().getId());
         ZoneId zone = ZoneId.of(zoneKey);
@@ -56,6 +58,8 @@ public class ManualHandler implements CountdownTypeHandler {
         BarStyle bossStyle = parseBossBarStyle(section.getString("display.bossbar.style", "SOLID"));
 
         Countdown countdown = new Countdown(name, getType(), displayTypes, updateInterval, visibility, format, start, end, endCommands, zone, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy, bossColor, bossStyle);
+        countdown.setStartSound(startSound);
+        countdown.setEndSound(endSound);
         countdown.setRunning(section.getBoolean("running", false));
         String durationValue = section.getString("duration", "0s");
         long seconds = parseDurationLegacy(durationValue);

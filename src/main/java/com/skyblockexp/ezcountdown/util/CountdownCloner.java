@@ -13,6 +13,8 @@ public final class CountdownCloner {
         dest.setRecurringMonth(src.getRecurringMonth());
         dest.setRecurringDay(src.getRecurringDay());
         dest.setRecurringTime(src.getRecurringTime());
+        dest.setStartSound(src.getStartSound());
+        dest.setEndSound(src.getEndSound());
         dest.setRunning(src.isRunning());
     }
 }

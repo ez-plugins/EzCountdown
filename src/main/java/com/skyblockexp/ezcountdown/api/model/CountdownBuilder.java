@@ -28,6 +28,8 @@ public final class CountdownBuilder {
     private String formatMessage = null;
     private String startMessage = null;
     private String endMessage = null;
+    private String startSound = null;
+    private String endSound = null;
     private List<String> endCommands = List.of();
     private ZoneId zoneId = ZoneId.systemDefault();
     private boolean autoRestart = false;
@@ -96,6 +98,16 @@ public final class CountdownBuilder {
 
     public CountdownBuilder endMessage(String msg) {
         this.endMessage = msg;
+        return this;
+    }
+
+    public CountdownBuilder startSound(String sound) {
+        this.startSound = sound;
+        return this;
+    }
+
+    public CountdownBuilder endSound(String sound) {
+        this.endSound = sound;
         return this;
     }
 
@@ -188,6 +200,8 @@ public final class CountdownBuilder {
         if (recurringMonth > 0) countdown.setRecurringMonth(recurringMonth);
         if (recurringDay > 0) countdown.setRecurringDay(recurringDay);
         if (recurringTime != null) countdown.setRecurringTime(recurringTime);
+        countdown.setStartSound(startSound);
+        countdown.setEndSound(endSound);
         if (ephemeral) countdown.setEphemeral(true);
         if (targetPlayers != null) countdown.setTargetPlayers(targetPlayers);
 

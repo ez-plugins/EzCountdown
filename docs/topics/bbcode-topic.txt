@@ -1,6 +1,6 @@
 [CENTER][SIZE=6][B]EzCountdown[/B][/SIZE]
 [SIZE=3]Run flash sales, timed events, and launches with stunning countdowns - ActionBar, BossBar, Titles & Placeholders![/SIZE]
-[SIZE=2]Spigot, Paper, or Bukkit 1.7-1.21.* • Action bar, boss bar, title, chat, scoreboard • PlaceholderAPI ready[/SIZE][/CENTER]
+[SIZE=2]Paper/Spigot 1.18+ • Java 17+ • Action bar, boss bar, title, chat, scoreboard • PlaceholderAPI ready[/SIZE][/CENTER]
 
 Found an issue or have a question? Please contact me through [URL='https://discord.gg/yWP95XfmBS']the EzPlugins Discord server[/URL].
 
@@ -9,10 +9,12 @@ Found an issue or have a question? Please contact me through [URL='https://disco
 [*][B]Perfect for flash sales & events[/B] - Instantly set up countdowns for shop discounts, launches, or any special event.
 [*][B]Multiple countdown types[/B] - Fixed dates, durations, recurring schedules, or manual timers. Great for launches, resets, or surprise sales.
 [*][B]Flexible displays[/B] - Show timers in action bar, boss bar, title, chat, or scoreboard. Make sure every player sees the excitement.
+[*][B]Start/end sounds[/B] - Configure optional [icode]sounds.start[/icode] and [icode]sounds.end[/icode] per countdown using Bukkit sound names.
 [*][B]Firework shows[/B] - Optional, configurable firework displays for celebration moments. ([COLOR=#ff0000]new[/COLOR])
 [*][B]Permission control[/B] - Limit visibility or management to specific ranks. Keep control in the hands of your staff or VIPs.
 [*][B]PlaceholderAPI support[/B] - Use %ezcountdown_<name>_formatted% and time-part placeholders in any plugin or message.
 [*][B]Config-driven[/B] - Tune update intervals, messaging, and defaults in YAML. No coding required, just edit and reload.
+[*][B]GUI sound editor[/B] - Set or disable countdown sounds directly in the editor with input validation.
 [*][B]Translation variables[/B] - Centralize message text in `messages.yml` and reference keys from `countdowns.yml` using `{translate:key.path}` so owners can reset countdowns without losing localized text.
 [/LIST]
 

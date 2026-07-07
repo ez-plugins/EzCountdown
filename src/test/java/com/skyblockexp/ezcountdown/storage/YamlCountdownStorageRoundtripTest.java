@@ -50,6 +50,30 @@ public class YamlCountdownStorageRoundtripTest {
         tmp.delete();
     }
 
+        @Test
+        public void saveAndLoadRoundtrip_preservesStartAndEndSounds() throws Exception {
+                File tmp = File.createTempFile("countdowns-sounds", ".yml");
+                tmp.delete();
+                tmp.getParentFile().mkdirs();
+
+                CountdownDefaults defaults = new CountdownDefaults(EnumSet.noneOf(DisplayType.class), 1, null, "{formatted}", "start", "end", true, ZoneId.of("UTC"));
+                YamlCountdownStorage storage = new YamlCountdownStorage(defaults, tmp, java.util.logging.Logger.getLogger("test-sounds"));
+
+                Countdown cd = new Countdown("soundy", CountdownType.MANUAL, EnumSet.noneOf(DisplayType.class), 1, null, "{formatted}", "s", "e", List.of(), ZoneId.of("UTC"));
+                cd.setStartSound("ENTITY_PLAYER_LEVELUP");
+                cd.setEndSound("BLOCK_NOTE_BLOCK_PLING");
+
+                storage.saveCountdowns(List.of(cd));
+
+                YamlCountdownStorage reloader = new YamlCountdownStorage(defaults, tmp, java.util.logging.Logger.getLogger("test-sounds-reload"));
+                var loaded = reloader.loadCountdowns();
+                Countdown loadedCd = loaded.stream().filter(c -> c.getName().equals("soundy")).findFirst().orElseThrow();
+
+                assertEquals("ENTITY_PLAYER_LEVELUP", loadedCd.getStartSound());
+                assertEquals("BLOCK_NOTE_BLOCK_PLING", loadedCd.getEndSound());
+                tmp.delete();
+        }
+
     /**
      * Regression test for: duration countdown resets to full duration on server restart.
      *

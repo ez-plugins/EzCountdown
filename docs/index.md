@@ -21,6 +21,7 @@ A feature-rich countdown plugin for Paper/Spigot servers. Create countdowns for 
 - **Discord webhooks**  -  post start/end notifications to a Discord channel.
 - **In-game GUI**  -  manage countdowns visually without editing YAML.
 - **Firework shows**  -  trigger configurable firework displays on start or end.
+- **Start/end sounds**  -  optionally play configurable Bukkit sounds when countdowns start or finish.
 - **Teleport actions**  -  move all online players to a named location when a countdown starts or ends.
 - **Console commands on end**  -  run any command when a countdown completes.
 - **Developer API**  -  create, start, stop, listen to countdown events, and send per-player notifications from other plugins.

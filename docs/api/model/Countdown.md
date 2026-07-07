@@ -26,6 +26,8 @@ Important accessors and behavior:
  - `String getFormatMessage()` - format string used for display messages.
  - `String getStartMessage()` - message broadcasted on start (if configured).
  - `String getEndMessage()` - message broadcasted on end (if configured).
+ - `String getStartSound()` / `void setStartSound(String)` - optional Bukkit `Sound` enum name for start.
+ - `String getEndSound()` / `void setEndSound(String)` - optional Bukkit `Sound` enum name for end.
  - `List<String> getEndCommands()` - commands executed when countdown ends.
  - `ZoneId getZoneId()` - timezone used when resolving fixed/recurring dates.
 
@@ -39,3 +41,5 @@ Runtime fields (mutable):
 Notes
 
 - The constructor establishes the immutable configuration; runtime fields are updated by the plugin when starting/stopping the countdown.
+- `startSound` / `endSound` are optional mutable fields. Passing `null` or blank disables that phase sound.
+- YAML-backed countdowns map these fields to `sounds.start` and `sounds.end`.

@@ -100,6 +100,8 @@ public final class YamlCountdownStorage implements CountdownStorage {
             section.set("messages.format", countdown.getFormatMessage());
             section.set("messages.start", countdown.getStartMessage());
             section.set("messages.end", countdown.getEndMessage());
+            section.set("sounds.start", countdown.getStartSound());
+            section.set("sounds.end", countdown.getEndSound());
             section.set("commands.end", countdown.getEndCommands());
             section.set("zone", countdown.getZoneId().getId());
             section.set("timezone", countdown.getZoneId().getId());
@@ -152,6 +154,8 @@ public final class YamlCountdownStorage implements CountdownStorage {
         String format = section.getString("messages.format", defaults.formatMessage());
         String start = section.getString("messages.start", defaults.startMessage());
         String end = section.getString("messages.end", defaults.endMessage());
+        String startSound = section.getString("sounds.start", null);
+        String endSound = section.getString("sounds.end", null);
         List<String> endCommands = section.getStringList("commands.end").stream().filter(command -> command != null && !command.isBlank()).toList();
         String zoneKey = section.isSet("timezone") ? section.getString("timezone") : section.getString("zone", defaults.zoneId().getId());
         ZoneId zoneId = ZoneId.of(zoneKey);
@@ -189,6 +193,8 @@ public final class YamlCountdownStorage implements CountdownStorage {
         }
 
         Countdown countdown = new Countdown(name, type, displayTypes, updateInterval, visibility, format, start, end, endCommands, zoneId, autoRestart, startCountdown, restartDelay, alignToClock, alignInterval, missedPolicy, bossColor, bossStyle);
+        countdown.setStartSound(startSound);
+        countdown.setEndSound(endSound);
         countdown.setRunning(section.getBoolean("running", type != CountdownType.MANUAL));
 
         switch (type) {

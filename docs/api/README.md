@@ -89,6 +89,8 @@ Countdown countdown = CountdownBuilder.builder("launch")
     .formatMessage("countdown.format")
     .startMessage("Server Launching")
     .endMessage("Server Launched")
+    .startSound("ENTITY_PLAYER_LEVELUP")
+    .endSound("BLOCK_NOTE_BLOCK_PLING")
     .zoneId(ZoneId.systemDefault())
     .duration(Duration.ofMinutes(10))
     .build();
