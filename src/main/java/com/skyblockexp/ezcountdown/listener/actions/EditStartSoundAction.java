@@ -39,13 +39,14 @@ public final class EditStartSoundAction implements GuiAction {
                 registry.scheduler().runTask(() -> registry.gui().editorMenu().openEditor(player, cd));
                 return;
             }
-            try {
-                Sound.valueOf(value.toUpperCase(Locale.ROOT));
+            String normalized = value.toUpperCase(Locale.ROOT);
+            boolean exists = java.util.Arrays.stream(Sound.values()).anyMatch(s -> s.name().equals(normalized));
+            if (exists) {
                 cd.setStartSound(value.toUpperCase(Locale.ROOT));
                 manager.save();
                 player.sendMessage(messageManager.message("gui.edit.saved", java.util.Map.of("name", cdName)));
                 registry.scheduler().runTask(() -> registry.gui().editorMenu().openEditor(player, cd));
-            } catch (IllegalArgumentException ex) {
+            } else {
                 player.sendMessage(org.bukkit.ChatColor.RED + "Invalid sound name: " + value);
                 SoundEditorHelper.sendAvailableSounds(player);
             }
