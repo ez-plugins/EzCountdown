@@ -1,5 +1,5 @@
 # EzCountdown
-[![CI](https://github.com/ez-plugins/EzCountdown/actions/workflows/ci.yml/badge.svg)](https://github.com/ez-plugins/EzCountdown/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/releases) [![License](https://img.shields.io/github/license/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/blob/main/LICENSE) [![Issues](https://img.shields.io/github/issues/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/issues)
+[![CI](https://github.com/ez-plugins/EzCountdown/actions/workflows/ci.yml/badge.svg)](https://github.com/ez-plugins/EzCountdown/actions/workflows/ci.yml) [![Coverage](https://codecov.io/gh/ez-plugins/EzCountdown/branch/main/graph/badge.svg)](https://codecov.io/gh/ez-plugins/EzCountdown) [![Release](https://img.shields.io/github/v/release/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/releases) [![License](https://img.shields.io/github/license/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/blob/main/LICENSE) [![Issues](https://img.shields.io/github/issues/ez-plugins/EzCountdown)](https://github.com/ez-plugins/EzCountdown/issues)
 
 EzCountdown provides configurable countdown timers for events, launches, and maintenance windows across your server.
 
