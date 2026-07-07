@@ -29,7 +29,10 @@ pom.xml.next
 *.iml
 *.ipr
 *.iws
-/.vscode/
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/tasks.json
+!/.vscode/extensions.json
 /out/
 
 # Eclipse

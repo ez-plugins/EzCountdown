@@ -33,18 +33,6 @@ final class SoundEditorHelper {
     }
 
     private static String soundName(Sound sound) {
-        if (sound == null) {
-            return "";
-        }
-        try {
-            java.lang.reflect.Method nameMethod = sound.getClass().getMethod("name");
-            Object value = nameMethod.invoke(sound);
-            if (value instanceof String s) {
-                return s;
-            }
-        } catch (Exception ignored) {
-            // Fallback for API variants where Sound is not a Java enum type.
-        }
-        return String.valueOf(sound);
+        return sound == null ? "" : sound.name();
     }
 }

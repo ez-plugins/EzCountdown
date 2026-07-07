@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tests: Unit Coverage (JaCoCo)",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-B",
+        "-ntp",
+        "jacoco:prepare-agent",
+        "test",
+        "jacoco:report"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests: Feature Coverage (JaCoCo)",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-B",
+        "-ntp",
+        "-Pfeature-tests",
+        "-Dtest=*FeatureTest",
+        "jacoco:prepare-agent",
+        "test",
+        "jacoco:report"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

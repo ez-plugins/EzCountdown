@@ -175,11 +175,22 @@
                 <version>3.0.0-M7</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
-                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                    <argLine>${argLine} -Dnet.bytebuddy.experimental=true</argLine>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                        <include>**/*TestCase.java</include>
+                        <include>**/*UnitTest.java</include>
+                    </includes>
                     <excludes>
                         <exclude>**/*FeatureTest.java</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -312,6 +323,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>3.0.0-M7</version>
                         <configuration>
+                            <argLine>${argLine} -Dnet.bytebuddy.experimental=true</argLine>
                             <includes>
                                 <include>**/*FeatureTest.java</include>
                             </includes>
