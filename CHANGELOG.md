@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Placeholder formatted output regression tests** - added unit coverage in `EzCountdownPlaceholderExpansionUnitTest` to verify `%ezcountdown_<name>_formatted%` honors `display.time-format.hide-leading-zeros` for both enabled and disabled configurations.
+- **Optional countdown start/end sounds** - countdowns can now define `sounds.start` and `sounds.end` with Bukkit `Sound` enum names in `countdowns.yml`.
+- **GUI sound editors** - the in-game editor now includes dedicated actions to configure and validate start/end sounds, including `none` to disable either sound.
+
+### Changed
+
+- **Runtime start/end flow** - when a configured start/end sound is valid, EzCountdown now plays it to online players at countdown start/end alongside existing message, teleport, firework, and command actions.
 
 ## [2.0.1] - 2026-05-22
 

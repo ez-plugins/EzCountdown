@@ -24,6 +24,8 @@ public class GuiActionRegistry {
     private final EditStartMessageAction editStartMessageAction;
     private final EditStartCountdownTargetAction editStartCountdownTargetAction;
     private final EditEndMessageAction editEndMessageAction;
+    private final EditStartSoundAction editStartSoundAction;
+    private final EditEndSoundAction editEndSoundAction;
     private final ToggleDisplayTypeAction toggleDisplayTypeAction;
     private final CommandsEditorActions commandsEditorActions;
 
@@ -40,6 +42,8 @@ public class GuiActionRegistry {
         this.editStartMessageAction = new EditStartMessageAction(manager, messageManager, chatInputListener, registry);
         this.editStartCountdownTargetAction = new EditStartCountdownTargetAction(manager, messageManager, chatInputListener, registry);
         this.editEndMessageAction = new EditEndMessageAction(manager, messageManager, chatInputListener, registry);
+        this.editStartSoundAction = new EditStartSoundAction(manager, messageManager, chatInputListener, registry);
+        this.editEndSoundAction = new EditEndSoundAction(manager, messageManager, chatInputListener, registry);
         this.toggleDisplayTypeAction = new ToggleDisplayTypeAction(manager, messageManager, displayEditor);
         this.commandsEditorActions = new CommandsEditorActions(manager, messageManager, chatInputListener, commandsEditor, registry);
     }
@@ -64,6 +68,8 @@ public class GuiActionRegistry {
             case 6 -> Optional.of(editStartMessageAction);
             case 7 -> Optional.of(editStartCountdownTargetAction);
             case 8 -> Optional.of(editEndMessageAction);
+            case 9 -> Optional.of(editStartSoundAction);
+            case 10 -> Optional.of(editEndSoundAction);
             default -> Optional.empty();
         };
     }

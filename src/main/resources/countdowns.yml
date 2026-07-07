@@ -23,6 +23,11 @@ countdowns:
   #     format: "{translate:example.format}"
   #     start: "{translate:example.start}"
   #     end: "{translate:example.end}"
+  #   sounds:
+  #     # Optional Bukkit Sound enum names to play for all online players.
+  #     # Example: ENTITY_PLAYER_LEVELUP
+  #     start: "ENTITY_PLAYER_LEVELUP"
+  #     end: "BLOCK_NOTE_BLOCK_PLING"
   #   commands:
   #     end:
   #       - "say Countdown finished!"

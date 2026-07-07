@@ -6,9 +6,11 @@ EzCountdown provides configurable countdown timers for events, launches, and mai
 ## Features
 - Fixed date, duration, recurring, and manual countdown modes.
 - Display options: action bar, boss bar (1.9+), chat, title, and scoreboard.
+- Optional start/end sounds per countdown (`sounds.start`, `sounds.end`) using Bukkit `Sound` names.
 - PlaceholderAPI support for `%ezcountdown_<name>_days%`, `_hours`, `_minutes`, `_seconds`, and `_formatted`.
 - Customizable messages (messages.yml), permissions, and update intervals.
 - Run console commands when countdowns finish.
+- GUI editor support for start/end messages, display modes, end commands, and start/end sounds.
 - **Developer API**: send ephemeral one-shot notifications from your plugin without touching YAML (see [API overview](docs/api/README.md)).
 
 ## Commands

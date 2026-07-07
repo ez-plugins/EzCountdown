@@ -51,6 +51,12 @@ public final class Countdown {
     /** Message template shown when the countdown ends. */
     private final String endMessage;
 
+    /** Optional Bukkit sound name to play when the countdown starts. */
+    private String startSound;
+
+    /** Optional Bukkit sound name to play when the countdown ends. */
+    private String endSound;
+
     /** Console commands to execute when the countdown completes. */
     private final java.util.List<String> endCommands;
 
@@ -129,6 +135,8 @@ public final class Countdown {
         this.formatMessage = formatMessage;
         this.startMessage = startMessage;
         this.endMessage = endMessage;
+        this.startSound = null;
+        this.endSound = null;
         this.endCommands = endCommands == null ? java.util.List.of() : java.util.List.copyOf(endCommands);
         this.zoneId = zoneId;
         this.alignToClock = false;
@@ -188,6 +196,8 @@ public final class Countdown {
         this.formatMessage = formatMessage;
         this.startMessage = startMessage;
         this.endMessage = endMessage;
+        this.startSound = null;
+        this.endSound = null;
         this.endCommands = endCommands == null ? java.util.List.of() : java.util.List.copyOf(endCommands);
         this.zoneId = zoneId;
         this.autoRestart = autoRestart;
@@ -229,6 +239,8 @@ public final class Countdown {
         this.formatMessage = formatMessage;
         this.startMessage = startMessage;
         this.endMessage = endMessage;
+        this.startSound = null;
+        this.endSound = null;
         this.endCommands = endCommands == null ? java.util.List.of() : java.util.List.copyOf(endCommands);
         this.zoneId = zoneId;
         this.autoRestart = autoRestart;
@@ -266,6 +278,22 @@ public final class Countdown {
 
     /** @return end message template */
     public String getEndMessage() { return endMessage; }
+
+    /** @return optional sound name to play on start, or null when disabled */
+    public String getStartSound() { return startSound; }
+
+    /** Set optional start sound name; null/blank disables start sound. */
+    public void setStartSound(String startSound) {
+        this.startSound = (startSound == null || startSound.isBlank()) ? null : startSound;
+    }
+
+    /** @return optional sound name to play on end, or null when disabled */
+    public String getEndSound() { return endSound; }
+
+    /** Set optional end sound name; null/blank disables end sound. */
+    public void setEndSound(String endSound) {
+        this.endSound = (endSound == null || endSound.isBlank()) ? null : endSound;
+    }
 
     /** @return immutable copy of end commands */
     public java.util.List<String> getEndCommands() { return java.util.List.copyOf(endCommands); }

@@ -52,4 +52,17 @@ class CountdownBuilderTest {
         assertEquals(25, c.getRecurringDay());
         assertEquals(t, c.getRecurringTime());
     }
+
+    @Test
+    void buildCountdown_setsStartAndEndSounds() {
+        Countdown c = CountdownBuilder.builder("sound-test")
+                .type(CountdownType.DURATION)
+                .startSound("ENTITY_PLAYER_LEVELUP")
+                .endSound("BLOCK_NOTE_BLOCK_PLING")
+                .durationSeconds(30)
+                .build();
+
+        assertEquals("ENTITY_PLAYER_LEVELUP", c.getStartSound());
+        assertEquals("BLOCK_NOTE_BLOCK_PLING", c.getEndSound());
+    }
 }
